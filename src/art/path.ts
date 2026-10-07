@@ -53,6 +53,30 @@ export class Shape {
     return this;
   }
 
+  /** Conservative bounds (control points included). */
+  bounds(): { x0: number; y0: number; x1: number; y1: number } {
+    let x0 = Infinity;
+    let y0 = Infinity;
+    let x1 = -Infinity;
+    let y1 = -Infinity;
+    const take = (p: Pt) => {
+      if (p[0] < x0) x0 = p[0];
+      if (p[1] < y0) y0 = p[1];
+      if (p[0] > x1) x1 = p[0];
+      if (p[1] > y1) y1 = p[1];
+    };
+    for (const c of this.cmds) {
+      if (c.t === 'Z') continue;
+      take(c.p);
+      if (c.t === 'C') {
+        take(c.c1);
+        take(c.c2);
+      }
+    }
+    if (x0 === Infinity) return { x0: 0, y0: 0, x1: 0, y1: 0 };
+    return { x0, y0, x1, y1 };
+  }
+
   lastPoint(): Pt {
     for (let i = this.cmds.length - 1; i >= 0; i--) {
       const c = this.cmds[i]!;

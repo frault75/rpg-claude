@@ -657,7 +657,10 @@ Each location has its own palette (hex values from the pigment set in §6.3), a 
 
 ### 6.1 Medium and why
 
-The medium is **a Gothic illuminated manuscript**: English and French work from about 1300 to 1350, such as the Luttrell, Gorleston, Macclesfield and Queen Mary Psalters, and Jean Pucelle's Hours of Jeanne d'Evreux. These manuscripts are famous for their **marginalia**: drolleries, grotesques, snail-fighting knights, and hares with crossbows.
+The medium is **a Gothic illuminated manuscript**, in two registers:
+
+- **The page itself** (borders, initials, margins and drolleries) follows English and French work from about 1300 to 1350, such as the Luttrell, Gorleston, Macclesfield and Queen Mary Psalters, and Jean Pucelle's Hours of Jeanne d'Evreux. These manuscripts are famous for their **marginalia**: drolleries, grotesques, snail-fighting knights, and hares with crossbows.
+- **The pictures inside the text block** (maps, scenes, battles) are painted in the richer manner of the **Très Riches Heures du duc de Berry** (the Limbourg brothers, c. 1412–16): lapis skies deepening to the zenith, gold stars, castles drawn as solid buildings with lit fronts and shadowed sides, hills going blue in the haze, and meadows of millefleurs.
 
 It's the right choice for three reasons:
 
@@ -667,12 +670,20 @@ It's the right choice for three reasons:
 
 ### 6.2 Rendering rules
 
-- **Everything sits on vellum.** It is a warm off-white with noise-based grain, hair-follicle specks and slight cockling (uneven light). Faint ruling lines, the scribe's guide lines, run across every screen.
-- **Iron-gall ink outlines.** Dark brown-black lines of slightly varying width, drawn with Bezier curves and a simulated broad nib held at a fixed angle, so strokes get thick and thin the way a real pen's do.
-- **Flat gouache fills** from a limited palette. Modelling comes from a darker band along one edge and **lead-white highlight strokes** on folds, never from gradients.
-- **Gold leaf** is used sparingly: halos, initials, the Book, key UI and the Margin. It is drawn as flat ochre with an animated glint as light moves across it.
+- **Everything sits on vellum.** It is a warm off-white with noise-based grain, hair-follicle specks and cockling (the skin's gentle waves, lit from the upper left). Faint ruling lines, the scribe's guide lines, run across every screen.
+- **Paint is modelled, not flat.** Every painted area gets the illuminator's treatment:
+  - a base colour;
+  - a darker tone worked across from the lit side to the shadow side;
+  - brush texture;
+  - pigment pooled darker along its edges;
+  - lead-white hatching on the lights.
+
+  Drapery has soft fold shadows, each with a lit ridge.
+- **Light comes from the upper left.** Buildings are solids in oblique view: a lit front, a side turned into shadow, roofs in two tones, soft shadow gathered at the foot of walls. Figures and props stand on soft contact shadows. At night, windows glow with candlelight.
+- **Iron-gall ink outlines are fine**, drawn with Bezier curves and a simulated broad nib held at a fixed angle, so strokes get thick and thin the way a real pen's do. The paint carries the form; the line only draws it together.
+- **Gold leaf over raised gesso** appears on halos, initials, the Book, key UI, stars and the Margin. Each image carries a height map of its gold, so the shader lights it in relief: bevelled edges, a slowly moving glint, and punched decoration that catches the light.
 - **Diaper backgrounds** (repeating lozenge, checker and foliage-scroll patterns) sit behind every battle miniature, as in real miniatures.
-- **No linear perspective.** Maps are drawn the way medieval maps are: a flat painted ground with buildings, trees and figures standing up in elevation, sorted by depth. This suits an orthographic camera and layered planes exactly.
+- **No linear perspective.** Pictures use the high vantage of the calendar pages: sky at the top, then distant land, then water and fields coming forward. Depth in buildings runs up and to the right at a fixed slant.
 
 ### 6.3 Pigments (the master palette)
 

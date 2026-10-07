@@ -9,10 +9,10 @@ import { drawAbbey } from '../art/architecture';
 import { drawBird, drawGryllus, drawSnail } from '../art/drolleries';
 import { drawRobedFigure, ISOT, type Pose } from '../art/figures';
 import { Illuminator, type IlluminatedImage } from '../art/illuminator';
-import { drawGround, drawTree, drawWaysideCross, type GroundLayout } from '../art/nature';
+import { drawLandscape, drawTree, drawWaysideCross, type LandscapeLayout } from '../art/nature';
 import { drawBanderole, drawBorder, drawLocationCard } from '../art/ornament';
 import { type LocationPalette, PALETTE_ORDER, PALETTES, PIGMENTS } from '../art/palettes';
-import { Sprite, spriteGlobals } from '../art/sprite';
+import { Shadow, Sprite, spriteGlobals } from '../art/sprite';
 import { font } from '../art/text';
 import { EbbNightAmbience } from '../audio/ambient';
 import type { AudioEngine } from '../audio/engine';
@@ -28,7 +28,8 @@ const LAYER_ACTORS = 1;
 const LAYER_FRAME = 2;
 const LAYER_UI = 3;
 
-const SPEED = 95;
+const SPEED = 120;
+const FIGURE_SCALE = 1.4;
 
 const LINES = [
   "That's not a monster. That's a gryllus. A head with legs.",
@@ -36,31 +37,32 @@ const LINES = [
   'Seventy years at that desk, and no one remembers him but me.',
 ];
 
-const shore = (x: number): number => 402 + 6 * Math.sin(x * 0.013) + 3 * Math.sin(x * 0.041 + 1.3);
+const shore = (x: number): number => 414 + 7 * Math.sin(x * 0.011) + 3 * Math.sin(x * 0.037 + 1.3);
 
-const LAYOUT: GroundLayout = {
+const LAYOUT: LandscapeLayout = {
   width: TEXT_BLOCK.w,
   height: TEXT_BLOCK.h,
+  horizon: 196,
   shore,
-  causeway: { x: 586, top: 360, width: 30 },
+  causeway: { x: 586, top: 384, width: 34 },
   path: [
-    [586, 404],
-    [570, 450],
-    [600, 500],
-    [640, 548],
-    [618, 620],
+    [586, 414],
+    [566, 462],
+    [600, 512],
+    [646, 560],
+    [622, 640],
   ],
   keepClear: [
-    { x: 150, y: 496, r: 26 },
-    { x: 1010, y: 536, r: 26 },
-    { x: 380, y: 464, r: 26 },
+    { x: 150, y: 520, r: 30 },
+    { x: 1010, y: 560, r: 30 },
+    { x: 380, y: 486, r: 30 },
   ],
 };
 
 const BLOCKERS = [
-  { x: 150, y: 500, r: 11 },
-  { x: 1010, y: 540, r: 11 },
-  { x: 380, y: 468, r: 18 },
+  { x: 150, y: 520, r: 13 },
+  { x: 1010, y: 560, r: 13 },
+  { x: 380, y: 486, r: 26 },
 ];
 
 interface Reveal {
@@ -75,11 +77,13 @@ export class TestLeaf implements Scene {
   private palette: LocationPalette = PALETTES.ebbNight!;
   private time = 0;
   private readonly env: Sprite[] = [];
+  private readonly shadows: Shadow[] = [];
+  private isotShadow!: Shadow;
   private readonly frame: Sprite[] = [];
   private readonly isot: Record<Pose, Sprite>;
   private pose: Pose = 'stand';
   private x = 586;
-  private y = 560;
+  private y = 575;
   private facing: 1 | -1 = 1;
   private walkClock = 0;
   private walkFrame = 0;
@@ -105,10 +109,13 @@ export class TestLeaf implements Scene {
   ) {
     r.setWorldView(0, 0, TEXT_BLOCK.h);
     this.isot = {
-      stand: this.makeSprite(drawRobedFigure(ISOT, 'stand'), r.world),
-      stepA: this.makeSprite(drawRobedFigure(ISOT, 'stepA'), r.world),
-      stepB: this.makeSprite(drawRobedFigure(ISOT, 'stepB'), r.world),
+      stand: this.makeSprite(drawRobedFigure(ISOT, 'stand', 'isot', 3), r.world),
+      stepA: this.makeSprite(drawRobedFigure(ISOT, 'stepA', 'isot', 3), r.world),
+      stepB: this.makeSprite(drawRobedFigure(ISOT, 'stepB', 'isot', 3), r.world),
     };
+    for (const sp of Object.values(this.isot)) sp.scale = FIGURE_SCALE;
+    this.isotShadow = new Shadow(24, 7, 0.34);
+    r.world.add(this.isotShadow.mesh);
     this.buildEnvironment();
     this.buildFrame();
     this.r.post.setGrade(this.palette.grade);
@@ -132,16 +139,21 @@ export class TestLeaf implements Scene {
       s.dispose();
     }
     this.env.length = 0;
+    for (const sh of this.shadows) {
+      sh.mesh.removeFromParent();
+      sh.dispose();
+    }
+    this.shadows.length = 0;
     const p = this.palette;
-    const ground = this.makeSprite(drawGround(p, LAYOUT, 'test-leaf'), this.r.world);
+    const ground = this.makeSprite(drawLandscape(p, LAYOUT, 'test-leaf'), this.r.world);
     ground.depth = -1e4;
     const abbey = this.makeSprite(drawAbbey(p), this.r.world);
     abbey.x = 586;
-    abbey.y = 372;
-    abbey.scale = 0.82;
+    abbey.y = 392;
+    abbey.scale = 0.84;
     const trees = [
-      { x: 150, y: 500, seed: 'tree-west' },
-      { x: 1010, y: 540, seed: 'tree-east' },
+      { x: 150, y: 520, seed: 'tree-west' },
+      { x: 1010, y: 560, seed: 'tree-east' },
     ].map((t) => {
       const s = this.makeSprite(drawTree(p, t.seed), this.r.world);
       s.x = t.x;
@@ -150,8 +162,19 @@ export class TestLeaf implements Scene {
     });
     const cross = this.makeSprite(drawWaysideCross(p), this.r.world);
     cross.x = 380;
-    cross.y = 470;
+    cross.y = 486;
     this.env.push(ground, abbey, ...trees, cross);
+    for (const [x, y, rx, ry] of [
+      [150, 522, 34, 10],
+      [1010, 562, 34, 10],
+      [380, 488, 32, 8],
+    ] as const) {
+      const sh = new Shadow(rx, ry, 0.3);
+      sh.x = x;
+      sh.y = y;
+      this.r.world.add(sh.mesh);
+      this.shadows.push(sh);
+    }
   }
 
   private buildFrame(): void {
@@ -275,8 +298,8 @@ export class TestLeaf implements Scene {
 
   private walkable(x: number, y: number): boolean {
     if (BLOCKERS.some((b) => Math.hypot((b.x - x) * 0.8, (b.y - y) * 1.6) < b.r)) return false;
-    const onCauseway = Math.abs(x - LAYOUT.causeway.x) <= 11 && y >= 376 && y <= shore(x) + 26;
-    const onMeadow = x >= 18 && x <= TEXT_BLOCK.w - 18 && y >= shore(x) + 24 && y <= TEXT_BLOCK.h - 10;
+    const onCauseway = Math.abs(x - LAYOUT.causeway.x) <= 12 && y >= 398 && y <= shore(x) + 32;
+    const onMeadow = x >= 22 && x <= TEXT_BLOCK.w - 22 && y >= shore(x) + 30 && y <= TEXT_BLOCK.h - 8;
     return onCauseway || onMeadow;
   }
 
@@ -306,7 +329,7 @@ export class TestLeaf implements Scene {
       if (this.walkClock > 0.17) {
         this.walkClock = 0;
         this.walkFrame = (this.walkFrame + 1) % 4;
-        if (this.walkFrame % 2 === 1) footstep(this.audio, this.y < shore(this.x) + 24 ? 'stone' : 'grass');
+        if (this.walkFrame % 2 === 1) footstep(this.audio, this.y < shore(this.x) + 30 ? 'stone' : 'grass');
       }
     } else {
       this.walkFrame = 0;
@@ -362,6 +385,10 @@ export class TestLeaf implements Scene {
   sync(): void {
     const H = this.r.worldHeight;
     for (const s of this.env) s.sync(H, s.depth === -1e4 ? LAYER_GROUND : LAYER_ACTORS);
+    for (const sh of this.shadows) sh.sync(H, LAYER_GROUND);
+    this.isotShadow.x = this.x;
+    this.isotShadow.y = this.y + 1;
+    this.isotShadow.sync(H, LAYER_GROUND);
     for (const [pose, s] of Object.entries(this.isot) as [Pose, Sprite][]) {
       s.mesh.visible = pose === this.pose;
       s.x = this.x;
@@ -372,8 +399,8 @@ export class TestLeaf implements Scene {
     }
     if (this.banderole) {
       const b = this.banderole.sprite;
-      b.x = this.x + 4 * this.facing;
-      b.y = this.y - 104;
+      b.x = this.x + 6 * this.facing;
+      b.y = this.y - 150;
       b.depth = 1e4;
       b.sync(H, LAYER_ACTORS);
     }

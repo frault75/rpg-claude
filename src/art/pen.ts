@@ -93,6 +93,15 @@ export function strokeOutline(pts: readonly Pt[], opts: PenOptions): Pt[] {
   return left.concat(right.reverse());
 }
 
+/** Append a pen stroke's outline to a path, for batched drawing. */
+export function addStroke(path: Path2D, pts: readonly Pt[], opts: PenOptions): void {
+  const outline = strokeOutline(pts, opts);
+  if (outline.length < 3) return;
+  path.moveTo(outline[0]![0], outline[0]![1]);
+  for (let i = 1; i < outline.length; i++) path.lineTo(outline[i]![0], outline[i]![1]);
+  path.closePath();
+}
+
 /** Fill a pen stroke onto a 2D context (in the context's current transform). */
 export function drawStroke(ctx: CanvasRenderingContext2D, pts: readonly Pt[], opts: PenOptions): void {
   const outline = strokeOutline(pts, opts);

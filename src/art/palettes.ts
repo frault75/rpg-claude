@@ -54,6 +54,9 @@ export interface PaletteRoles {
   roof: string;
   roofAlt: string;
   window: string;
+  /** Glass lit from within (candles at night); used when glassLit. */
+  windowLit: string;
+  glassLit: boolean;
   accent: string;
   accentAlt: string;
   foliage: string;
@@ -68,6 +71,18 @@ export interface PaletteRoles {
   /** Rock ledges (islands, outcrops) and their lit tops. */
   rock: string;
   rockLight: string;
+  /** Exterior landscape: the sky from zenith to horizon, distant land, the meadow. */
+  skyTop: string;
+  skyLow: string;
+  farLand: string;
+  meadow: string;
+  meadowDark: string;
+  /** What hangs in the sky. */
+  sky: { stars: boolean; moon: boolean; sun: 'none' | 'low' | 'rising' };
+  /** Interior floor tiles (encaustic red and yellow) and the wall tops seen from above. */
+  floor: string;
+  floorAlt: string;
+  wallTop: string;
   path: string;
   /** The two alternating colours of the border's bar frame. */
   barA: string;
@@ -93,15 +108,17 @@ export const PALETTES: Record<string, LocationPalette> = {
     name: "Saint Ebb's by night",
     heading: "SAINT EBB'S · BY NIGHT",
     roles: {
-      stone: '#DCD6CA',
-      stoneShade: '#A3A8B3',
+      stone: '#CBC4B6',
+      stoneShade: '#7F8697',
       roof: P.lapis,
       roofAlt: P.azurite,
       window: P.lapisDeep,
+      windowLit: '#F0B04A',
+      glassLit: true,
       accent: P.vermilion,
       accentAlt: P.gold,
-      foliage: P.verdigris,
-      foliageShade: '#1F5E52',
+      foliage: '#4E7E50',
+      foliageShade: '#22422E',
       flower: P.leadWhite,
       flowerAlt: P.azurite,
       water: P.azurite,
@@ -109,8 +126,17 @@ export const PALETTES: Record<string, LocationPalette> = {
       waterWash: '#C9D3E3',
       earth: P.slate,
       earthShade: '#41464F',
-      rock: '#7E8986',
-      rockLight: '#C3CABF',
+      rock: '#6E786C',
+      rockLight: '#B4BDA8',
+      skyTop: '#0E1B45',
+      skyLow: '#4166AE',
+      farLand: '#5F7C8E',
+      meadow: '#4E7A4E',
+      meadowDark: '#2C4E33',
+      sky: { stars: true, moon: true, sun: 'none' },
+      floor: '#8C5C48',
+      floorAlt: '#CDB27C',
+      wallTop: '#8E95A3',
       path: '#B9AE97',
       barA: P.lapis,
       barB: P.vermilion,
@@ -128,6 +154,8 @@ export const PALETTES: Record<string, LocationPalette> = {
       roof: P.minium,
       roofAlt: P.madder,
       window: P.umber,
+      windowLit: '#ECA548',
+      glassLit: true,
       accent: P.madder,
       accentAlt: P.gold,
       foliage: P.verdigris,
@@ -141,6 +169,15 @@ export const PALETTES: Record<string, LocationPalette> = {
       earthShade: P.umber,
       rock: '#B08E62',
       rockLight: '#E0CBA2',
+      skyTop: '#27346B',
+      skyLow: '#E8B58A',
+      farLand: '#8A8EA2',
+      meadow: '#E9E4DA',
+      meadowDark: '#B9BCC6',
+      sky: { stars: true, moon: false, sun: 'low' },
+      floor: '#A0643E',
+      floorAlt: '#DCC08A',
+      wallTop: '#A58A62',
       path: '#D6BE8E',
       barA: P.madder,
       barB: P.gold,
@@ -158,6 +195,8 @@ export const PALETTES: Record<string, LocationPalette> = {
       roof: P.folium,
       roofAlt: P.umber,
       window: P.lampBlack,
+      windowLit: '#C9B98A',
+      glassLit: false,
       accent: P.folium,
       accentAlt: P.silver,
       foliage: P.sapGreen,
@@ -171,6 +210,15 @@ export const PALETTES: Record<string, LocationPalette> = {
       earthShade: '#4A3420',
       rock: '#8D8578',
       rockLight: '#D2C9B8',
+      skyTop: '#6E7D80',
+      skyLow: '#DAD8C9',
+      farLand: '#A6AEA4',
+      meadow: '#8C9A6A',
+      meadowDark: '#5E6E45',
+      sky: { stars: false, moon: false, sun: 'none' },
+      floor: '#9A8C7A',
+      floorAlt: '#D8CDB8',
+      wallTop: '#9C948A',
       path: '#CBBFA2',
       barA: P.sapGreen,
       barB: P.folium,
@@ -188,6 +236,8 @@ export const PALETTES: Record<string, LocationPalette> = {
       roof: P.vermilion,
       roofAlt: P.lapis,
       window: P.lapisDeep,
+      windowLit: '#F2CF6A',
+      glassLit: false,
       accent: P.vermilion,
       accentAlt: P.gold,
       foliage: P.malachite,
@@ -201,6 +251,15 @@ export const PALETTES: Record<string, LocationPalette> = {
       earthShade: P.goldDark,
       rock: P.brazilRose,
       rockLight: '#F3CBD2',
+      skyTop: '#1E3A8A',
+      skyLow: '#F1D88A',
+      farLand: '#7FA86E',
+      meadow: '#56AE6E',
+      meadowDark: '#2E7A48',
+      sky: { stars: true, moon: false, sun: 'rising' },
+      floor: P.vermilion,
+      floorAlt: P.goldLight,
+      wallTop: P.gold,
       path: '#E9CF86',
       barA: P.vermilion,
       barB: P.lapis,
@@ -218,6 +277,8 @@ export const PALETTES: Record<string, LocationPalette> = {
       roof: P.brazilRose,
       roofAlt: P.azurite,
       window: P.lapisDeep,
+      windowLit: '#E8B070',
+      glassLit: false,
       accent: P.brazilRose,
       accentAlt: P.goldLight,
       foliage: P.verdigris,
@@ -231,6 +292,15 @@ export const PALETTES: Record<string, LocationPalette> = {
       earthShade: '#8D6E5F',
       rock: '#B49A93',
       rockLight: '#EAD4CB',
+      skyTop: '#3E57A0',
+      skyLow: '#F3B8A0',
+      farLand: '#8C93A8',
+      meadow: '#5E8C5A',
+      meadowDark: '#35603C',
+      sky: { stars: false, moon: false, sun: 'rising' },
+      floor: '#B07A6A',
+      floorAlt: '#E8CFA8',
+      wallTop: '#B8A0A0',
       path: '#E3CDB2',
       barA: P.brazilRose,
       barB: P.azurite,
@@ -258,11 +328,19 @@ export function rgbToHex([r, g, b]: [number, number, number]): string {
   return `#${c(r)}${c(g)}${c(b)}`.toUpperCase();
 }
 
-/** Mix two hex colours; t = 0 gives a, t = 1 gives b. */
+const mixCache = new Map<string, string>();
+
+/** Mix two hex colours; t = 0 gives a, t = 1 gives b. (Memoised: generators call it a lot.) */
 export function mix(a: string, b: string, t: number): string {
+  const key = `${a}${b}${Math.round(t * 1000)}`;
+  const hit = mixCache.get(key);
+  if (hit) return hit;
   const ca = hexToRgb(a);
   const cb = hexToRgb(b);
-  return rgbToHex([ca[0] + (cb[0] - ca[0]) * t, ca[1] + (cb[1] - ca[1]) * t, ca[2] + (cb[2] - ca[2]) * t]);
+  const out = rgbToHex([ca[0] + (cb[0] - ca[0]) * t, ca[1] + (cb[1] - ca[1]) * t, ca[2] + (cb[2] - ca[2]) * t]);
+  if (mixCache.size > 20000) mixCache.clear();
+  mixCache.set(key, out);
+  return out;
 }
 
 /** Darken (t < 0, towards iron-gall) or lighten (t > 0, towards lead-white). */

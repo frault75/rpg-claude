@@ -39,6 +39,16 @@ void main() {
   vec3 c = mix(uDeep, uVellum, 0.6 + 0.4 * smoothstep(0.2, 0.8, large));
   c = mix(c, uShade, smoothstep(0.5, 0.85, mid) * 0.3);
 
+  // Cockling: vellum never lies flat. Light it from the upper left as a gentle relief.
+  float hC = fbm(p * 0.0028 + 7.0) + fbm(p * 0.011 + 3.0) * 0.18;
+  float hX = fbm((p + vec2(3.0, 0.0)) * 0.0028 + 7.0) + fbm((p + vec2(3.0, 0.0)) * 0.011 + 3.0) * 0.18;
+  float hY = fbm((p + vec2(0.0, 3.0)) * 0.0028 + 7.0) + fbm((p + vec2(0.0, 3.0)) * 0.011 + 3.0) * 0.18;
+  vec3 nrm = normalize(vec3((hC - hX) * 26.0, (hC - hY) * 26.0, 1.0));
+  float lightK = dot(nrm, normalize(vec3(-0.5, -0.55, 0.9)));
+  c *= 0.9 + 0.12 * lightK;
+  // Translucency: thinner skin is a little paler and cooler.
+  c = mix(c, c * vec3(1.02, 1.01, 0.98), smoothstep(0.55, 0.8, hC) * 0.5);
+
   // Fibres: long faint streaks.
   float fib = vnoise(vec2(p.x * 0.01 + p.y * 0.003, p.y * 0.22));
   c *= 1.0 - smoothstep(0.72, 0.97, fib) * 0.03;
