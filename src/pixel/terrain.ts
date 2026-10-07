@@ -491,3 +491,16 @@ function cliffPixel(x: number, y: number, fromTop: number, toFoot: number, noise
   const k = Math.floor(f);
   return f - k > bayer(x, y) && k + 1 < rock.length ? rock[k + 1]! : rock[k]!;
 }
+
+/**
+ * A cliff face texture, w x h pixels: boulders lit from the upper left, grass hanging
+ * over the top edge, darker towards the foot. Tiles horizontally well enough to repeat.
+ */
+export function paintCliff(w: number, h: number, seed = 1, pal: GroundPalette = GROUND_DEFAULT): PixelImage {
+  const img = new PixelImage(w, h);
+  const noise = new Noise2D(seed);
+  const rock = ramp(pal.rock, 6);
+  const grass = ramp(pal.grass, 6);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) img.set(x, y, cliffPixel(x, y, y + 1, h - y, noise, rock, grass, seed));
+  return img;
+}

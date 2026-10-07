@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { abbeyChurch, seaGate } from '../src/pixel/buildings';
+import { newArt, windowArch } from '../src/pixel/buildings';
+import { abbeyChurch3D, elevation } from '../src/world3d/building';
 import { CHARACTERS, DIRS, drawCharacter, FRAME_H, FRAME_W, FRAMES } from '../src/pixel/characters';
 import { oakTree, rock } from '../src/pixel/nature';
 import { bayer, hex, PixelImage, ramp } from '../src/pixel/pixel';
@@ -107,19 +108,32 @@ describe('terrain', () => {
 });
 
 describe('scenery', () => {
-  it('generates the abbey church with lit glass and lights to cast', () => {
-    const c = abbeyChurch(11, true);
-    expect(c.a.w).toBe(c.e.w);
-    let glow = 0;
-    for (let i = 0; i < c.e.data.length; i += 4) if (c.e.data[i]! > 100) glow++;
-    expect(glow).toBeGreaterThan(200);
-    expect(c.lights.length).toBeGreaterThan(3);
-    const dark = abbeyChurch(11, false);
-    expect(dark.lights.length).toBe(0);
+  it('paints lit stained glass into the emissive image', () => {
+    const lit = newArt(20, 40);
+    windowArch(lit, 4, 4, 10, 30, { lit: 'warm' });
+    const dark = newArt(20, 40);
+    windowArch(dark, 4, 4, 10, 30, { lit: null });
+    const glow = (img: typeof lit.e) => {
+      let n = 0;
+      for (let i = 0; i < img.data.length; i += 4) if (img.data[i]! > 100) n++;
+      return n;
+    };
+    expect(glow(lit.e)).toBeGreaterThan(100);
+    expect(glow(dark.e)).toBe(0);
   });
 
-  it('generates gates, trees, rocks and flames of the expected size', () => {
-    expect(seaGate().anchor[1]).toBe(seaGate().a.h - 1);
+  it('builds the abbey church as volumes with lights at its windows', () => {
+    const c = abbeyChurch3D(0, 0, 0, true);
+    expect(c.group.children.length).toBeGreaterThan(3);
+    expect(c.lights.length).toBeGreaterThan(2);
+    expect(c.footprints.length).toBeGreaterThan(0);
+    expect(abbeyChurch3D(0, 0, 0, false).lights).toHaveLength(0);
+    const e = elevation(40, 30, '#A49C8E', 1, () => undefined);
+    expect(e.a.w).toBe(40);
+    expect(e.a.alpha(20, 15)).toBe(255);
+  });
+
+  it('generates trees, rocks and flames of the expected size', () => {
     expect(oakTree(1).w).toBeGreaterThan(40);
     expect(rock(1, 2).w).toBe(52);
     const f = flameSheet(4, 9, 14);

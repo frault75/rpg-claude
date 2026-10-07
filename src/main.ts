@@ -5,7 +5,7 @@
 
 import { AudioEngine } from './audio/engine';
 import { DebugOverlay } from './debug/overlay';
-import { WorldRenderer } from './engine/hd2d/renderer';
+import { WorldRenderer } from './engine/diorama/renderer';
 import { Input } from './engine/input';
 import type { Scene } from './engine/scene';
 import { SeaGateScene } from './scenes/seaGate';
@@ -39,14 +39,24 @@ function boot(): void {
 
   let last = performance.now();
   const frame = (now: number) => {
-    const dt = Math.min(0.05, (now - last) / 1000);
+    const ms = now - last;
+    const dt = Math.min(0.05, ms / 1000);
     last = now;
     input.pollGamepads();
     scene.update(dt);
     scene.sync();
     renderer.render(dt);
+    renderer.frameTime(ms);
     debug.frame(dt, () => scene.debugInfo());
     requestAnimationFrame(frame);
+  };
+  /** Run the game forward by `seconds` without waiting for frames (tests and screenshots). */
+  const advance = (seconds: number) => {
+    const steps = Math.round(seconds * 30);
+    for (let i = 0; i < steps; i++) {
+      scene.update(1 / 30);
+      renderer.time += 1 / 30;
+    }
   };
   requestAnimationFrame((t) => {
     last = t;
@@ -59,6 +69,7 @@ function boot(): void {
     renderer,
     input,
     audio,
+    advance,
     get scene(): Scene {
       return scene;
     },

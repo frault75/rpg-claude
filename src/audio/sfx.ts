@@ -30,3 +30,40 @@ export function pageTurn(engine: AudioEngine): void {
   noiseBurst(ctx, engine.bus('ui'), t, 0.35, 1400, 0.7, 0.12);
   noiseBurst(ctx, engine.bus('ui'), t + 0.3, 0.08, 600, 1.4, 0.12);
 }
+
+/** A speaker's voice: a soft, short pitched blip per syllable, as in the old RPGs. */
+export function voiceBlip(engine: AudioEngine, pitch: number): void {
+  const ctx = engine.ctx;
+  if (!ctx) return;
+  const t = ctx.currentTime;
+  const o = ctx.createOscillator();
+  o.type = 'triangle';
+  o.frequency.setValueAtTime(pitch * (0.96 + Math.random() * 0.08), t);
+  o.frequency.exponentialRampToValueAtTime(pitch * 0.85, t + 0.06);
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0, t);
+  g.gain.linearRampToValueAtTime(0.05, t + 0.005);
+  g.gain.exponentialRampToValueAtTime(0.0005, t + 0.07);
+  o.connect(g).connect(engine.bus('ui'));
+  o.start(t);
+  o.stop(t + 0.08);
+}
+
+/** The menu cursor moving, and a choice confirmed. */
+export function uiTick(engine: AudioEngine, confirm = false): void {
+  const ctx = engine.ctx;
+  if (!ctx) return;
+  const t = ctx.currentTime;
+  for (const [f, d] of confirm ? ([[1320, 0], [1980, 0.05]] as const) : ([[1760, 0]] as const)) {
+    const o = ctx.createOscillator();
+    o.type = 'sine';
+    o.frequency.value = f;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0, t + d);
+    g.gain.linearRampToValueAtTime(0.04, t + d + 0.004);
+    g.gain.exponentialRampToValueAtTime(0.0005, t + d + 0.12);
+    o.connect(g).connect(engine.bus('ui'));
+    o.start(t + d);
+    o.stop(t + d + 0.13);
+  }
+}

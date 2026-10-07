@@ -46,7 +46,7 @@ export function lanternPost(): Prop {
   }
   art.a.hline(3, 8, 11, iron[1]!);
   art.a.outline(null);
-  art.lights.push({ x: 6, y: 7, r: 90, color: '#FFB866', intensity: 1.1 });
+  art.lights.push({ x: 6, y: 7, r: 70, color: '#FFB866', intensity: 0.7 });
   return { ...art, anchor: [W / 2, H - 1] };
 }
 

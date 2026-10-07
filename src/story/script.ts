@@ -6,7 +6,8 @@
 
 import { type CharId, check, type Condition, type Flags } from './state';
 
-export type Mood = 'neutral' | 'wry' | 'grave' | 'alarmed' | 'warm';
+/** How a speaker looks while saying a line (their portrait changes with it). */
+export type Mood = 'neutral' | 'warm' | 'wry' | 'sad' | 'grave' | 'stern' | 'alarmed' | 'tired';
 
 export interface ChoiceOption {
   text: string;
