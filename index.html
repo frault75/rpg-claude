@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Palimpsest</title>
+    <meta name="description" content="A story-driven, turn-based RPG drawn as an illuminated manuscript." />
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: #15110d;
+        overflow: hidden;
+      }
+      canvas#page {
+        display: block;
+        width: 100vw;
+        height: 100vh;
+      }
+      #loading {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #d8c6a2;
+        font: italic 18px 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+        letter-spacing: 0.04em;
+        pointer-events: none;
+      }
+      #loading.error {
+        color: #e7a08f;
+        font-style: normal;
+        padding: 2em;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="page"></canvas>
+    <div id="loading">Preparing the vellum…</div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
