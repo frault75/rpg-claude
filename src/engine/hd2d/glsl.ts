@@ -1,4 +1,4 @@
-/** GLSL helpers shared by the sprite, vellum and post-processing shaders. */
+/** GLSL helpers shared by the HD-2D shaders. */
 
 export const NOISE_GLSL = /* glsl */ `
 float hash12(vec2 p) {

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { BOOK_MOTIF, chantPhrase } from '../src/audio/chant';
 import { degreeToMidi, midiToHz, MODES } from '../src/audio/instruments';
 import { actionFor } from '../src/engine/input';
-import { fitPage, PAGE_H, PAGE_W, TEXT_BLOCK, windowToPage } from '../src/engine/page';
+import { fitView, VIEW_H, VIEW_W, windowToView } from '../src/engine/view';
 import { Rng } from '../src/engine/rng';
 
 describe('input mapping', () => {
@@ -26,9 +26,10 @@ describe('input mapping', () => {
     expect(actionFor('Backquote', '`', true)).toBe('debugMenu');
   });
 
-  it('reads palette digits by position (AZERTY digits need no shift)', () => {
-    expect(actionFor('Digit1', '&', false)).toBe('palette1');
-    expect(actionFor('Digit5', '(', false)).toBe('palette5');
+  it('reads digits by position (AZERTY digits need no shift)', () => {
+    expect(actionFor('Digit1', '&', false)).toBe('n1');
+    expect(actionFor('Digit5', '(', false)).toBe('n5');
+    expect(actionFor('Numpad3', '3', false)).toBe('n3');
   });
 
   it('ignores unmapped keys', () => {
@@ -36,28 +37,22 @@ describe('input mapping', () => {
   });
 });
 
-describe('page geometry', () => {
-  it('letterboxes a 16:9 page into any window', () => {
-    const wide = fitPage(2000, 720);
-    expect(wide.h).toBe(720);
-    expect(wide.x).toBe(Math.floor((2000 - 1280) / 2));
-    const tall = fitPage(1280, 1400);
+describe('view geometry', () => {
+  it('letterboxes the 16:9 view inside any window', () => {
+    const wide = fitView(2000, 720);
+    expect(wide).toEqual({ x: 360, y: 0, w: 1280, h: 720 });
+    const tall = fitView(1280, 1400);
     expect(tall.w).toBe(1280);
-    expect(tall.y).toBeGreaterThan(0);
+    expect(tall.h).toBe(720);
+    expect(tall.y).toBe(340);
   });
 
-  it('maps window pixels to page units', () => {
-    const p = windowToPage(640, 360, 1280, 720);
-    expect(p).toEqual({ x: 640, y: 360 });
-    expect(windowToPage(5, 5, 2000, 720)).toBeNull();
-  });
-
-  it('keeps the text block inside the page with a deeper bottom margin', () => {
-    expect(TEXT_BLOCK.x).toBeGreaterThan(0);
-    expect(TEXT_BLOCK.x + TEXT_BLOCK.w).toBeLessThan(PAGE_W);
-    const top = TEXT_BLOCK.y;
-    const bottom = PAGE_H - TEXT_BLOCK.y - TEXT_BLOCK.h;
-    expect(bottom).toBeGreaterThan(top);
+  it('maps window pixels to logical units and rejects the bars', () => {
+    const box = fitView(2560, 1440);
+    expect(windowToView(1280, 720, box)).toEqual({ x: 640, y: 360 });
+    const bars = fitView(2000, 720);
+    expect(windowToView(5, 5, bars)).toBeNull();
+    expect(VIEW_W / VIEW_H).toBeCloseTo(16 / 9);
   });
 });
 

@@ -1,9 +1,7 @@
 /**
  * The debug overlay (DESIGN.md §10.6), toggled with the key left of 1 (` or ²).
- * Plain DOM: it is a tool, not part of the page, so it is not drawn in the manuscript style.
+ * Plain DOM: it is a tool, not part of the game, so it is not drawn in the game's style.
  */
-
-import { POST_STAGES, type PostPass } from '../engine/post/post';
 
 export interface DebugInfo {
   scene: string;
@@ -11,10 +9,15 @@ export interface DebugInfo {
   lines: [string, string][];
 }
 
+export interface DebugToggle {
+  label: string;
+  get: () => boolean;
+  set: (on: boolean) => void;
+}
+
 export interface DebugHooks {
-  post: PostPass;
-  setShimmer: (on: boolean) => void;
-  shimmer: () => boolean;
+  /** Rendering stages that can be switched on and off. */
+  toggles: () => DebugToggle[];
   /** Extra buttons offered by the current scene. */
   buttons: () => { label: string; run: () => void }[];
 }
@@ -110,9 +113,8 @@ export class DebugOverlay {
       l.append(c, ` ${label}`);
       this.controls.append(l);
     };
-    heading('post-processing');
-    for (const stage of POST_STAGES) check(stage, this.hooks.post.enabled[stage], (v) => (this.hooks.post.enabled[stage] = v));
-    check('gold shimmer', this.hooks.shimmer(), (v) => this.hooks.setShimmer(v));
+    heading('rendering');
+    for (const t of this.hooks.toggles()) check(t.label, t.get(), t.set);
     const buttons = this.hooks.buttons();
     if (buttons.length) {
       heading('scene');
