@@ -70,7 +70,7 @@ export function partyPage(d: MenuDeps): Page {
         box.append(portrait(id));
         const info = el('div');
         const st = PARTY_STATS[id];
-        info.append(el('div', 'name', st.name));
+        info.append(el('div', 'name', tr(st.name)));
         info.append(el('div', 'meta', `${t('role.' + id)} · ${t('party.hp')} ${st.hp}<span class="hpbar"><i style="width:100%"></i></span>`));
         const ab = el('div', 'abil');
         for (const a of g.abilities[id] ?? []) {
@@ -149,7 +149,7 @@ function pickerPage(d: MenuDeps, who: CharId, slot: Slot): Page {
             g.equipment[who][slot] = id;
             d.menu.back();
           },
-          holder && holder !== who ? PARTY_STATS[holder].name : id === wearing ? '✦' : '',
+          holder && holder !== who ? tr(PARTY_STATS[holder].name) : id === wearing ? '✦' : '',
         );
         r.el.querySelector('.label')!.innerHTML = `${tr(it.name)}<span class="item-text">${tr(it.text)}</span><span class="item-lore">${tr(it.lore)}</span>`;
         r.el.insertBefore(el('span', 'gem', ''), r.el.querySelector('.label'));

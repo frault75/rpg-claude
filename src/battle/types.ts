@@ -11,7 +11,11 @@ export type Side = 'party' | 'enemy';
 
 /** Party places: 0 Front, 1 Middle, 2 Rear. Enemy places: 0..3 (1st..4th). */
 export type Place = number;
-export const PLACE_NAMES = ['Front', 'Middle', 'Rear'] as const;
+export const PLACE_NAMES: LocalText[] = [
+  { en: 'Front', fr: 'Avant' },
+  { en: 'Middle', fr: 'Milieu' },
+  { en: 'Rear', fr: 'Arrière' },
+];
 
 export interface Statuses {
   /** Absorbs this much damage; fades when the owner's side next begins to act. */
@@ -68,7 +72,7 @@ export interface Unit {
   side: Side;
   /** Character id for allies; enemy kind for enemies. */
   kind: string;
-  name: string;
+  name: LocalText;
   hp: number;
   maxHp: number;
   place: Place;
@@ -89,8 +93,7 @@ export type Target =
   | { unit: string }
   | { all: true }
   | { places: Place[] }
-  | { self: true }
-  | { ally: 'enemy' };
+  | { self: true };
 
 export interface Intent {
   id: string;
@@ -99,7 +102,7 @@ export interface Intent {
   /** Order of action in the enemy phase (1-based, shown on the banderole). */
   order: number;
   /** Banderole text, written in red. */
-  label: string;
+  label: LocalText;
   target: Target;
   damage: number;
   reach: 'close' | 'far' | 'any';
@@ -108,7 +111,7 @@ export interface Intent {
   /** Wind-up: resolves when this reaches 0 (shown as "in n"). */
   countdown: number;
   cancelled: boolean;
-  /** Postponed by Immure: performed next round instead. */
+  /** Held over into next round: postponed by Immure, or a wind-up still counting. */
   waiting: boolean;
 }
 
@@ -165,6 +168,7 @@ export type BattleEvent =
   | { type: 'omen'; intents: string[] }
   | { type: 'act'; unit: string; ability: AbilityId; target?: string }
   | { type: 'intent'; intent: string; actor: string }
+  | { type: 'windup'; intent: string; actor: string; countdown: number }
   | { type: 'damage'; unit: string; amount: number; absorbed: number; source: string }
   | { type: 'heal'; unit: string; amount: number }
   | { type: 'ward'; unit: string; amount: number }

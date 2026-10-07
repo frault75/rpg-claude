@@ -71,7 +71,7 @@ export const ITEMS: Record<string, ItemDef> = {
     slot: 'relic',
     owner: 'whit',
     name: { en: 'Clapper of the Passing Bell', fr: 'Battant de la cloche des trépassés' },
-    text: { en: 'A Reckoning deals 9 instead of 7, but Lance deals 3.', fr: 'Un Compte rendu inflige 9 au lieu de 7, mais la Lance inflige 3.' },
+    text: { en: 'A Reckoning deals 9 instead of 7, but Lance deals 3.', fr: 'Le Règlement inflige 9 au lieu de 7, mais la Lance inflige 3.' },
     lore: { en: 'Lychford’s bell rang for no one for ten years.', fr: 'La cloche de Lychford n’a sonné pour personne pendant dix ans.' },
     color: '#B08A3A',
   },
