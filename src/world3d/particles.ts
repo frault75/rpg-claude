@@ -1,25 +1,26 @@
 /**
- * Glowing particles for the high-resolution effects layer: fireflies, embers rising off
- * torches, drifting motes, snow, sparks. Simulated on the CPU (a few hundred at most) and
- * drawn as soft additive points, so bloom turns them into little lights.
+ * Glowing particles in the diorama: fireflies, embers rising off torches, motes,
+ * snow, sparks and glints on water. Positions are map coordinates (art pixels, h up);
+ * the points are drawn additively and soft, so bloom turns them into small lights.
  */
 
 import * as THREE from 'three';
-import { Rng } from '../rng';
+import { FX_SCALE } from '../engine/diorama/fx';
+import { world } from '../engine/diorama/space';
+import { Rng } from '../engine/rng';
 
-/** Shared by every particle material: internal pixels per world unit. */
-export const FX_GLOBALS = { uScale: { value: 1 } };
 
 export type ParticleKind = 'firefly' | 'ember' | 'mote' | 'snow' | 'spark' | 'glint';
 
 export interface EmitterDef {
   kind: ParticleKind;
-  /** Spawn area: x, y, w, h in world units. */
-  rect: readonly [number, number, number, number];
-  /** Particles alive at once (fireflies, motes, snow) or per second (embers, sparks). */
+  /** Spawn box: x, y (ground), w, d in art pixels, and the heights h0..h1. */
+  area: readonly [number, number, number, number];
+  heights: readonly [number, number];
+  /** Population (fireflies, motes, snow) or births per second (embers, sparks, glints). */
   count: number;
   color: string;
-  /** Size in world units. */
+  /** Size in art pixels. */
   size?: number;
   intensity?: number;
 }
@@ -50,8 +51,10 @@ void main() {
 interface P {
   x: number;
   y: number;
+  h: number;
   vx: number;
   vy: number;
+  vh: number;
   age: number;
   life: number;
   phase: number;
@@ -67,17 +70,20 @@ export class Emitter {
   private readonly col: Float32Array;
   private readonly siz: Float32Array;
   private readonly base: THREE.Color;
+  private readonly continuous: boolean;
+  private readonly count: number;
   private carry = 0;
-  /** Scales the spawn rate or population (0 stops new particles). */
   rate = 1;
 
   constructor(
     readonly def: EmitterDef,
     seed = 1,
+    density = 1,
   ) {
     this.rng = new Rng(seed);
-    const continuous = def.kind === 'ember' || def.kind === 'spark';
-    this.max = continuous ? Math.ceil(def.count * 3) : def.count;
+    this.continuous = def.kind === 'ember' || def.kind === 'spark' || def.kind === 'glint';
+    const count = Math.max(1, Math.round(def.count * density));
+    this.max = this.continuous ? Math.ceil(count * 3) + 2 : count;
     this.pos = new Float32Array(this.max * 3);
     this.col = new Float32Array(this.max * 4);
     this.siz = new Float32Array(this.max);
@@ -88,49 +94,45 @@ export class Emitter {
     geo.setAttribute('aSize', new THREE.BufferAttribute(this.siz, 1));
     this.points = new THREE.Points(
       geo,
-      new THREE.ShaderMaterial({
-        vertexShader: VERT,
-        fragmentShader: FRAG,
-        uniforms: FX_GLOBALS,
-        blending: THREE.AdditiveBlending,
-        transparent: true,
-        depthTest: false,
-        depthWrite: false,
-      }),
+      new THREE.ShaderMaterial({ vertexShader: VERT, fragmentShader: FRAG, uniforms: FX_SCALE, blending: THREE.AdditiveBlending, transparent: true, depthWrite: false }),
     );
     this.points.frustumCulled = false;
-    if (!continuous) for (let i = 0; i < def.count; i++) this.ps.push(this.spawn(true));
+    this.points.renderOrder = 10;
+    this.count = count;
+    if (!this.continuous) for (let i = 0; i < count; i++) this.ps.push(this.spawn(true));
   }
 
   private spawn(initial: boolean): P {
     const r = this.rng;
-    const [x, y, w, h] = this.def.rect;
-    const s = this.def.size ?? 6;
-    const p: P = { x: x + r.float() * w, y: y + r.float() * h, vx: 0, vy: 0, age: 0, life: 1, phase: r.float() * 10, size: s * (0.7 + r.float() * 0.6) };
+    const [x, y, w, d] = this.def.area;
+    const [h0, h1] = this.def.heights;
+    const s = this.def.size ?? 2;
+    const p: P = { x: x + r.float() * w, y: y + r.float() * d, h: h0 + r.float() * (h1 - h0), vx: 0, vy: 0, vh: 0, age: 0, life: 1, phase: r.float() * 10, size: s * (0.7 + r.float() * 0.6) };
     switch (this.def.kind) {
       case 'firefly':
         p.life = 6 + r.float() * 6;
         break;
       case 'mote':
         p.life = 8 + r.float() * 8;
-        p.vx = (r.float() - 0.5) * 6;
-        p.vy = (r.float() - 0.5) * 4;
+        p.vx = (r.float() - 0.5) * 2;
+        p.vy = (r.float() - 0.5) * 1.5;
+        p.vh = (r.float() - 0.3) * 1.5;
         break;
       case 'snow':
         p.life = 1e9;
-        p.vy = 22 + r.float() * 20;
-        p.size = s * (0.5 + r.float() * 0.8);
-        if (!initial) p.y = y - 10;
+        p.vh = -(7 + r.float() * 7);
+        if (!initial) p.h = h1;
         break;
       case 'ember':
         p.life = 1.2 + r.float() * 1.6;
-        p.vx = (r.float() - 0.5) * 18;
-        p.vy = -(30 + r.float() * 40);
+        p.vx = (r.float() - 0.5) * 6;
+        p.vh = 10 + r.float() * 14;
         break;
       case 'spark':
         p.life = 0.4 + r.float() * 0.5;
-        p.vx = (r.float() - 0.5) * 200;
-        p.vy = -(r.float() * 160);
+        p.vx = (r.float() - 0.5) * 70;
+        p.vy = (r.float() - 0.5) * 30;
+        p.vh = r.float() * 60;
         break;
       case 'glint':
         p.life = 0.5 + r.float() * 1.2;
@@ -142,80 +144,60 @@ export class Emitter {
 
   update(dt: number, time: number): void {
     const d = this.def;
-    const continuous = d.kind === 'ember' || d.kind === 'spark' || d.kind === 'glint';
-    if (continuous) {
-      this.carry += d.count * this.rate * dt;
+    if (this.continuous) {
+      this.carry += this.count * this.rate * dt;
       while (this.carry >= 1 && this.ps.length < this.max) {
         this.ps.push(this.spawn(false));
         this.carry -= 1;
       }
       if (this.carry >= 1) this.carry = 0;
     }
-    const [rx, ry, rw, rh] = d.rect;
     const intensity = d.intensity ?? 1;
-    let n = 0;
     for (let i = this.ps.length - 1; i >= 0; i--) {
       const p = this.ps[i]!;
       p.age += dt;
       const t = time + p.phase;
-      switch (d.kind) {
-        case 'firefly':
-          p.vx += (Math.sin(t * 0.7) * 14 - p.vx) * dt;
-          p.vy += (Math.cos(t * 0.53) * 10 - p.vy) * dt;
-          break;
-        case 'snow':
-          p.vx = Math.sin(t * 0.8) * 10;
-          if (p.y > ry + rh) {
-            p.y = ry - 4;
-            p.x = rx + this.rng.float() * rw;
-          }
-          break;
-        case 'ember':
-          p.vx += Math.sin(t * 5) * 30 * dt;
-          p.vy *= 1 - 0.4 * dt;
-          break;
-        case 'spark':
-          p.vy += 300 * dt;
-          break;
-      }
+      if (d.kind === 'firefly') {
+        p.vx += (Math.sin(t * 0.7) * 5 - p.vx) * dt;
+        p.vy += (Math.cos(t * 0.53) * 3 - p.vy) * dt;
+        p.vh += (Math.sin(t * 0.9) * 2 - p.vh) * dt;
+      } else if (d.kind === 'snow') {
+        p.vx = Math.sin(t * 0.8) * 3;
+        if (p.h < d.heights[0]) {
+          p.h = d.heights[1];
+          p.x = d.area[0] + this.rng.float() * d.area[2];
+        }
+      } else if (d.kind === 'ember') {
+        p.vx += Math.sin(t * 5) * 10 * dt;
+        p.vh *= 1 - 0.4 * dt;
+      } else if (d.kind === 'spark') p.vh -= 120 * dt;
       p.x += p.vx * dt;
       p.y += p.vy * dt;
+      p.h += p.vh * dt;
       if (p.age >= p.life) {
-        if (continuous) {
+        if (this.continuous) {
           this.ps.splice(i, 1);
           continue;
         }
         Object.assign(p, this.spawn(false));
       }
     }
+    let n = 0;
     for (const p of this.ps) {
       const life = p.age / p.life;
       let a = 1;
-      switch (d.kind) {
-        case 'firefly': {
-          const pulse = Math.max(0, Math.sin((time + p.phase) * 1.7));
-          a = Math.min(1, life * 4, (1 - life) * 4) * (0.15 + 0.85 * pulse * pulse);
-          break;
-        }
-        case 'mote':
-          a = Math.min(1, life * 3, (1 - life) * 3) * 0.5;
-          break;
-        case 'snow':
-          a = 0.75;
-          break;
-        case 'ember':
-          a = (1 - life) * (0.7 + 0.3 * Math.sin((time + p.phase) * 30));
-          break;
-        case 'spark':
-          a = 1 - life;
-          break;
-        case 'glint':
-          a = Math.sin(life * Math.PI);
-          break;
-      }
-      this.pos[n * 3] = p.x;
-      this.pos[n * 3 + 1] = -p.y;
-      this.pos[n * 3 + 2] = 0;
+      if (d.kind === 'firefly') {
+        const pulse = Math.max(0, Math.sin((time + p.phase) * 1.7));
+        a = Math.min(1, life * 4, (1 - life) * 4) * (0.15 + 0.85 * pulse * pulse);
+      } else if (d.kind === 'mote') a = Math.min(1, life * 3, (1 - life) * 3) * 0.5;
+      else if (d.kind === 'snow') a = 0.75;
+      else if (d.kind === 'ember') a = (1 - life) * (0.7 + 0.3 * Math.sin((time + p.phase) * 30));
+      else if (d.kind === 'spark') a = 1 - life;
+      else if (d.kind === 'glint') a = Math.sin(life * Math.PI);
+      const [wx, wy, wz] = world(p.x, p.y, p.h);
+      this.pos[n * 3] = wx;
+      this.pos[n * 3 + 1] = wy;
+      this.pos[n * 3 + 2] = wz;
       this.col[n * 4] = this.base.r;
       this.col[n * 4 + 1] = this.base.g;
       this.col[n * 4 + 2] = this.base.b;

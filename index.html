@@ -2,7 +2,13 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#0E1A44" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="manifest" href="%BASE_URL%manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="%BASE_URL%apple-touch-icon.png" />
     <title>Palimpsest</title>
     <meta name="description" content="A story-driven, turn-based RPG in procedural HD-2D pixel art." />
     <style>
@@ -12,6 +18,40 @@
         height: 100%;
         background: #000;
         overflow: hidden;
+        overscroll-behavior: none;
+        touch-action: none;
+        -webkit-user-select: none;
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
+      }
+      #rotate {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 20;
+        background: rgba(4, 8, 24, 0.92);
+        color: #f4e2a8;
+        font: 20px 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 18px;
+        text-align: center;
+        padding: 24px;
+      }
+      #rotate .phone {
+        width: 46px;
+        height: 78px;
+        border: 3px solid #e8c76a;
+        border-radius: 9px;
+        animation: turn 2.4s ease-in-out infinite;
+      }
+      @keyframes turn {
+        0%, 30% { transform: rotate(0deg); }
+        60%, 100% { transform: rotate(-90deg); }
+      }
+      @media (orientation: portrait) and (pointer: coarse) {
+        #rotate { display: flex; }
       }
       canvas#page {
         display: block;
@@ -40,6 +80,7 @@
   <body>
     <canvas id="page"></canvas>
     <div id="loading">Lighting the candles…</div>
+    <div id="rotate"><div class="phone"></div><div class="text">Turn your device sideways to play.</div></div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

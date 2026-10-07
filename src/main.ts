@@ -1,25 +1,192 @@
 /**
- * Palimpsest: boot. Creates the renderer, input, audio and debug overlay, then runs the
- * current scene.
+ * Palimpsest: boot. Creates the renderer, input, audio, menus and debug overlay,
+ * applies the player's settings, then runs the current scene.
  */
 
+import './i18n/strings';
 import { AudioEngine } from './audio/engine';
+import { CHAPTER_ONE_ABILITIES } from './battle/data';
 import { DebugOverlay } from './debug/overlay';
-import { WorldRenderer } from './engine/hd2d/renderer';
+import { detectQuality, quality } from './engine/diorama/quality';
+import { WorldRenderer } from './engine/diorama/renderer';
 import { Input } from './engine/input';
+import { prefs } from './engine/prefs';
 import type { Scene } from './engine/scene';
+import { session } from './engine/session';
+import { type Settings, TEXT_SPEEDS } from './engine/settings';
+import { TouchControls } from './engine/touch';
+import { detectLanguage, setLang, t } from './i18n/i18n';
+import { Menu } from './menu/menu';
+import { equipmentPage, type MenuDeps, partyPage, settingsPage } from './menu/pages';
+import { PrologueScene } from './scenes/prologue';
 import { SeaGateScene } from './scenes/seaGate';
+import { TitleScene } from './scenes/title';
+import { newGame } from './story/state';
 
 function boot(): void {
   const canvas = document.getElementById('page') as HTMLCanvasElement;
   const loading = document.getElementById('loading');
-  const renderer = new WorldRenderer(canvas);
+  const detected = detectQuality();
+  const settings = session.settings;
+  const first = settings.value.graphics.quality;
+  const renderer = new WorldRenderer(canvas, first === 'auto' ? detected : quality(first));
   const input = new Input();
   input.attach(window);
+  const touch = new TouchControls(input);
   const audio = new AudioEngine();
   input.onGesture(() => audio.start());
 
-  let scene: Scene = new SeaGateScene(renderer, input, audio);
+  // Everything a setting changes, applied now and whenever it changes.
+  const apply = (s: Settings) => {
+    setLang(s.language === 'auto' ? detectLanguage(navigator.languages ?? [navigator.language]) : s.language);
+    document.title = 'Palimpsest';
+    const rot = document.querySelector('#rotate .text');
+    if (rot) rot.textContent = t('rotate');
+    audio.setVolumes(s.audio);
+    const tier = s.graphics.quality === 'auto' ? detected.tier : s.graphics.quality;
+    if (tier !== renderer.quality.tier) renderer.setQuality(quality(tier));
+    Object.assign(renderer.enabled, { shadows: s.graphics.shadows, reflections: s.graphics.reflections, bloom: s.graphics.bloom, dof: s.graphics.dof, fog: s.graphics.fog });
+    renderer.brightness = s.graphics.brightness;
+    renderer.grainOn = s.graphics.grain;
+    renderer.flashScale = s.access.flashes ? 1 : 0.25;
+    if ((s.graphics.resolution === 'auto' ? null : s.graphics.resolution) !== renderer.fixedScale) renderer.setFixedScale(s.graphics.resolution === 'auto' ? null : s.graphics.resolution);
+    input.keys = structuredClone(s.controls.keys);
+    input.pad = structuredClone(s.controls.pad);
+    touch.configure({ size: s.controls.touchSize, opacity: s.controls.touchOpacity, leftHanded: s.controls.leftHanded });
+    Object.assign(prefs, {
+      textCps: TEXT_SPEEDS[s.gameplay.textSpeed],
+      largeText: s.access.textSize === 'large',
+      shake: s.access.shake ? 1 : 0,
+      flashes: s.access.flashes ? 1 : 0.25,
+      battleFast: s.gameplay.battleSpeed === 'fast',
+      gentle: s.gameplay.gentle,
+    });
+  };
+  apply(settings.value);
+  settings.onChange(apply);
+
+  /** A new game, as far as the story is built: chapter I at the sea gate. */
+  const startGame = () => {
+    const game = newGame();
+    game.map = 'seaGate';
+    game.party = ['isot', 'hild'];
+    game.abilities = { ...CHAPTER_ONE_ABILITIES };
+    game.inventory = ['wystansPumice', 'psalterChain', 'ebbShell'];
+    game.equipment.isot.charm = 'wystansPumice';
+    game.equipment.hild.relic = 'psalterChain';
+    session.game = game;
+  };
+
+  const menu = new Menu(input, audio);
+  let scene: Scene;
+  /** Fade to black, then swap scenes; the new scene fades itself in. */
+  let fadeOut: { t: number; dur: number; next: () => Scene } | null = null;
+  const transition = (next: () => Scene, dur = 1.1) => {
+    if (!fadeOut) fadeOut = { t: 0, dur, next };
+  };
+  const prologue = (): Scene => new PrologueScene(renderer, input, audio, () => transition(() => new SeaGateScene(renderer, input, audio), 0.6));
+  const toTitle = (): Scene => {
+    const title: TitleScene = new TitleScene(renderer, input, audio, {
+      choices: () => [
+        {
+          label: () => t('title.new'),
+          run: () => {
+            title.hideMenu();
+            transition(() => {
+              startGame();
+              return prologue();
+            }, 1.6);
+          },
+        },
+        {
+          label: () => t('title.continue'),
+          enabled: () => !!session.saves.latest(),
+          run: () => {
+            const save = session.saves.latest();
+            if (!save) return;
+            title.hideMenu();
+            transition(() => {
+              session.game = save.state;
+              return new SeaGateScene(renderer, input, audio);
+            });
+          },
+        },
+        {
+          label: () => t('title.settings'),
+          run: () => {
+            title.hideMenu();
+            menu.layout(renderer.viewport);
+            menu.show([{ label: () => t('menu.settings'), page: () => settingsPage(deps) }], 0);
+            menu.onClose = () => title.showMenu();
+          },
+        },
+        {
+          label: () => t('title.credits'),
+          run: () => {
+            title.hideMenu();
+            menu.layout(renderer.viewport);
+            menu.show([{ label: () => t('title.credits'), page: () => ({ title: () => t('title.credits'), rows: () => [infoRowHtml(t('credits.body'))] }) }], 0);
+            menu.onClose = () => title.showMenu();
+          },
+        },
+      ],
+    });
+    return title;
+  };
+  const deps: MenuDeps = { menu, settings, game: () => session.game, input, autoTier: () => detected.tier };
+  const params = new URLSearchParams(location.search);
+  if (params.get('scene') === 'seagate') {
+    startGame();
+    scene = new SeaGateScene(renderer, input, audio);
+  } else if (params.get('scene') === 'prologue') {
+    startGame();
+    scene = prologue();
+  } else scene = toTitle();
+  const openPause = () => {
+    input.frozen = true;
+    menu.onClose = pauseClosed;
+    menu.layout(renderer.viewport);
+    menu.show([
+      { label: () => t('menu.resume'), run: () => menu.close() },
+      { label: () => t('menu.party'), page: () => partyPage(deps) },
+      { label: () => t('menu.equipment'), page: () => equipmentPage(deps) },
+      { label: () => t('menu.settings'), page: () => settingsPage(deps) },
+      {
+        label: () => t('menu.save'),
+        run: () => menu.toast(session.saves.save('manual', session.game) ? t('menu.saved') : '—'),
+      },
+      {
+        label: () => t('menu.title'),
+        page: () => ({
+          title: () => t('menu.title'),
+          help: () => t('menu.confirmTitle'),
+          rows: () => [
+            { el: rowEl(t('menu.no')), focus: true, activate: () => menu.back() },
+            {
+              el: rowEl(t('menu.yes')),
+              focus: true,
+              activate: () => {
+                menu.close();
+                transition(toTitle);
+              },
+            },
+          ],
+        }),
+      },
+    ]);
+  };
+  const pauseClosed = () => {
+    input.frozen = false;
+  };
+  input.router = (a) => {
+    if (menu.open) return menu.handle(a);
+    if (a === 'menu' && scene.pausable !== false) {
+      openPause();
+      return true;
+    }
+    return false;
+  };
+
   const debug = new DebugOverlay({
     toggles: () =>
       (Object.keys(renderer.enabled) as (keyof typeof renderer.enabled)[]).map((k) => ({
@@ -33,25 +200,57 @@ function boot(): void {
     if (a === 'debug' || a === 'debugMenu') debug.toggle();
     if (a === 'mute') audio.toggleMute();
   });
-  if (new URLSearchParams(location.search).has('debug')) debug.toggle();
+  if (params.has('debug')) debug.toggle();
 
-  window.addEventListener('resize', () => renderer.resize());
+  window.addEventListener('resize', () => {
+    renderer.resize();
+    menu.layout(renderer.viewport);
+  });
 
   let last = performance.now();
   const frame = (now: number) => {
-    const dt = Math.min(0.05, (now - last) / 1000);
+    const ms = now - last;
+    const dt = Math.min(0.05, ms / 1000);
     last = now;
     input.pollGamepads();
-    scene.update(dt);
+    // The world holds still while the menu is open; it still draws behind the blur.
+    if (!menu.open) scene.update(dt);
+    if (fadeOut) {
+      fadeOut.t += dt;
+      const k = Math.min(1, fadeOut.t / fadeOut.dur);
+      renderer.screen.fade = Math.max(renderer.screen.fade, k * k * (3 - 2 * k));
+      if (k >= 1) {
+        const next = fadeOut.next;
+        fadeOut = null;
+        scene.dispose();
+        renderer.lights.clear();
+        scene = next();
+        renderer.screen.fade = 1;
+      }
+    }
     scene.sync();
-    renderer.render(dt);
+    renderer.render(menu.open ? 0 : dt);
+    renderer.frameTime(ms);
     debug.frame(dt, () => scene.debugInfo());
     requestAnimationFrame(frame);
   };
-  requestAnimationFrame((t) => {
-    last = t;
+  /**
+   * Run the game forward by `seconds` without waiting for frames (tests and
+   * screenshots). Cinematics are async, so each step lets pending promises settle.
+   */
+  const advance = async (seconds: number) => {
+    const steps = Math.round(seconds * 30);
+    for (let i = 0; i < steps; i++) {
+      scene.update(1 / 30);
+      renderer.time += 1 / 30;
+      await Promise.resolve();
+      await Promise.resolve();
+    }
+  };
+  requestAnimationFrame((tm) => {
+    last = tm;
     loading?.remove();
-    frame(t);
+    frame(tm);
   });
 
   // Exposed for debugging from the browser console and automated screenshots.
@@ -59,6 +258,10 @@ function boot(): void {
     renderer,
     input,
     audio,
+    advance,
+    menu,
+    openPause,
+    session,
     get scene(): Scene {
       return scene;
     },
@@ -66,6 +269,30 @@ function boot(): void {
       scene = s;
     },
   };
+}
+
+function infoRowHtml(text: string): { el: HTMLElement; focus: false } {
+  const r = document.createElement('div');
+  r.className = 'row static';
+  r.style.whiteSpace = 'pre-line';
+  r.style.lineHeight = '1.5';
+  r.textContent = text;
+  return { el: r, focus: false };
+}
+
+function rowEl(label: string): HTMLElement {
+  const r = document.createElement('div');
+  r.className = 'row';
+  const l = document.createElement('span');
+  l.className = 'label';
+  l.textContent = label;
+  r.append(l);
+  return r;
+}
+
+// Installable and playable offline (the service worker is written at build time).
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => void navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`).catch(() => undefined));
 }
 
 try {

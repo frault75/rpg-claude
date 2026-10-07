@@ -1,84 +1,50 @@
 /**
- * The Sea Gate of Saint Ebb's by night: the first HD-2D map. The abbey church stands on
- * its island under the moon, stairs drop down the cliff to the sea gate, and the causeway
- * runs south into the fog, where a knight in white stands in the shallows.
+ * The Sea Gate of Saint Ebb's by night, as a diorama. The abbey church stands on its
+ * island under the moon; stairs drop down the cliff to the shore and the sea gate; the
+ * causeway runs south into the mist, where a knight in white stands in the shallows.
  */
 
 import type { AudioEngine } from '../audio/engine';
 import { EbbNightAmbience } from '../audio/ambient';
 import { footstep } from '../audio/sfx';
 import type { DebugInfo } from '../debug/overlay';
-import type { Light } from '../engine/hd2d/light';
-import type { WorldRenderer } from '../engine/hd2d/renderer';
-import { VIEW_H, VIEW_W } from '../engine/hd2d/renderer';
+import type { GameLight, WorldRenderer } from '../engine/diorama/renderer';
 import type { Input } from '../engine/input';
-import { type Scene, smoothstep } from '../engine/scene';
-import { abbeyChurch, parapet, seaGate, stoneHouse } from '../pixel/buildings';
+import type { Scene } from '../engine/scene';
+import { session } from '../engine/session';
+import { tr } from '../i18n/i18n';
 import { CHARACTERS } from '../pixel/characters';
-import { bush, oakTree, pineTree, reeds, rock, yewTree } from '../pixel/nature';
-import { barrel, boat, crate, gravestone, lanternPost, mooringPost, sconce, stoneCross } from '../pixel/props';
-import { PixelImage } from '../pixel/pixel';
-import { PX } from '../pixel/sprite';
-import { Actor } from '../world/actor';
-import { Grid } from '../world/grid';
-import { GROUND_DEFAULT } from '../pixel/terrain';
-import { Stage, tiles } from '../world/stage';
-
-const LAYOUT = [
-  '                                  ',
-  '                                  ',
-  '                                  ',
-  '                                  ',
-  '                                  ',
-  '                                  ',
-  '                                  ',
-  '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~',
-  '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~',
-  '~~~~~~rr.................rrr~~~~~~',
-  '~~~~r.......................r~~~~~',
-  '~~~r..........................r~~~',
-  '~~~r...........................r~~',
-  '~~r,...........................,r~',
-  '~~r,,ccccccccccccccccccccccccc,,,r~',
-  '~~r.,ccccccccccccccccccccccccc.,.r~',
-  '~~r||||||||||||||||||||===|||||||r~',
-  '~~~||||||||||||||||||||===|||||||~~',
-  '~~~||||||||||||||||||||===||||||~~~',
-  '~~~sssssssssssssssssss=====ssss~~~~',
-  '~~~~sssssssssccccssssssssssssss~~~~',
-  '~~~~~~~ssss~cccccsss~~~~~~~~~~~~~~~',
-  '~~~~~~~~~~~~~ccc~~~~~~~~~~~~~~~~~~~',
-  '~~~~~~~~~~~~~ccc~~~~~~~~~~~~~~~~~~~',
-  '~~~~~~~~~~~~~ccc~~~~~~~~~~~~~~~~~~~',
-  '~~~~~~~~~~~~~ccc~~~~~~~~~~~~~~~~~~~',
-  '~~~~~~~~~~~~~ccc~~~~~~~~~~~~~~~~~~~',
-  '~~~~~~~~~~~~~ccc~~~~~~~~~~~~~~~~~~~',
-  '~~~~~~~~~~~~~ccc~~~~~~~~~~~~~~~~~~~',
-  '~~~~~~~~~~~~~ccc~~~~~~~~~~~~~~~~~~~',
-];
-
-const WALKABLE = '.,cs=df';
-/** Rows of open sky above the island. Map rows below are given from the horizon down. */
-const SKY = 4;
-const ty = (row: number): number => tiles(row + SKY);
-const MAP_W = tiles(LAYOUT[0]!.length);
-const MAP_H = tiles(LAYOUT.length);
+import { TILE } from '../pixel/terrain';
+import { dressSeaGate, GROUND, MAP_H, MAP_W, PLATEAU, WALKABLE } from '../maps/seaGateSet';
+import { LocationCard, Letterbox } from '../ui/card';
+import { Dialogue } from '../ui/dialogue';
+import { UiLayer } from '../ui/ui';
+import { Director } from '../world/director';
+import { Actor } from '../world3d/actor';
+import { Stage, tiles } from '../world3d/stage';
 
 export class SeaGateScene implements Scene {
   readonly name = 'sea-gate';
   private readonly stage: Stage;
-  private readonly grid: Grid;
   private readonly player: Actor;
   private readonly party: Actor[] = [];
   private readonly trail: [number, number][] = [];
   private readonly whit: Actor;
   private readonly ambience = new EbbNightAmbience();
+  private readonly blocked: [number, number, number, number][] = [];
   private time = 0;
-  /** Opening camera move: from the spire down to the causeway. */
-  private intro = 0;
-  private readonly introLength = 7;
-  private camY = 0;
-  private readonly candle: Light;
+  private readonly candle: GameLight;
+  private readonly ui: UiLayer;
+  private readonly dialogue: Dialogue;
+  private readonly card: LocationCard;
+  private readonly letterbox: Letterbox;
+  private readonly director: Director;
+  private readonly unsubs: (() => void)[] = [];
+  private cutscene = false;
+  private met = false;
+  private camH = PLATEAU;
+  /** Where a click or tap asked the player to walk. */
+  private goal: [number, number] | null = null;
 
   constructor(
     private readonly r: WorldRenderer,
@@ -86,223 +52,229 @@ export class SeaGateScene implements Scene {
     private readonly audio: AudioEngine,
   ) {
     const st = (this.stage = new Stage(r));
-    r.atmosphere = {
-      ambient: [0.24, 0.28, 0.56],
-      void: [0.02, 0.03, 0.08],
-      fog: 0.5,
-      fogColor: [0.3, 0.36, 0.52],
-      fogScale: 0.0024,
-      fogDrift: [0.018, 0.004],
-      fogBand: [ty(13), ty(24), 0.18],
-      emissiveGain: 1.15,
-    };
-    r.grade = {
-      exposure: 1.12,
-      contrast: 1.06,
-      saturation: 1,
-      lift: [0.015, 0.02, 0.06],
-      gain: [0.96, 1, 1.06],
-      vignette: 1,
-      grain: 0.02,
-      bloom: 0.8,
-      bloomThreshold: 0.78,
-      tilt: 0.9,
-      focusY: 0.5,
-      focusBand: 0.2,
-    };
-
-    // ---- ground, water, sky ----
-    const ground = st.paint(LAYOUT, 7, { ...GROUND_DEFAULT, grass: '#4E7E48', rock: '#6E6A70', stone: '#8E8C8A' });
-    st.addSky(0, 0, MAP_W, ty(3) + 6);
-    const moon: [number, number] = [44, 30];
-    st.sky!.mesh.material.uniforms.uMoon!.value.set(moon[0], moon[1]);
-    st.water!.moon(moon[0], 7, ty(3) / PX);
-    void ground;
-
-    // ---- the island ----
-    const church = abbeyChurch(11, true);
-    st.addArt(church, tiles(12), ty(10));
-    const house = stoneHouse(76, 41, true);
-    st.addArt(house, tiles(24.6), ty(10));
-    st.addEmitter({ kind: 'mote', rect: [tiles(24.6) + (house.chimney[0] - house.anchor[0]) * PX - 8, ty(10) + (house.chimney[1] - house.anchor[1]) * PX - 60, 16, 50], count: 10, color: '#9AA6C8', size: 7, intensity: 0.35 }, 3);
-    st.addArt(img(yewTree(3)), tiles(30.4), ty(9.8));
-    for (const [x, y, s] of [
-      [29.2, 10.6, 1],
-      [30.6, 11.1, 2],
-      [31.6, 10.5, 3],
-    ] as const)
-      st.addArt(gravestone(s), tiles(x), ty(y));
-    st.addArt(img(pineTree(2)), tiles(3.6), ty(9.6));
-    st.addArt(img(pineTree(5)), tiles(32.2), ty(8.8));
-    st.addArt(img(pineTree(8)), tiles(5.2), ty(6.9));
-    st.addArt(img(bush(4, 'holly')), tiles(4.4), ty(11.5));
-    st.addArt(img(bush(9, 'holly')), tiles(20.6), ty(10.7));
-    for (const x of [7.5, 17.5, 27.5]) st.addArt(lanternPost(), tiles(x), ty(11.85));
-    // The lawn behind the guest house runs down to the far shore.
-    for (const [x, y, s] of [
-      [21.5, 7.2, 11],
-      [27.6, 6.4, 12],
-      [24, 6.1, 13],
-    ] as const)
-      st.addArt(img(bush(s, s % 2 ? 'green' : 'holly')), tiles(x), ty(y));
-    st.addArt(img(oakTree(14, '#3E6E44')), tiles(29.5), ty(7.6));
-    st.addArt(img(rock(15, 0.8)), tiles(22.4), ty(5.9));
-    st.addArt(img(rock(16, 0.6)), tiles(9.5), ty(5.7));
-    // Parapet along the cliff top, open where the stairs come up.
-    for (let x = 3; x < 23; x += 4) st.addArt(parapet(Math.min(4, 23 - x) * 16, x), tiles(x + Math.min(4, 23 - x) / 2), ty(12.1));
-    for (let x = 26; x < 33; x += 4) st.addArt(parapet(Math.min(4, 33 - x) * 16, x), tiles(x + Math.min(4, 33 - x) / 2), ty(12.1));
-
-    // ---- the shore and the gate ----
-    const gate = seaGate(21);
-    const gx = tiles(14.5);
-    const gy = ty(17);
-    st.addArt(gate, gx, gy);
-    const sc = sconce();
-    for (const px of [27, 65]) {
-      const x = gx + (px - gate.anchor[0]) * PX;
-      const y = gy + (42 - gate.anchor[1]) * PX;
-      st.addArt(sc, x, y, { depth: gy + 2 });
-      st.addFlame(x, y - 24, { depth: gy + 3, light: 230 });
-    }
-    st.addArt(boat(1), tiles(7.2), ty(16.7));
-    st.addArt(crate(2), tiles(18.6), ty(16.4));
-    st.addArt(barrel(3), tiles(19.4), ty(16.7));
-    st.addArt(stoneCross(4), tiles(10.2), ty(16.2));
-    for (const [x, y, s] of [
-      [3.6, 15.9, 1],
-      [29.8, 15.6, 2],
-      [26.4, 16.8, 3],
-    ] as const)
-      st.addArt(img(reeds(s)), tiles(x), ty(y));
-    for (const [x, y, s, k] of [
-      [4.2, 19.2, 1, 1.2],
-      [25.5, 18.6, 2, 1],
-      [29, 22.4, 3, 1.4],
-      [8.2, 23.4, 4, 0.9],
-      [21.5, 25.2, 5, 1.1],
-    ] as const)
-      st.addArt(img(rock(s, k, true)), tiles(x), ty(y));
-    for (let y = 18.5; y < 26; y += 2.5) {
-      st.addArt(mooringPost(Math.floor(y)), tiles(12.85), ty(y));
-      st.addArt(mooringPost(Math.floor(y) + 9), tiles(16.15), ty(y + 1.2));
-    }
-
-    // ---- particles ----
-    st.addEmitter({ kind: 'glint', rect: [tiles(0.5), ty(3.2), tiles(5), tiles(1.6)], count: 3, color: '#FFF0C8', size: 5, intensity: 1.2 }, 5);
-    st.addEmitter({ kind: 'glint', rect: [tiles(1), ty(17), tiles(5), tiles(9)], count: 4, color: '#FFF0C8', size: 5, intensity: 1 }, 6);
-    st.addEmitter({ kind: 'mote', rect: [0, ty(13), MAP_W, tiles(13)], count: 40, color: '#B8C8F0', size: 5, intensity: 0.3 }, 7);
-
-    // ---- walkable grid ----
-    this.grid = Grid.fromRows(LAYOUT, tiles(1), WALKABLE);
-    const block = (x0: number, y0: number, x1: number, y1: number) => {
-      for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) this.grid.setSolid(x, y, true);
-    };
-    block(4, SKY + 5, 19, SKY + 9); // church
-    block(22, SKY + 7, 27, SKY + 9); // guest house
-    block(12, SKY + 16, 13, SKY + 16); // gate towers, leaving the arch
-    block(15, SKY + 16, 16, SKY + 16);
-    block(28, SKY + 9, 32, SKY + 11); // churchyard
-
+    const set = dressSeaGate(r, st);
+    this.blocked.push(...set.blocked);
+    const gx = set.gx;
     // ---- people ----
-    this.player = new Actor('isot', CHARACTERS.isot!, r.world);
-    this.player.x = tiles(14.5);
-    this.player.y = ty(23);
-    this.player.dir = 'up';
-    const hild = new Actor('hild', CHARACTERS.hild!, r.world);
+    this.player = new Actor('isot', CHARACTERS.isot!, r.scene);
+    this.player.x = gx + 40;
+    this.player.y = tiles(19.2);
+    this.player.dir = 'down';
+    const hild = new Actor('hild', CHARACTERS.hild!, r.scene);
     this.party.push(hild);
-    for (const a of this.party) {
-      a.x = this.player.x;
-      a.y = this.player.y + 40;
-      a.dir = 'up';
-    }
-    this.whit = new Actor('whit', CHARACTERS.whit!, r.world);
+    hild.x = this.player.x;
+    hild.y = this.player.y - 4;
+    hild.dir = 'down';
+    for (let i = 0; i < 80; i++) this.trail.push([this.player.x, this.player.y - Math.min(i, 4)]);
+    this.whit = new Actor('whit', CHARACTERS.whit!, r.scene);
     this.whit.x = tiles(19.6);
-    this.whit.y = ty(21.2);
-    this.whit.dir = 'left';
-    this.whit.wade = 9;
-    for (let i = 0; i < 80; i++) this.trail.push([this.player.x, this.player.y + i * 3]);
-    this.party.forEach((a, i) => (a.y = this.player.y + (i + 1) * 54));
+    this.whit.y = tiles(23.2);
+    this.whit.h = -13;
+    this.whit.dir = 'up';
+    this.candle = st.addLight(this.player.x, this.player.y, 12, 60, '#FFC37A', 0.22, 'candle');
 
-    // Isot carries a candle: a small warm pool that walks with the party.
-    this.candle = st.addLight(this.player.x, this.player.y - 30, 170, '#FFC37A', 0.55, 'candle');
-    this.camY = tiles(3);
+    // ---- UI and cinematics ----
+    this.ui = new UiLayer(r);
+    this.dialogue = new Dialogue(this.ui, audio);
+    this.card = new LocationCard(this.ui);
+    this.letterbox = new Letterbox(this.ui);
+    this.director = new Director(r, { minX: 213, maxX: MAP_W - 213, minY: 20, maxY: MAP_H - 120 });
+    // Open on the church front, looking up at the tower against the sky.
+    this.director.take(this.player.x - 40, tiles(9.5), 230);
+    this.unsubs.push(
+      input.onAction((a) => {
+        this.dialogue.handle(a);
+      }),
+      input.onPointer((px, py) => {
+        const p = r.windowToScreen(px, py);
+        if (!p) return;
+        if (this.dialogue.open) this.dialogue.click(p.x, p.y);
+        else if (!this.cutscene) {
+          // Click or tap to walk there.
+          const m = r.screenToMap(p.x, p.y, this.player.h);
+          this.goal = [m.x, m.y];
+        }
+      }),
+    );
     this.input.onGesture(() => this.ambience.start(this.audio));
+    void this.opening();
   }
 
-  /** Skip or replay the opening camera move. */
-  setIntro(t: number): void {
-    this.intro = t;
+  private heightAt(x: number, y: number): number {
+    return this.stage.heightAt(x, y);
+  }
+
+  /** Can a figure stand at (x, y), coming from height h? */
+  private canStand(x: number, y: number, h: number): boolean {
+    for (const [dx, dy] of [
+      [0, 0],
+      [-4, 0],
+      [4, 0],
+      [0, -2],
+      [0, 2],
+    ] as const) {
+      const px = x + dx;
+      const py = y + dy;
+      const tx = Math.floor(px / TILE);
+      const ty = Math.floor(py / TILE);
+      if (!WALKABLE.has(GROUND[ty]?.[tx] ?? '~')) return false;
+      if (Math.abs(this.heightAt(px, py) - h) > 7) return false;
+      for (const [bx, by, bw, bd] of this.blocked) if (px >= bx && px < bx + bw && py >= by && py < by + bd) return false;
+    }
+    return true;
+  }
+
+  private async opening(): Promise<void> {
+    const d = this.director;
+    this.cutscene = true;
+    this.letterbox.target = 1;
+    await d.wait(1.2);
+    await d.panTo(...d.clamp(this.player.x, this.player.y - 10), 6, this.player.h);
+    this.letterbox.target = 0;
+    this.card.show(tr({ en: 'Saint Ebb’s', fr: 'Saint-Ebb' }), tr({ en: 'The Sea Gate, by night', fr: 'La Porte de la Mer, de nuit' }));
+    await d.wait(1.6);
+    await this.dialogue.say('hild', { en: 'Ten years I have not walked further than my cell. My feet have forgotten what stairs are for.', fr: 'Dix ans que je ne suis pas allée plus loin que ma cellule. Mes pieds ont oublié à quoi servent les marches.' }, 'tired');
+    await this.dialogue.say('isot', { en: 'Then no more stairs. Down the causeway, before the tide closes it.', fr: 'Alors fini les marches. Par la chaussée, avant que la marée ne la referme.' }, 'wry');
+    this.dialogue.close();
+    d.release();
+    this.cutscene = false;
+  }
+
+  private async knight(): Promise<void> {
+    const d = this.director;
+    const p = this.player;
+    const hild = this.party[0]!;
+    this.cutscene = true;
+    this.met = true;
+    p.dir = 'right';
+    this.letterbox.target = 1;
+    d.take(this.r.view.x, this.r.view.y, this.r.view.h);
+    p.emote('alarm');
+    await d.wait(0.6);
+    await d.panTo(...d.clamp((p.x + this.whit.x) / 2, this.whit.y - 20), 1.6, 0);
+    await this.dialogue.say('isot', { en: 'There is someone standing in the sea.', fr: 'Il y a quelqu’un debout dans la mer.' }, 'alarmed');
+    hild.dir = 'right';
+    await this.dialogue.say('hild', { en: 'He has been there since… always, I think. The fishermen row around him.', fr: 'Il est là depuis… toujours, je crois. Les pêcheurs le contournent à la rame.' }, 'grave');
+    await d.wait(0.3);
+    this.whit.dir = 'left';
+    await d.wait(0.8);
+    await this.dialogue.say('knight', { en: 'Forgive me. I was waiting for something.', fr: 'Pardonnez-moi. J’attendais quelque chose.' });
+    await this.dialogue.say('knight', { en: 'Is it you?', fr: 'Est-ce vous ?' });
+    this.dialogue.close();
+    d.shake(6, 0.25);
+    hild.emote('silence', 2.2);
+    await d.wait(0.5);
+    await this.dialogue.narrate({ en: 'Hild drops her psalter. She says nothing.', fr: 'Hild laisse tomber son psautier. Elle ne dit rien.' });
+    p.dir = 'up';
+    p.emote('question');
+    await this.dialogue.say('isot', { en: 'Hild?', fr: 'Hild ?' });
+    await this.dialogue.say('hild', { en: '…It is nothing. The tide will not wait for us.', fr: '…Ce n’est rien. La marée ne nous attendra pas.' }, 'sad');
+    await this.dialogue.say('knight', { en: 'May I walk with you? I have been standing a long time.', fr: 'Puis-je marcher avec vous ? Je suis resté debout bien longtemps.' });
+    p.dir = 'right';
+    await this.dialogue.say('isot', { en: 'Come on, then. Mind the deep water.', fr: 'Venez, alors. Attention à l’eau profonde.' }, 'warm');
+    this.dialogue.close();
+    const w = this.whit;
+    await w.walk([
+      [tiles(16.7), w.y],
+      [tiles(15.4), w.y],
+    ]);
+    this.party.push(w);
+    if (!session.game.party.includes('whit')) session.game.party.push('whit');
+    this.letterbox.target = 0;
+    await d.panTo(...d.clamp(p.x, p.y - 10), 1.2, p.h);
+    d.release();
+    this.cutscene = false;
+  }
+
+  skipOpening(): void {
+    this.director.release();
+    this.letterbox.target = 0;
+    this.cutscene = false;
+    this.dialogue.close();
   }
 
   update(dt: number): void {
     this.time += dt;
-    this.intro = Math.min(this.introLength, this.intro + dt);
-    const introDone = this.intro >= this.introLength;
-    // Player movement.
-    let mx = 0;
-    let my = 0;
-    if (introDone) {
-      if (this.input.isHeld('left')) mx -= 1;
-      if (this.input.isHeld('right')) mx += 1;
-      if (this.input.isHeld('up')) my -= 1;
-      if (this.input.isHeld('down')) my += 1;
-    }
+    const free = !this.cutscene && !this.dialogue.open;
+    let { x: mx, y: my } = free ? this.input.move() : { x: 0, y: 0 };
     const p = this.player;
+    if (mx || my) this.goal = null;
+    else if (free && this.goal) {
+      const gx = this.goal[0] - p.x;
+      const gy = this.goal[1] - p.y;
+      const gd = Math.hypot(gx, gy);
+      if (gd < 1.5) this.goal = null;
+      else {
+        mx = gx / gd;
+        my = gy / gd;
+      }
+    }
     if (mx || my) {
-      const len = Math.hypot(mx, my);
-      const sp = p.speed * dt;
+      const len = Math.max(1, Math.hypot(mx, my));
+      const sp = p.speed * dt * Math.min(1, Math.hypot(mx, my) * 1.2);
       let dx = (mx / len) * sp;
       let dy = (my / len) * sp;
-      if (!this.grid.canStand(p.x + dx, p.y)) dx = 0;
-      if (!this.grid.canStand(p.x + dx, p.y + dy)) dy = 0;
+      if (!this.canStand(p.x + dx, p.y, p.h)) dx = 0;
+      if (!this.canStand(p.x + dx, p.y + dy, p.h)) dy = 0;
       if (dx || dy) p.step(dx, dy, dt);
       else {
         p.face(mx, my);
         p.step(0, 0, dt);
+        this.goal = null;
       }
     } else p.step(0, 0, dt);
+    p.h = this.heightAt(p.x, p.y);
     if (p.stepped) footstep(this.audio, 'stone');
 
-    // Followers walk the leader's trail.
     const last = this.trail[0]!;
-    if (Math.hypot(p.x - last[0], p.y - last[1]) > 3) {
+    if (Math.hypot(p.x - last[0], p.y - last[1]) > 1) {
       this.trail.unshift([p.x, p.y]);
       if (this.trail.length > 120) this.trail.pop();
     }
     this.party.forEach((a, i) => {
-      const target = this.trail[Math.min(this.trail.length - 1, (i + 1) * 18)]!;
-      const dx = target[0] - a.x;
-      const dy = target[1] - a.y;
-      const d = Math.hypot(dx, dy);
-      if (d > 1) {
-        const k = Math.min(1, (p.speed * 1.1 * dt) / d);
-        a.step(dx * k, dy * k, dt);
-      } else a.step(0, 0, dt);
+      if (a.walking) a.update(dt);
+      else {
+        const target = this.trail[Math.min(this.trail.length - 1, (i + 1) * 16)]!;
+        const dx = target[0] - a.x;
+        const dy = target[1] - a.y;
+        const dd = Math.hypot(dx, dy);
+        if (dd > 0.4) {
+          const k = Math.min(1, (p.speed * 1.1 * dt) / dd);
+          a.step(dx * k, dy * k, dt);
+        } else a.step(0, 0, dt);
+      }
+      a.h = this.heightAt(a.x, a.y);
     });
-    this.whit.update(dt);
-    this.candle.x = p.x + (p.dir === 'left' ? -14 : p.dir === 'right' ? 14 : 0);
-    this.candle.y = p.y - 20;
-
-    // Camera: the opening move, then follow the player.
-    const followY = Math.min(MAP_H - VIEW_H / 2, Math.max(VIEW_H / 2, p.y - 60));
-    const followX = Math.min(MAP_W - VIEW_W / 2, Math.max(VIEW_W / 2, p.x));
-    if (!introDone) {
-      const t = smoothstep(1.2, this.introLength, this.intro);
-      this.camY = VIEW_H / 2 + (followY - VIEW_H / 2) * t;
-      this.r.screen.fade = 1 - smoothstep(0, 2.2, this.intro);
-    } else {
-      this.camY = followY;
-      this.r.screen.fade = 0;
+    if (!this.party.includes(this.whit)) {
+      this.whit.update(dt);
+      // Wading out of the shallows onto the causeway.
+      this.whit.h = this.whit.x > tiles(16.2) ? -13 : this.heightAt(this.whit.x, this.whit.y);
     }
-    this.r.view.x = Math.round(followX / PX) * PX;
-    this.r.view.y = introDone ? Math.round(this.camY / PX) * PX : this.camY;
+    this.candle.x = p.x + (p.dir === 'left' ? -5 : p.dir === 'right' ? 5 : 0);
+    this.candle.y = p.y + 6;
+    this.candle.h = p.h + 12;
+
+    if (free && !this.met && p.y > tiles(22.2)) void this.knight();
+
+    this.director.update(dt);
+    const [cx, cy] = this.director.active ? this.director.cam : this.director.clamp(p.x, p.y - 10);
+    if (this.director.active) this.camH = this.director.cam[2];
+    else this.camH += (p.h - this.camH) * Math.min(1, dt * 3);
+    this.r.view.x = Math.round(cx);
+    this.r.view.y = Math.round(cy);
+    this.r.view.h = Math.round(this.camH);
+    this.r.screen.fade = Math.max(0, 1 - this.time / 2.2);
+    this.dialogue.update(dt);
+    this.card.update(dt);
+    this.letterbox.update(dt);
     this.stage.update(dt, this.time);
   }
 
   sync(): void {
     this.player.sync();
     for (const a of this.party) a.sync();
-    this.whit.sync();
+    if (!this.party.includes(this.whit)) this.whit.sync();
+    this.ui.sync();
   }
 
   debugInfo(): DebugInfo {
@@ -311,38 +283,39 @@ export class SeaGateScene implements Scene {
       scene: this.name,
       location: 'Saint Ebb’s, the Sea Gate (night)',
       lines: [
-        ['player', `${(p.x / tiles(1)).toFixed(1)}, ${(p.y / tiles(1) - SKY).toFixed(1)} ${p.dir}`],
-        ['camera', `${this.r.view.x.toFixed(0)}, ${this.r.view.y.toFixed(0)}`],
+        ['player', `${(p.x / TILE).toFixed(1)}, ${(p.y / TILE).toFixed(1)} h${p.h.toFixed(0)} ${p.dir}`],
+        ['camera', `${this.r.view.x}, ${this.r.view.y}`],
+        ['quality', this.r.quality.tier],
         ['lights', String(this.stage.lights.length)],
+        ['cutscene', String(this.cutscene)],
       ],
     };
   }
 
   debugButtons(): { label: string; run: () => void }[] {
     return [
-      { label: 'replay intro', run: () => this.setIntro(0) },
-      { label: 'skip intro', run: () => this.setIntro(this.introLength) },
+      { label: 'skip opening', run: () => this.skipOpening() },
       {
         label: 'to the courtyard',
         run: () => {
-          this.setIntro(this.introLength);
+          this.skipOpening();
           this.player.x = tiles(12);
-          this.player.y = ty(11.2);
+          this.player.y = tiles(13);
         },
       },
     ];
   }
 
   dispose(): void {
+    for (const u of this.unsubs) u();
+    this.dialogue.dispose();
+    this.card.dispose();
+    this.letterbox.dispose();
+    this.ui.dispose();
     this.ambience.stop();
     this.stage.dispose();
     this.player.dispose();
     for (const a of this.party) a.dispose();
-    this.whit.dispose();
+    if (!this.party.includes(this.whit)) this.whit.dispose();
   }
-}
-
-/** Wrap a plain image as art with no glow, anchored at its bottom centre. */
-function img(i: PixelImage): { a: PixelImage; e: PixelImage; lights: []; anchor: [number, number] } {
-  return { a: i, e: new PixelImage(i.w, i.h), lights: [], anchor: [i.w / 2, i.h - 1] };
 }

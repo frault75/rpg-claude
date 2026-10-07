@@ -1,6 +1,7 @@
 // Dev-only: draws generated pixel art enlarged, for screenshots. Not part of the build.
 import { CHARACTERS, characterSheet, drawCharacter, FRAMES } from '../src/pixel/characters';
 import type { PixelImage } from '../src/pixel/pixel';
+import { drawPortrait, type Mood } from '../src/pixel/portraits';
 
 const params = new URLSearchParams(location.search);
 const scale = Number(params.get('scale') ?? 5);
@@ -30,10 +31,18 @@ if (what === 'faces') {
   const imgs = [];
   for (const c of Object.values(CHARACTERS)) {
     imgs.push({ img: drawCharacter(c, 'down', FRAMES[0]!), label: c.id });
-    imgs.push({ img: drawCharacter(c, 'left', FRAMES[3]!), label: '' });
+    imgs.push({ img: drawCharacter(c, 'down', FRAMES[5]!), label: '' });
+    imgs.push({ img: drawCharacter(c, 'left', FRAMES[0]!), label: '' });
+    imgs.push({ img: drawCharacter(c, 'left', FRAMES[5]!), label: '' });
     imgs.push({ img: drawCharacter(c, 'up', FRAMES[0]!), label: '' });
   }
-  show(imgs, 6);
+  show(imgs, 10);
+}
+if (what === 'portraits') {
+  const moods: Mood[] = ['neutral', 'warm', 'wry', 'sad', 'grave', 'stern', 'alarmed', 'tired'];
+  const imgs = [];
+  for (const c of Object.values(CHARACTERS)) for (const m of moods) imgs.push({ img: drawPortrait(c, m), label: m === 'neutral' ? c.id : m });
+  show(imgs, 8);
 }
 if (what === 'characters') {
   show(
