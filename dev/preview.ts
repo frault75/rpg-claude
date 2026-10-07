@@ -31,10 +31,12 @@ if (what === 'faces') {
   const imgs = [];
   for (const c of Object.values(CHARACTERS)) {
     imgs.push({ img: drawCharacter(c, 'down', FRAMES[0]!), label: c.id });
-    imgs.push({ img: drawCharacter(c, 'left', FRAMES[3]!), label: '' });
+    imgs.push({ img: drawCharacter(c, 'down', FRAMES[5]!), label: '' });
+    imgs.push({ img: drawCharacter(c, 'left', FRAMES[0]!), label: '' });
+    imgs.push({ img: drawCharacter(c, 'left', FRAMES[5]!), label: '' });
     imgs.push({ img: drawCharacter(c, 'up', FRAMES[0]!), label: '' });
   }
-  show(imgs, 6);
+  show(imgs, 10);
 }
 if (what === 'portraits') {
   const moods: Mood[] = ['neutral', 'warm', 'wry', 'sad', 'grave', 'stern', 'alarmed', 'tired'];

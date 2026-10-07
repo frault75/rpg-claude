@@ -5,7 +5,7 @@
  */
 
 import type * as THREE from 'three';
-import { type CharSpec, characterSheet, DIRS, type Dir, FRAME_H, FRAME_W, FRAMES } from '../pixel/characters';
+import { type CharSpec, characterSheet, DIRS, type Dir, FRAME_H, FRAME_W, FRAMES, IDLE_FRAMES, WALK_FRAMES } from '../pixel/characters';
 import { hex, PixelImage } from '../pixel/pixel';
 import { Billboard, pixelTexture } from './billboard';
 
@@ -60,7 +60,8 @@ function emoteTexture(): THREE.Texture {
 }
 
 export const WALK_SPEED = 52;
-const STEP_TIME = 0.15;
+/** Seconds per walk frame; two feet land per cycle of six. */
+const STEP_TIME = 0.1;
 
 export class Actor {
   readonly sprite: Billboard;
@@ -168,8 +169,8 @@ export class Actor {
       this.walkClock += dt;
       if (this.walkClock > STEP_TIME) {
         this.walkClock -= STEP_TIME;
-        this.walkFrame = (this.walkFrame + 1) % 4;
-        if (this.walkFrame % 2 === 1) this.stepped = true;
+        this.walkFrame = (this.walkFrame + 1) % WALK_FRAMES;
+        if (this.walkFrame % 3 === 1) this.stepped = true;
       }
     } else {
       this.walkFrame = 0;
@@ -180,7 +181,7 @@ export class Actor {
 
   sync(): void {
     const row = DIRS.indexOf(this.dir);
-    const col = this.moving ? 2 + this.walkFrame : this.idleClock % 1.6 < 0.8 ? 0 : 1;
+    const col = this.moving ? IDLE_FRAMES + this.walkFrame : Math.floor((this.idleClock / 0.45) % IDLE_FRAMES);
     const s = this.sprite;
     s.setFrame(col, row);
     s.x = this.x;
