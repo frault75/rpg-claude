@@ -157,7 +157,7 @@ export class WorldRenderer {
   readonly ui = new THREE.Scene();
   readonly camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 1, 6000);
   readonly uiCamera = new THREE.OrthographicCamera(0, VIEW_W, VIEW_H, 0, -10, 10);
-  readonly quality: Quality;
+  quality: Quality;
   /**
    * The view: the map point the camera looks at (art pixels), zoom (1 = 427 x 240 art
    * pixels on screen), extra pitch and yaw for cinematics (radians), and screen shake.
@@ -170,6 +170,12 @@ export class WorldRenderer {
   readonly lights = new Set<GameLight>();
   readonly mirrors = new Set<Mirror>();
   time = 0;
+  /** From the settings: brightness, film grain on or off, a fixed render scale or adaptive. */
+  brightness = 1;
+  grainOn = true;
+  fixedScale: number | null = null;
+  /** Multiplies screen flashes (accessibility). */
+  flashScale = 1;
 
   private readonly hemi = new THREE.HemisphereLight(0xffffff, 0x666666, 1);
   private readonly key = new THREE.DirectionalLight(0xffffff, 1);
@@ -313,7 +319,7 @@ export class WorldRenderer {
     this.renderer.setPixelRatio(dpr);
     this.renderer.setSize(ww, wh, false);
     this.box = fitView(ww, wh);
-    const k = Math.min(1, 1440 / (this.box.h * dpr)) * this.adaptive.scale;
+    const k = Math.min(1, 1440 / (this.box.h * dpr)) * (this.fixedScale ?? this.adaptive.scale);
     const iw = Math.max(2, Math.round(this.box.w * dpr * k));
     const ih = Math.max(2, Math.round(this.box.h * dpr * k));
     this.sceneRT.dispose();
@@ -416,7 +422,36 @@ export class WorldRenderer {
 
   /** Call once per frame with the frame time, to let the render scale adapt. */
   frameTime(ms: number): void {
-    if (this.adaptive.frame(ms)) this.resize();
+    if (this.fixedScale === null && this.adaptive.frame(ms)) this.resize();
+  }
+
+  /** Switch quality tier at run time (from the settings). */
+  setQuality(q: Quality): void {
+    this.quality = q;
+    const r = this.renderer;
+    r.shadowMap.enabled = q.shadowMap > 0;
+    this.key.castShadow = q.shadowMap > 0;
+    if (q.shadowMap > 0) {
+      this.key.shadow.mapSize.set(q.shadowMap, q.shadowMap);
+      this.key.shadow.map?.dispose();
+      this.key.shadow.map = null;
+    }
+    while (this.pool.length > q.lights) this.pool.pop()!.removeFromParent();
+    while (this.pool.length < q.lights) {
+      const l = new THREE.PointLight(0xffffff, 0, 100, LIGHT_DECAY);
+      this.pool.push(l);
+      this.scene.add(l);
+    }
+    if (q.reflections === 0 && this.reflectRT) {
+      this.reflectRT.dispose();
+      this.reflectRT = null;
+    }
+    this.resize();
+  }
+
+  setFixedScale(scale: number | null): void {
+    this.fixedScale = scale;
+    this.resize();
   }
 
   render(dt: number): void {
@@ -539,17 +574,17 @@ export class WorldRenderer {
     fu.uFogMax!.value = fogOn ? a.fogMax : 0;
     fu.uMist!.value.set(a.mist[0] * SY, fogOn ? a.mist[1] : 0, a.mist[2]);
     fu.uMistDrift!.value.set(...a.mistDrift);
-    fu.uExposure!.value = gradeOn ? g.exposure : 1;
+    fu.uExposure!.value = (gradeOn ? g.exposure : 1) * this.brightness;
     fu.uContrast!.value = gradeOn ? g.contrast : 1;
     fu.uSaturation!.value = gradeOn ? g.saturation : 1;
     fu.uLift!.value.set(...(gradeOn ? g.lift : [0, 0, 0]));
     fu.uGain!.value.set(...(gradeOn ? g.gain : [1, 1, 1]));
     fu.uVignette!.value = gradeOn ? g.vignette : 0;
-    fu.uGrain!.value = gradeOn ? g.grain : 0;
+    fu.uGrain!.value = gradeOn && this.grainOn ? g.grain : 0;
     fu.uTime!.value = this.time;
     fu.uFadeColor!.value.set(...this.screen.fadeColor);
     fu.uFade!.value = this.screen.fade;
-    fu.uFlash!.value = this.screen.flash;
+    fu.uFlash!.value = this.screen.flash * this.flashScale;
     fu.uAberration!.value = this.screen.aberration;
     fu.uDesaturate!.value = this.screen.desaturate;
 

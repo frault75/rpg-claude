@@ -46,7 +46,13 @@ export interface GameState {
   facing: 1 | -1;
   flags: Flags;
   party: CharId[];
+  /** Who stands in the Front, Middle and Rear when a battle begins. */
+  formation: CharId[];
   abilities: Record<CharId, string[]>;
+  /** Equipped relic and charm per character (item ids). */
+  equipment: Record<CharId, { relic: string | null; charm: string | null }>;
+  /** Items carried, equipped or not. */
+  inventory: string[];
   /** Encounters already won. */
   cleared: string[];
   lostNames: string[];
@@ -66,7 +72,10 @@ export function newGame(): GameState {
     facing: 1,
     flags: {},
     party: ['isot'],
-    abilities: { isot: ['penknife', 'gloss', 'strikeThrough'], hild: [], whit: [] },
+    formation: ['whit', 'hild', 'isot'],
+    abilities: { isot: ['penknife', 'gloss', 'strike'], hild: [], whit: [] },
+    equipment: { isot: { relic: null, charm: null }, hild: { relic: null, charm: null }, whit: { relic: null, charm: null } },
+    inventory: [],
     cleared: [],
     lostNames: [],
     playTime: 0,

@@ -56,6 +56,9 @@ export function parseSave(raw: string | null): SaveData | null {
     ...base,
     ...(st as Partial<GameState>),
     abilities: { ...base.abilities, ...(isObject(st.abilities) ? (st.abilities as GameState['abilities']) : {}) },
+    equipment: { ...base.equipment, ...(isObject(st.equipment) ? (st.equipment as GameState['equipment']) : {}) },
+    inventory: Array.isArray(st.inventory) ? (st.inventory as unknown[]).filter((i): i is string => typeof i === 'string') : base.inventory,
+    formation: Array.isArray(st.formation) && st.formation.length === 3 ? (st.formation as GameState['formation']) : base.formation,
   };
   return {
     version: SAVE_VERSION,

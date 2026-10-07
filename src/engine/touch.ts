@@ -16,6 +16,8 @@ export class TouchControls {
   private stickOrigin = { x: 0, y: 0 };
   private readonly taps = new Map<number, { x: number; y: number; t: number }>();
   private shown = false;
+  private readonly buttons: { el: HTMLDivElement; right: number; bottom: number; size: number }[] = [];
+  private leftHanded = false;
 
   constructor(private readonly input: Input) {
     this.root = document.createElement('div');
@@ -27,6 +29,7 @@ export class TouchControls {
     this.root.append(this.base, this.knob);
     this.button('A', 'confirm', 86, 120, 74);
     this.button('B', 'cancel', 24, 70, 56);
+    this.button('☰', 'menu', 20, -1, 46);
     document.body.append(this.root);
 
     // The first touch anywhere reveals the controls (and still counts as a tap).
@@ -60,13 +63,12 @@ export class TouchControls {
     return d;
   }
 
-  private button(label: string, action: 'confirm' | 'cancel', right: number, bottom: number, size: number): void {
+  private button(label: string, action: 'confirm' | 'cancel' | 'menu', right: number, bottom: number, size: number): void {
     const b = document.createElement('div');
     b.textContent = label;
+    this.buttons.push({ el: b, right, bottom, size });
     Object.assign(b.style, {
       position: 'absolute',
-      right: `${right}px`,
-      bottom: `${bottom}px`,
       width: `${size}px`,
       height: `${size}px`,
       borderRadius: '50%',
@@ -93,6 +95,24 @@ export class TouchControls {
     this.root.append(b);
   }
 
+  /** Apply the touch settings: size, opacity, which hand holds the stick. */
+  configure(o: { size: number; opacity: number; leftHanded: boolean }): void {
+    this.leftHanded = o.leftHanded;
+    for (const b of this.buttons) {
+      const sz = b.size * o.size;
+      const st = b.el.style;
+      st.width = st.height = `${sz}px`;
+      st.fontSize = `${Math.round(sz * 0.42)}px`;
+      st.opacity = String(o.opacity);
+      st.left = st.right = st.top = st.bottom = '';
+      const side = o.leftHanded ? 'left' : 'right';
+      st[side] = `calc(${b.right * o.size}px + env(safe-area-inset-${side}, 0px))`;
+      if (b.bottom < 0) st.top = 'calc(14px + env(safe-area-inset-top, 0px))';
+      else st.bottom = `calc(${b.bottom * o.size}px + env(safe-area-inset-bottom, 0px))`;
+    }
+    this.base.style.opacity = this.knob.style.opacity = String(Math.min(1, o.opacity + 0.1));
+  }
+
   show(): void {
     if (this.shown) return;
     this.shown = true;
@@ -102,7 +122,8 @@ export class TouchControls {
   private down(e: PointerEvent): void {
     e.preventDefault();
     e.stopPropagation();
-    if (this.stickId === null && e.clientX < window.innerWidth * 0.45) {
+    const stickSide = this.leftHanded ? e.clientX > window.innerWidth * 0.55 : e.clientX < window.innerWidth * 0.45;
+    if (this.stickId === null && stickSide) {
       this.stickId = e.pointerId;
       this.stickOrigin = { x: e.clientX, y: e.clientY };
       this.place(this.base, e.clientX, e.clientY);

@@ -3,6 +3,8 @@ import type { DebugInfo } from '../debug/overlay';
 /** A screen of the game (title, map, battle, interlude). */
 export interface Scene {
   readonly name: string;
+  /** False where the pause menu must not open (title screen, some cinematics). */
+  readonly pausable?: boolean;
   update(dt: number): void;
   /** Push sprite transforms into their meshes just before rendering. */
   sync(): void;

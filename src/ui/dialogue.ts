@@ -8,6 +8,8 @@
 import type { AudioEngine } from '../audio/engine';
 import { uiTick, voiceBlip } from '../audio/sfx';
 import { SPEAKERS } from '../data/speakers';
+import { prefs } from '../engine/prefs';
+import { type LocalText, tr } from '../i18n/i18n';
 import type { Action } from '../engine/input';
 import { CHARACTERS } from '../pixel/characters';
 import { drawPortrait, type Mood, PORTRAIT } from '../pixel/portraits';
@@ -15,9 +17,8 @@ import { drawManicule, drawWindow, INK, SERIF, shadowText, type UiLayer, type Ui
 
 const BOX = { x: 110, y: 516, w: 1060, h: 182 };
 const PORTRAIT_SCALE = 3;
-const CHARS_PER_SECOND = 48;
-const FONT = `26px ${SERIF}`;
-const LEADING = 37;
+const font = () => `${prefs.largeText ? 30 : 26}px ${SERIF}`;
+const leading = () => (prefs.largeText ? 41 : 37);
 
 const portraitCache = new Map<string, HTMLCanvasElement>();
 
@@ -80,14 +81,14 @@ export class Dialogue {
   }
 
   /** Show a line from a speaker; resolves when the player moves on. */
-  say(speaker: string, text: string, mood: Mood = 'neutral', name?: string): Promise<void> {
+  say(speaker: string, text: LocalText | string, mood: Mood = 'neutral', name?: LocalText | string): Promise<void> {
     const sp = SPEAKERS[speaker];
-    return this.show({ speaker, name: name ?? sp?.name ?? speaker, text, mood });
+    return this.show({ speaker, name: tr(name ?? sp?.name ?? speaker), text: tr(text), mood });
   }
 
   /** Narration: no portrait, in italics. */
-  narrate(text: string): Promise<void> {
-    return this.show({ speaker: null, name: '', text, mood: 'neutral' });
+  narrate(text: LocalText | string): Promise<void> {
+    return this.show({ speaker: null, name: '', text: tr(text), mood: 'neutral' });
   }
 
   private show(line: Line): Promise<void> {
@@ -97,7 +98,7 @@ export class Dialogue {
     this.clock = 0;
     const ctx = this.box.ctx;
     ctx.save();
-    ctx.font = line.speaker ? FONT : `italic ${FONT}`;
+    ctx.font = line.speaker ? font() : `italic ${font()}`;
     this.lines = wrap(ctx, line.text, this.textWidth());
     ctx.restore();
     this.box.visible = true;
@@ -117,8 +118,8 @@ export class Dialogue {
   }
 
   /** Offer choices; resolves with the index picked. */
-  choose(options: string[]): Promise<number> {
-    this.options = options;
+  choose(options: (LocalText | string)[]): Promise<number> {
+    this.options = options.map((o) => tr(o));
     this.selected = 0;
     this.drawChoices();
     this.choiceBox.visible = true;
@@ -207,7 +208,7 @@ export class Dialogue {
     if (!this.complete) {
       this.clock += dt;
       const before = this.shown;
-      this.shown = Math.min(this.line.text.length, Math.floor(this.clock * CHARS_PER_SECOND));
+      this.shown = Math.min(this.line.text.length, Math.floor(this.clock * prefs.textCps));
       if (this.shown !== before) {
         // A blip every couple of letters, skipping spaces and punctuation.
         const ch = this.line.text[this.shown - 1] ?? ' ';
@@ -253,15 +254,16 @@ export class Dialogue {
         c.strokeRect(px - 0.75, py - 0.75, size + 1.5, size + 1.5);
         tx = px + size + 30;
       }
-      c.font = line.speaker ? FONT : `italic ${FONT}`;
+      c.font = line.speaker ? font() : `italic ${font()}`;
       c.textBaseline = 'alphabetic';
       let left = shown;
-      const top = 10 + (line.speaker ? 52 : BOX.h / 2 - ((lines.length - 1) * LEADING) / 2 + 9);
+      const lead = leading();
+      const top = 10 + (line.speaker ? 52 : BOX.h / 2 - ((lines.length - 1) * lead) / 2 + 9);
       lines.forEach((l, i) => {
         if (left <= 0) return;
         const part = l.slice(0, left);
         left -= l.length + 1;
-        shadowText(c, part, tx, top + i * LEADING, line.speaker ? INK.text : '#E6DCC4');
+        shadowText(c, part, tx, top + i * lead, line.speaker ? INK.text : '#E6DCC4');
       });
     });
   }

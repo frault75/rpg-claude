@@ -4,6 +4,8 @@
  * cutscene reads as a plain sequence of awaits.
  */
 
+import { prefs } from '../engine/prefs';
+
 /** Logical screen units per art pixel. */
 const PX = 3;
 
@@ -67,7 +69,7 @@ export class Director {
   }
 
   shake(amplitude: number, seconds: number): void {
-    this.shakeAmp = amplitude;
+    this.shakeAmp = amplitude * prefs.shake;
     this.shakeDur = seconds;
     this.shakeT = seconds;
   }

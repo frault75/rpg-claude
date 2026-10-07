@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { BOOK_MOTIF, chantPhrase } from '../src/audio/chant';
 import { degreeToMidi, midiToHz, MODES } from '../src/audio/instruments';
-import { actionFor } from '../src/engine/input';
+import { actionFor, DEFAULT_KEYS, keyLabel } from '../src/engine/input';
 import { fitView, VIEW_H, VIEW_W, windowToView } from '../src/engine/view';
 import { Rng } from '../src/engine/rng';
 
@@ -15,10 +15,21 @@ describe('input mapping', () => {
     expect(actionFor('ArrowLeft', 'ArrowLeft', false)).toBe('left');
   });
 
-  it('reads letter shortcuts by the printed letter', () => {
+  it('reads the default bindings and the mute shortcut', () => {
     expect(actionFor('KeyE', 'e', false)).toBe('confirm');
     expect(actionFor('KeyR', 'r', false)).toBe('rake');
-    expect(actionFor('KeyM', 'm', false)).toBe('mute');
+    expect(actionFor('Escape', 'Escape', false)).toBe('menu');
+    // On AZERTY, M sits where QWERTY has the semicolon.
+    expect(actionFor('Semicolon', 'm', false)).toBe('mute');
+  });
+
+  it('follows rebound keys', () => {
+    const keys = { ...DEFAULT_KEYS, confirm: ['KeyK'], up: ['KeyI'] };
+    expect(actionFor('KeyK', 'k', false, keys)).toBe('confirm');
+    expect(actionFor('KeyE', 'e', false, keys)).toBeNull();
+    expect(actionFor('KeyI', 'i', false, keys)).toBe('up');
+    expect(keyLabel('KeyW')).toBe('W');
+    expect(keyLabel('ArrowLeft')).toBe('←');
   });
 
   it('opens the debug overlay and menu from the key left of 1', () => {
@@ -33,7 +44,7 @@ describe('input mapping', () => {
   });
 
   it('ignores unmapped keys', () => {
-    expect(actionFor('KeyX', 'x', false)).toBeNull();
+    expect(actionFor('KeyU', 'u', false)).toBeNull();
   });
 });
 

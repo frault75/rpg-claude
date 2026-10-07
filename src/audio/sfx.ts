@@ -44,7 +44,7 @@ export function voiceBlip(engine: AudioEngine, pitch: number): void {
   g.gain.setValueAtTime(0, t);
   g.gain.linearRampToValueAtTime(0.05, t + 0.005);
   g.gain.exponentialRampToValueAtTime(0.0005, t + 0.07);
-  o.connect(g).connect(engine.bus('ui'));
+  o.connect(g).connect(engine.bus('voice'));
   o.start(t);
   o.stop(t + 0.08);
 }
