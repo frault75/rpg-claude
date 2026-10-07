@@ -112,3 +112,72 @@ export class Letterbox {
     this.ui.remove(this.bottom);
   }
 }
+
+/** Subtitles for cinematics: a line of narration over the lower letterbox bar. */
+export class Subtitles {
+  private readonly panel: UiPanel;
+  private t = 0;
+  private dur = 0;
+  private text = '';
+  private done: (() => void) | null = null;
+
+  constructor(private readonly ui: UiLayer) {
+    this.panel = ui.panel(1100, 90, 12);
+    this.panel.x = (VIEW_W - 1100) / 2;
+    this.panel.y = VIEW_H - 96;
+    this.panel.visible = false;
+  }
+
+  /** Show a line for `seconds`; resolves when it has faded. */
+  show(text: string, seconds: number): Promise<void> {
+    this.text = text;
+    this.t = 0;
+    this.dur = seconds;
+    this.panel.visible = true;
+    this.panel.draw((c, w, h) => {
+      c.font = `italic 27px ${SERIF}`;
+      c.textAlign = 'center';
+      c.textBaseline = 'middle';
+      const lines = wrapText(c, this.text, w - 60);
+      lines.forEach((l, i) => {
+        const y = h / 2 + (i - (lines.length - 1) / 2) * 34;
+        c.fillStyle = 'rgba(0,0,0,0.85)';
+        c.fillText(l, w / 2 + 2, y + 2);
+        c.fillStyle = '#EDE3CC';
+        c.fillText(l, w / 2, y);
+      });
+    });
+    this.done?.();
+    return new Promise((resolve) => (this.done = resolve));
+  }
+
+  update(dt: number): void {
+    if (!this.panel.visible) return;
+    this.t += dt;
+    this.panel.opacity = Math.min(1, this.t / 0.6, Math.max(0, (this.dur - this.t) / 0.6));
+    if (this.t > this.dur) {
+      this.panel.visible = false;
+      const d = this.done;
+      this.done = null;
+      d?.();
+    }
+  }
+
+  dispose(): void {
+    this.ui.remove(this.panel);
+  }
+}
+
+function wrapText(c: CanvasRenderingContext2D, text: string, max: number): string[] {
+  const out: string[] = [];
+  let line = '';
+  for (const word of text.split(' ')) {
+    const test = line ? `${line} ${word}` : word;
+    if (c.measureText(test).width > max && line) {
+      out.push(line);
+      line = word;
+    } else line = test;
+  }
+  out.push(line);
+  return out;
+}

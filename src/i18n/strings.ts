@@ -215,3 +215,14 @@ registerStrings('fr', {
   'credits.body': "Palimpsest\n\nUn RPG narratif fait entièrement de code :\nchaque image, chaque note, chaque lettre est générée pendant que vous jouez.\n\nÉcrit et construit avec Claude.\nThree.js · Web Audio · TypeScript",
   'touch.menu': 'Menu',
 });
+
+registerStrings('en', {
+  'prologue.skip': 'Skip: Esc / B',
+  'chapter.1': 'Chapter I',
+  'chapter.1.name': 'The Scraping',
+});
+registerStrings('fr', {
+  'prologue.skip': 'Passer : Échap / B',
+  'chapter.1': 'Chapitre I',
+  'chapter.1.name': 'Le Grattage',
+});
