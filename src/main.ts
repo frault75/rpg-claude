@@ -3,6 +3,7 @@
  * the current scene. Milestone (a) has a single scene: the test leaf.
  */
 
+import { ART_FLAGS, ART_TIMINGS } from './art/illuminator';
 import { spriteGlobals } from './art/sprite';
 import { AudioEngine } from './audio/engine';
 import { DebugOverlay } from './debug/overlay';
@@ -39,6 +40,10 @@ function boot(): void {
     const dt = Math.min(0.05, (now - last) / 1000);
     last = now;
     input.pollGamepads();
+    // The gold catches a light that drifts slowly, as if the book were turned in the hands.
+    const t = now / 1000;
+    const a = 2.3 + 0.32 * Math.sin(t * 0.13) + 0.12 * Math.sin(t * 0.37);
+    spriteGlobals.uLight.value.set(Math.cos(a) * 0.85, Math.sin(a) * 0.85);
     scene.update(dt);
     scene.sync();
     renderer.render();
@@ -56,6 +61,8 @@ function boot(): void {
     renderer,
     input,
     audio,
+    artTimings: ART_TIMINGS,
+    artFlags: ART_FLAGS,
     get scene(): Scene {
       return scene;
     },

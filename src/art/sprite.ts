@@ -18,7 +18,14 @@ export const spriteGlobals = {
   uGold: { value: new THREE.Vector3(...hexToRgb(PIGMENTS.gold)) },
   uGoldLight: { value: new THREE.Vector3(...hexToRgb(PIGMENTS.goldLight)) },
   uVellum: { value: new THREE.Vector3(...hexToRgb(PIGMENTS.vellum)) },
+  /** Direction the light falls from, tilting slowly (as if the book were turned in the hands). */
+  uLight: { value: new THREE.Vector2(-0.55, 0.6) },
+  /** Raking light in world space: x, y (y up), radius. Radius 0 = no light. */
+  uLens: { value: new THREE.Vector3(0, 0, 0) },
 };
+
+/** How a sprite responds to raking light. */
+export const LENS = { none: 0, revealed: 1, hidden: 2 } as const;
 
 const VERT = /* glsl */ `
 varying vec2 vUv;
@@ -45,6 +52,12 @@ uniform float uStage;     // 1 = finished illumination, 0 = bare vellum
 uniform float uOpacity;
 uniform float uSeed;
 uniform vec3 uTint;
+uniform vec2 uTexel;
+uniform vec2 uLight;
+uniform vec3 uLens;
+uniform float uLensMode;
+uniform vec4 uWipe;     // enabled, top of text (uv from top), line height (uv), unused
+uniform vec2 uWipeAt;   // current line, reveal edge (uv x)
 varying vec2 vUv;
 varying vec2 vWorld;
 
@@ -56,19 +69,33 @@ vec4 over(vec4 dst, vec3 c, float a) {
   return vec4(oc, oa);
 }
 
-vec3 goldLeaf(vec2 w) {
-  // Leaf is laid in small squares; each catches the light a little differently.
-  vec2 cell = floor(w / 9.0);
+float goldHeight(vec2 uv) {
+  return texture2D(tMask, uv).b;
+}
+
+/** Burnished gold over raised gesso, lit in relief. */
+vec3 goldLeaf(vec2 w, vec2 uv) {
+  vec2 e = uTexel * 1.5;
+  float hl = goldHeight(uv - vec2(e.x, 0.0));
+  float hr = goldHeight(uv + vec2(e.x, 0.0));
+  float hd = goldHeight(uv - vec2(0.0, e.y));
+  float hu = goldHeight(uv + vec2(0.0, e.y));
+  vec3 n = normalize(vec3((hl - hr) * 3.2, (hd - hu) * 3.2, 1.0));
+  // Leaf laid in squares, each a touch differently burnished, with fine cracks.
+  vec2 cell = floor(w / 11.0);
   float leaf = hash12(cell + uSeed);
-  float burnish = vnoise(w * 0.35 + uSeed) * 0.6 + vnoise(w * 1.7) * 0.4;
-  vec3 col = mix(uGoldDark, uGold, 0.45 + 0.4 * burnish + 0.15 * leaf);
-  // A slow band of light sweeping across the page, as if the book were tilted.
-  float band = sin((w.x * 0.8 + w.y * 1.3) * 0.006 - uTime * 0.55 + leaf * 0.6);
-  float glint = pow(max(band, 0.0), 14.0) * uShimmer;
-  col = mix(col, uGoldLight, clamp(glint * 0.85 + smoothstep(0.82, 1.0, burnish) * 0.35, 0.0, 1.0));
-  // Tiny sparkles.
-  float sp = hash12(floor(w * 0.9) + floor(uTime * 3.0));
-  col += uGoldLight * step(0.996, sp) * 0.35 * uShimmer;
+  vec2 jitter = vec2(vnoise(w * 0.7 + uSeed) - 0.5, vnoise(w * 0.7 + 31.0) - 0.5) * 0.22;
+  n = normalize(n + vec3(jitter, 0.0) + vec3(leaf - 0.5, 0.0, 0.0) * 0.08);
+  vec3 L = normalize(vec3(uLight, 0.75));
+  float diff = clamp(dot(n, L), 0.0, 1.0);
+  vec3 H = normalize(L + vec3(0.0, 0.0, 1.0));
+  float spec = pow(max(dot(n, H), 0.0), 36.0) * uShimmer;
+  float sheen = pow(max(dot(n, H), 0.0), 6.0);
+  vec3 col = mix(uGoldDark * 0.85, uGold, smoothstep(0.15, 0.95, diff));
+  col = mix(col, uGoldLight, sheen * 0.35 + spec * 0.9);
+  // The occasional sparkle.
+  float sp = hash12(floor(w * 0.8) + floor(uTime * 2.0));
+  col += uGoldLight * step(0.997, sp) * 0.3 * uShimmer;
   return col;
 }
 
@@ -92,16 +119,36 @@ void main() {
   vec3 thin = mix(uVellum, mix(vec3(luma(paintCol)), paintCol, 0.7), 0.45);
   vec3 pc = mix(thin, paintCol, tintStage);
   float ik = ink * smoothstep(0.7, 0.95, s);
+
+  // Text being written: lines before the current one are done, later ones not yet begun.
+  if (uWipe.x > 0.5) {
+    float yy = 1.0 - vUv.y;
+    if (yy >= uWipe.y) {
+      float line = floor((yy - uWipe.y) / uWipe.z);
+      float shown = line < uWipeAt.x ? 1.0 : (line > uWipeAt.x ? 0.0 : 1.0 - smoothstep(uWipeAt.y - 0.004, uWipeAt.y + 0.004, vUv.x));
+      ik *= shown;
+      under *= shown;
+    }
+  }
   // Thin ink is browner where it pools less.
   vec3 inkCol = mix(vec3(0.46, 0.33, 0.21), uInk, smoothstep(0.2, 0.85, ink));
 
   vec4 col = vec4(0.0);
   col = over(col, pc, pa);
-  col = over(col, goldLeaf(vWorld), g);
+  col = over(col, goldLeaf(vWorld, vUv), g);
   col = over(col, vec3(0.47, 0.45, 0.43), under);
   col = over(col, inkCol, ik);
   col.rgb *= uTint;
-  gl_FragColor = vec4(col.rgb, col.a * uOpacity);
+
+  // Raking light: underwriting shows only inside the candle's circle (and some paint hides).
+  float vis = 1.0;
+  if (uLensMode > 0.5) {
+    float flicker = 1.0 + 0.03 * sin(uTime * 13.0) + 0.02 * sin(uTime * 7.3);
+    float r = uLens.z * flicker;
+    float inside = r > 0.0 ? 1.0 - smoothstep(r * 0.5, r, distance(vWorld, uLens.xy)) : 0.0;
+    vis = uLensMode < 1.5 ? inside : 1.0 - inside;
+  }
+  gl_FragColor = vec4(col.rgb, col.a * uOpacity * vis);
 }
 `;
 
@@ -132,6 +179,10 @@ export class IlluminatedMaterial extends THREE.ShaderMaterial {
         uOpacity: { value: 1 },
         uSeed: { value: seed },
         uTint: { value: new THREE.Vector3(1, 1, 1) },
+        uLensMode: { value: 0 },
+        uTexel: { value: new THREE.Vector2(1 / image.mask.width, 1 / image.mask.height) },
+        uWipe: { value: new THREE.Vector4(0, 0, 1, 0) },
+        uWipeAt: { value: new THREE.Vector2(0, 0) },
       },
     });
   }
@@ -146,6 +197,20 @@ export class IlluminatedMaterial extends THREE.ShaderMaterial {
 
   setOpacity(v: number): void {
     this.uniforms.uOpacity!.value = v;
+  }
+
+  set lensMode(v: number) {
+    this.uniforms.uLensMode!.value = v;
+  }
+
+  /** Enable the text wipe: `top` and `lineHeight` as fractions of the image height. */
+  setWipe(top: number, lineHeight: number): void {
+    (this.uniforms.uWipe!.value as THREE.Vector4).set(1, top, lineHeight, 0);
+  }
+
+  /** Reveal up to `x` (fraction of image width) on line `line`. */
+  setWipeAt(line: number, x: number): void {
+    (this.uniforms.uWipeAt!.value as THREE.Vector2).set(line, x);
   }
 
   override dispose(): void {
@@ -198,6 +263,92 @@ export class Sprite {
     this.mesh.rotation.z = -this.rotation;
     this.mesh.scale.set((this.flip ? -1 : 1) * this.scale, this.scale, 1);
     this.mesh.renderOrder = layerOrder * 100000 + Math.round((this.depth ?? this.y) * 10);
+  }
+
+  dispose(): void {
+    this.mesh.geometry.dispose();
+    this.mesh.material.dispose();
+  }
+}
+
+/**
+ * A candle's glow: a soft warm disc added onto the page. Flickers a little.
+ */
+export class Glow {
+  readonly mesh: THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMaterial>;
+  x = 0;
+  y = 0;
+
+  constructor(
+    readonly radius: number,
+    seed = Math.random() * 10,
+    strength = 0.13,
+  ) {
+    const geo = new THREE.PlaneGeometry(radius * 2, radius * 2);
+    const mat = new THREE.ShaderMaterial({
+      vertexShader: `varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+      fragmentShader: `
+        uniform float uTime; uniform float uSeed; uniform float uStrength;
+        varying vec2 vUv;
+        void main() {
+          float d = length(vUv - 0.5) * 2.0;
+          float flicker = 0.9 + 0.06 * sin(uTime * 9.0 + uSeed) + 0.04 * sin(uTime * 23.0 + uSeed * 3.0);
+          float a = pow(max(1.0 - d, 0.0), 2.2) * uStrength * flicker;
+          gl_FragColor = vec4(vec3(1.0, 0.78, 0.42) * a, 1.0);
+        }`,
+      uniforms: { uTime: spriteGlobals.uTime, uSeed: { value: seed }, uStrength: { value: strength } },
+      transparent: true,
+      depthTest: false,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    });
+    this.mesh = new THREE.Mesh(geo, mat);
+    this.mesh.frustumCulled = false;
+  }
+
+  sync(pageHeight: number, layerOrder: number): void {
+    this.mesh.position.set(this.x, pageHeight - this.y, 0);
+    this.mesh.renderOrder = layerOrder * 100000 + 99999;
+  }
+
+  dispose(): void {
+    this.mesh.geometry.dispose();
+    this.mesh.material.dispose();
+  }
+}
+
+/**
+ * A soft contact shadow pooled under a figure or prop, so things sit on the ground.
+ */
+export class Shadow {
+  readonly mesh: THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMaterial>;
+  x = 0;
+  y = 0;
+
+  constructor(rx: number, ry: number, strength = 0.32) {
+    const geo = new THREE.PlaneGeometry(rx * 2, ry * 2);
+    const mat = new THREE.ShaderMaterial({
+      vertexShader: `varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+      fragmentShader: `
+        uniform float uStrength;
+        varying vec2 vUv;
+        void main() {
+          float d = length((vUv - 0.5) * 2.0);
+          float a = pow(max(1.0 - d, 0.0), 1.6) * uStrength;
+          gl_FragColor = vec4(0.16, 0.11, 0.07, a);
+        }`,
+      uniforms: { uStrength: { value: strength } },
+      transparent: true,
+      depthTest: false,
+      depthWrite: false,
+    });
+    this.mesh = new THREE.Mesh(geo, mat);
+    this.mesh.frustumCulled = false;
+  }
+
+  sync(pageHeight: number, layerOrder: number): void {
+    this.mesh.position.set(this.x, pageHeight - this.y, 0);
+    this.mesh.renderOrder = layerOrder * 100000 + 99998;
   }
 
   dispose(): void {

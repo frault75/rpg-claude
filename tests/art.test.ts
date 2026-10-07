@@ -18,10 +18,12 @@ describe('palettes', () => {
         if (Array.isArray(value)) {
           expect(value.length, `${id}.${role}`).toBeGreaterThan(0);
           for (const c of value) expect(isHex(c), `${id}.${role}`).toBe(true);
-        } else {
+        } else if (typeof value === 'string') {
           expect(isHex(value), `${id}.${role}`).toBe(true);
         }
       }
+      expect(typeof roles.glassLit).toBe('boolean');
+      expect(['none', 'low', 'rising']).toContain(roles.sky.sun);
     }
   });
 

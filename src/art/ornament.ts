@@ -11,7 +11,7 @@ import { circle, poly, type Pt, rect, Shape, smooth } from './path';
 import { font, measure, SERIF } from './text';
 
 const BAR_GAP = 8;
-const BAR_W = 6;
+const BAR_W = 9;
 
 /** A three-lobed ivy leaf with its base at `b`, pointing along angle `a`. */
 export function ivyLeaf(b: Pt, a: number, len: number, wid: number): Shape {
@@ -66,10 +66,10 @@ function drawTendril(il: Illuminator, f: TendrilFrame, length: number, height: n
     spiral.push([x, y]);
   }
   const stem = pts.concat(spiral.slice(1));
-  il.ink(stem, { width: 1.05, nibRatio: 0.6, taperIn: 2, taperOut: 10, taperFloor: 0.3, wobble: 0.15, bleed: true });
+  il.ink(stem, { width: 1.3, nibRatio: 0.6, taperIn: 2, taperOut: 10, taperFloor: 0.3, wobble: 0.15, bleed: true });
 
   // Leaves alternate sides along the stem.
-  const leafTs = [0.28, 0.5, 0.7].filter(() => rng.chance(0.85));
+  const leafTs = [0.18, 0.34, 0.5, 0.64, 0.78].filter(() => rng.chance(0.9));
   leafTs.forEach((t, k) => {
     const i = Math.floor(t * (pts.length - 2));
     const p = pts[i]!;
@@ -80,9 +80,14 @@ function drawTendril(il: Illuminator, f: TendrilFrame, length: number, height: n
     const color = leaves[leafIdx.i++ % leaves.length]!;
     const stalk: Pt = [p[0] + Math.cos(a) * 2.5, p[1] + Math.sin(a) * 2.5];
     const leaf = ivyLeaf(stalk, a, rng.range(9, 11), rng.range(6.5, 7.5));
-    if (color === PIGMENTS.gold) il.gild(leaf);
-    else il.fill(leaf, color);
-    il.outline(leaf, { width: 0.75, nibRatio: 0.65, wobble: 0.1 });
+    if (color === PIGMENTS.gold) {
+      il.gild(leaf);
+      il.punch(stalk[0] + Math.cos(a) * 5, stalk[1] + Math.sin(a) * 5, 0.6);
+    } else {
+      il.paint(leaf, color, { round: true, shadow: 0.5, lit: 0.45, pool: 0.5, texture: 0.3 });
+      il.colorStroke([stalk, [stalk[0] + Math.cos(a) * 8, stalk[1] + Math.sin(a) * 8]], PIGMENTS.leadWhite, { width: 0.45, nibRatio: 1, taperIn: 1, taperOut: 3 }, 0.8);
+    }
+    il.outline(leaf, { width: 0.6, nibRatio: 0.65, wobble: 0.1 });
     il.ink([p, stalk], { width: 0.55, bleed: false });
   });
 
@@ -92,8 +97,9 @@ function drawTendril(il: Illuminator, f: TendrilFrame, length: number, height: n
   const bp = pts[bi]!;
   const bpos = toPage(length * bt, Math.min(height + 2.5, height * 0.92 + 5));
   il.ink([bp, bpos], { width: 0.45, bleed: false, taperOut: 1 });
-  il.gildDot(bpos[0], bpos[1], 2.4);
-  il.outline(circle(bpos[0], bpos[1], 2.4), { width: 0.55, nibRatio: 0.9, bleed: false });
+  il.gildDot(bpos[0], bpos[1], 3.2);
+  il.outline(circle(bpos[0], bpos[1], 3.2), { width: 0.55, nibRatio: 0.9, bleed: false });
+  il.punch(bpos[0] - 0.8, bpos[1] - 0.8, 0.6);
   for (let k = -1; k <= 1; k++) {
     const h0 = Math.atan2(f.out[1], f.out[0]) + k * 0.7;
     const hair: Pt[] = [];
@@ -112,7 +118,7 @@ function drawTendril(il: Illuminator, f: TendrilFrame, length: number, height: n
 
 /** A gilded quatrefoil boss at a corner of the bar frame. */
 function cornerBoss(il: Illuminator, c: Pt, palette: LocationPalette): void {
-  const r = 7.5;
+  const r = 11;
   const lobes: Shape = new Shape();
   for (let k = 0; k < 4; k++) {
     const a = (k * Math.PI) / 2 + Math.PI / 4;
@@ -122,9 +128,10 @@ function cornerBoss(il: Illuminator, c: Pt, palette: LocationPalette): void {
   il.gild(lobes);
   il.gild(square);
   il.outline(lobes, { width: 0.7, nibRatio: 0.8 });
-  il.fill(circle(c[0], c[1], r * 0.45), palette.roles.barA);
+  il.punchLine(circle(c[0], c[1], r * 0.72).polylines(0.5)[0] ?? [], 2.2, 0.55);
+  il.paint(circle(c[0], c[1], r * 0.45), palette.roles.barA, { round: true, shadow: 0.5, lit: 0.5, texture: 0 });
   il.outline(circle(c[0], c[1], r * 0.45), { width: 0.6, nibRatio: 0.9 });
-  il.dot(c[0], c[1], r * 0.14, PIGMENTS.leadWhite);
+  il.dot(c[0] - 1, c[1] - 1, r * 0.13, PIGMENTS.leadWhite);
 }
 
 /** One side of the bar: alternating colour segments joined by gold knots, with white-work. */
@@ -142,7 +149,7 @@ function barSide(il: Illuminator, a: Pt, b: Pt, palette: LocationPalette, rng: R
     colorFlip = !colorFlip;
     const body = seg(s, s + segLen);
     if (color === PIGMENTS.gold) il.gild(body);
-    else il.fill(body, color);
+    else il.paint(body, color, { shadow: 0.45, lit: 0.4, pool: 0.5, texture: 0.4, stroke: horiz ? 0 : Math.PI / 2, light: horiz ? -Math.PI / 2 : Math.PI });
     // White-work: a fine wavy line with dots, the painter's flourish on the bar.
     if (color !== PIGMENTS.gold) {
       const wavePts: Pt[] = [];
@@ -150,24 +157,33 @@ function barSide(il: Illuminator, a: Pt, b: Pt, palette: LocationPalette, rng: R
         const w = Math.sin(u * 0.55) * 1.3;
         wavePts.push(horiz ? [a[0] + u, a[1] + w] : [a[0] + w, a[1] + u]);
       }
-      il.colorStroke(wavePts, shade(PIGMENTS.leadWhite, 0), { width: 0.45, nibRatio: 1, taperIn: 1, taperOut: 1, wobble: 0.05 }, 0.85);
+      il.colorStroke(wavePts, shade(PIGMENTS.leadWhite, 0), { width: 0.6, nibRatio: 1, taperIn: 1, taperOut: 1, wobble: 0.05 }, 0.9);
       for (let u = s + 6; u < s + segLen - 4; u += 11.4) {
         const p: Pt = horiz ? [a[0] + u, a[1] + Math.sin(u * 0.55) * 1.3] : [a[0] + Math.sin(u * 0.55) * 1.3, a[1] + u];
-        il.dot(p[0] + (horiz ? 2.8 : 0), p[1] + (horiz ? 0 : 2.8), 0.55, PIGMENTS.leadWhite, 0.9);
+        il.dot(p[0] + (horiz ? 2.8 : 0), p[1] + (horiz ? 0 : 2.8), 0.7, PIGMENTS.leadWhite, 0.95);
       }
     }
     // A gold knot (lozenge) closing the segment.
     const kc = s + segLen + 4;
     if (kc < len - 8) {
       const c: Pt = horiz ? [a[0] + kc, a[1]] : [a[0], a[1] + kc];
+      const k = 6.8;
       const knot = poly([
-        [c[0], c[1] - 4.6],
-        [c[0] + 4.6, c[1]],
-        [c[0], c[1] + 4.6],
-        [c[0] - 4.6, c[1]],
+        [c[0], c[1] - k],
+        [c[0] + k, c[1]],
+        [c[0], c[1] + k],
+        [c[0] - k, c[1]],
       ]);
       il.gild(knot);
       il.outline(knot, { width: 0.6, nibRatio: 0.8 });
+      il.punch(c[0], c[1], 0.9);
+      for (const [dx, dy] of [
+        [0, -3.4],
+        [3.4, 0],
+        [0, 3.4],
+        [-3.4, 0],
+      ] as const)
+        il.punch(c[0] + dx, c[1] + dy, 0.5);
     }
     s += segLen + 8;
   }

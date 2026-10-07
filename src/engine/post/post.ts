@@ -76,6 +76,8 @@ uniform float uBlanch;
 uniform float uBleed;
 uniform float uGran;
 uniform float uGrade;
+uniform vec4 uCandle;   // centre (uv), radius (in page heights), strength
+uniform float uFade;
 varying vec2 vUv;
 
 float luma(vec3 c) {
@@ -118,7 +120,21 @@ void main() {
     c = mix(c, g, uGrade);
   }
 
+  // Raking candlelight: warm inside the circle, a little dimmer outside it.
+  if (uCandle.w > 0.0) {
+    vec2 d = (vUv - uCandle.xy) * vec2(${(PAGE_W / PAGE_H).toFixed(4)}, 1.0);
+    float inside = 1.0 - smoothstep(uCandle.z * 0.45, uCandle.z, length(d));
+    c *= mix(1.0 - 0.12 * uCandle.w, 1.0, inside);
+    c = mix(c, c * vec3(1.07, 1.0, 0.86), inside * uCandle.w);
+  }
+
   c *= age.rgb * ${AGE_RANGE.toFixed(2)};
+
+  // Page fade: the picture washes back into bare vellum, unevenly.
+  if (uFade > 0.0) {
+    float f = clamp(uFade * 1.35 - gn * 0.35, 0.0, 1.0);
+    c = mix(c, uVellum * age.rgb * ${AGE_RANGE.toFixed(2)}, smoothstep(0.0, 1.0, f));
+  }
   gl_FragColor = vec4(c, 1.0);
 }
 `;
@@ -169,6 +185,8 @@ export class PostPass {
         uBleed: { value: 1 },
         uGran: { value: 1 },
         uGrade: { value: 1 },
+        uCandle: { value: new THREE.Vector4(0, 0, 0, 0) },
+        uFade: { value: 0 },
       },
     });
     const mesh = new THREE.Mesh(tri, this.final);
@@ -211,6 +229,20 @@ export class PostPass {
       saturation: l(a.saturation, b.saturation),
       blanch: l(a.blanch, b.blanch),
     });
+  }
+
+  /** Raking candlelight centred at a page position (units), radius in units, strength 0–1. */
+  setCandle(x: number, y: number, radius: number, strength: number): void {
+    (this.u.uCandle!.value as THREE.Vector4).set(x / PAGE_W, 1 - y / PAGE_H, radius / PAGE_H, strength);
+  }
+
+  /** 0 = the picture, 1 = bare vellum. */
+  set fade(v: number) {
+    this.u.uFade!.value = v;
+  }
+
+  get fade(): number {
+    return this.u.uFade!.value as number;
   }
 
   /**
