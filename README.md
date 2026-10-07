@@ -17,10 +17,17 @@ The world is real 3D seen by a tilted orthographic camera: ground, cliffs, stair
 |---|---|
 | WASD / arrows | Walk (on AZERTY, ZQSD) |
 | M | Sound on/off (sound starts on your first key or click) |
-| E / Space / Enter, or click | Advance dialogue |
+| Click or tap the ground | Walk there |
+| E / Space / Enter, click or tap | Advance dialogue |
+| Touch | A virtual stick under the left thumb, A and B buttons on the right |
+| Gamepad | Left stick or d-pad to walk, A to confirm, B to cancel |
 | `` ` `` (² on AZERTY) | Debug overlay: fps, location, quality tier, rendering toggles (shadows, reflections, bloom, depth of field, fog, grade), scene buttons |
 
 Add `?debug` to the URL to open the overlay at start.
+
+## Install and play offline
+
+The build is a Progressive Web App: on a phone or desktop, "Add to Home Screen" / "Install" from the browser puts Palimpsest on the device, full screen and in landscape. A service worker precaches every file, so it then plays offline. The icons are drawn by code at build time (`build/pwa.ts`).
 
 ## Develop
 
@@ -50,6 +57,7 @@ src/
   story/    flags, conditions and the script runner
   scenes/   screens of the game (for now, the Sea Gate)
   debug/    the debug overlay
+build/      the PWA plugin (procedural icons, manifest, service worker)
 tests/      unit tests
 ```
 

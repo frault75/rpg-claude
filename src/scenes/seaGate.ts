@@ -114,6 +114,8 @@ export class SeaGateScene implements Scene {
   private cutscene = false;
   private met = false;
   private camH = PLATEAU;
+  /** Where a click or tap asked the player to walk. */
+  private goal: [number, number] | null = null;
 
   constructor(
     private readonly r: WorldRenderer,
@@ -282,7 +284,13 @@ export class SeaGateScene implements Scene {
       }),
       input.onPointer((px, py) => {
         const p = r.windowToScreen(px, py);
-        if (p) this.dialogue.click(p.x, p.y);
+        if (!p) return;
+        if (this.dialogue.open) this.dialogue.click(p.x, p.y);
+        else if (!this.cutscene) {
+          // Click or tap to walk there.
+          const m = r.screenToMap(p.x, p.y, this.player.h);
+          this.goal = [m.x, m.y];
+        }
       }),
     );
     this.input.onGesture(() => this.ambience.start(this.audio));
@@ -384,18 +392,22 @@ export class SeaGateScene implements Scene {
   update(dt: number): void {
     this.time += dt;
     const free = !this.cutscene && !this.dialogue.open;
-    let mx = 0;
-    let my = 0;
-    if (free) {
-      if (this.input.isHeld('left')) mx -= 1;
-      if (this.input.isHeld('right')) mx += 1;
-      if (this.input.isHeld('up')) my -= 1;
-      if (this.input.isHeld('down')) my += 1;
-    }
+    let { x: mx, y: my } = free ? this.input.move() : { x: 0, y: 0 };
     const p = this.player;
+    if (mx || my) this.goal = null;
+    else if (free && this.goal) {
+      const gx = this.goal[0] - p.x;
+      const gy = this.goal[1] - p.y;
+      const gd = Math.hypot(gx, gy);
+      if (gd < 1.5) this.goal = null;
+      else {
+        mx = gx / gd;
+        my = gy / gd;
+      }
+    }
     if (mx || my) {
-      const len = Math.hypot(mx, my);
-      const sp = p.speed * dt;
+      const len = Math.max(1, Math.hypot(mx, my));
+      const sp = p.speed * dt * Math.min(1, Math.hypot(mx, my) * 1.2);
       let dx = (mx / len) * sp;
       let dy = (my / len) * sp;
       if (!this.canStand(p.x + dx, p.y, p.h)) dx = 0;
@@ -404,6 +416,7 @@ export class SeaGateScene implements Scene {
       else {
         p.face(mx, my);
         p.step(0, 0, dt);
+        this.goal = null;
       }
     } else p.step(0, 0, dt);
     p.h = this.heightAt(p.x, p.y);

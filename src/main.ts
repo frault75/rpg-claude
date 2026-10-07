@@ -8,6 +8,7 @@ import { DebugOverlay } from './debug/overlay';
 import { WorldRenderer } from './engine/diorama/renderer';
 import { Input } from './engine/input';
 import type { Scene } from './engine/scene';
+import { TouchControls } from './engine/touch';
 import { SeaGateScene } from './scenes/seaGate';
 
 function boot(): void {
@@ -16,6 +17,7 @@ function boot(): void {
   const renderer = new WorldRenderer(canvas);
   const input = new Input();
   input.attach(window);
+  new TouchControls(input);
   const audio = new AudioEngine();
   input.onGesture(() => audio.start());
 
@@ -77,6 +79,11 @@ function boot(): void {
       scene = s;
     },
   };
+}
+
+// Installable and playable offline (the service worker is written at build time).
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => void navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`).catch(() => undefined));
 }
 
 try {

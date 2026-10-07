@@ -76,8 +76,25 @@ const PAD_BUTTONS: Partial<Record<number, Action>> = {
   15: 'right',
 };
 
+export interface Axis {
+  x: number;
+  y: number;
+}
+
+/** Combine digital keys, an analog stick and a touch stick into one movement, length <= 1. */
+export function combineMove(keys: Axis, pad: Axis, touch: Axis): Axis {
+  for (const a of [keys, pad, touch]) {
+    const len = Math.hypot(a.x, a.y);
+    if (len > 0.001) return len > 1 ? { x: a.x / len, y: a.y / len } : { x: a.x, y: a.y };
+  }
+  return { x: 0, y: 0 };
+}
+
 export class Input {
   private readonly held = new Set<Action>();
+  /** Set by the touch controls: the virtual stick, -1..1 on each axis. */
+  touchAxis: Axis = { x: 0, y: 0 };
+  private padAxis: Axis = { x: 0, y: 0 };
   private readonly padHeld = new Set<Action>();
   private readonly pressedQueue: Action[] = [];
   private readonly listeners: ((a: Action) => void)[] = [];
@@ -147,7 +164,32 @@ export class Input {
   }
 
   isHeld(a: Action): boolean {
-    return this.held.has(a) || this.padHeld.has(a);
+    return this.held.has(a) || this.padHeld.has(a) || this.touchHeld.has(a);
+  }
+
+  private readonly touchHeld = new Set<Action>();
+
+  /** Press or release an action from an on-screen button. */
+  hold(a: Action, down: boolean): void {
+    if (down && !this.touchHeld.has(a)) {
+      this.touchHeld.add(a);
+      this.gesture();
+      this.press(a);
+    } else if (!down) this.touchHeld.delete(a);
+  }
+
+  /** A tap on the screen (window pixels), as if clicked. */
+  tap(x: number, y: number): void {
+    this.gesture();
+    for (const l of this.pointerListeners) l(x, y, 0);
+  }
+
+  /** The direction to walk this frame: keys, then gamepad stick, then touch stick. */
+  move(): Axis {
+    // Keyboard first (the pad's d-pad and stick come through padAxis, not as keys).
+    const k = (a: Action) => (this.held.has(a) || this.touchHeld.has(a) ? 1 : 0);
+    const keys = { x: k('right') - k('left'), y: k('down') - k('up') };
+    return combineMove(keys, this.padAxis, this.touchAxis);
   }
 
   /** Actions pressed since the last call. */
@@ -159,13 +201,20 @@ export class Input {
   pollGamepads(): void {
     const pads = typeof navigator.getGamepads === 'function' ? navigator.getGamepads() : [];
     const now = new Set<Action>();
+    this.padAxis = { x: 0, y: 0 };
     for (const pad of pads) {
       if (!pad) continue;
       const [ax = 0, ay = 0] = pad.axes;
-      if (ax < -0.4) now.add('left');
-      if (ax > 0.4) now.add('right');
-      if (ay < -0.4) now.add('up');
-      if (ay > 0.4) now.add('down');
+      if (Math.hypot(ax, ay) > 0.22) this.padAxis = { x: ax, y: ay };
+      const b = (i: number) => (pad.buttons[i]?.pressed ? 1 : 0);
+      const dx = b(15) - b(14);
+      const dy = b(13) - b(12);
+      if (dx || dy) this.padAxis = { x: dx, y: dy };
+      // The stick also drives menus, as presses.
+      if (ax < -0.6) now.add('left');
+      if (ax > 0.6) now.add('right');
+      if (ay < -0.6) now.add('up');
+      if (ay > 0.6) now.add('down');
       pad.buttons.forEach((b, i) => {
         const a = PAD_BUTTONS[i];
         if (a && b.pressed) now.add(a);
