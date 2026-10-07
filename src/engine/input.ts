@@ -16,11 +16,12 @@ export type Action =
   | 'debugMenu'
   | 'fray'
   | 'mute'
-  | 'palette1'
-  | 'palette2'
-  | 'palette3'
-  | 'palette4'
-  | 'palette5';
+  | 'n1'
+  | 'n2'
+  | 'n3'
+  | 'n4'
+  | 'n5'
+  | 'journal';
 
 const BY_CODE: Record<string, Action> = {
   KeyW: 'up',
@@ -35,11 +36,16 @@ const BY_CODE: Record<string, Action> = {
   NumpadEnter: 'confirm',
   Space: 'confirm',
   Escape: 'cancel',
-  Digit1: 'palette1',
-  Digit2: 'palette2',
-  Digit3: 'palette3',
-  Digit4: 'palette4',
-  Digit5: 'palette5',
+  Digit1: 'n1',
+  Digit2: 'n2',
+  Digit3: 'n3',
+  Digit4: 'n4',
+  Digit5: 'n5',
+  Numpad1: 'n1',
+  Numpad2: 'n2',
+  Numpad3: 'n3',
+  Numpad4: 'n4',
+  Numpad5: 'n5',
 };
 
 const BY_LETTER: Record<string, Action> = {
@@ -47,6 +53,7 @@ const BY_LETTER: Record<string, Action> = {
   r: 'rake',
   f: 'fray',
   m: 'mute',
+  j: 'journal',
 };
 
 /** Map a key event to an action. Pure, so it can be tested without a browser. */
@@ -78,7 +85,32 @@ export class Input {
   gestured = false;
   private readonly gestureListeners: (() => void)[] = [];
 
+  private readonly pointerListeners: ((x: number, y: number, button: number) => void)[] = [];
+  /** Last pointer position in window pixels. */
+  pointer = { x: -1, y: -1 };
+
+  /** Listen for clicks (window pixel coordinates); returns a function that stops listening. */
+  onPointer(fn: (x: number, y: number, button: number) => void): () => void {
+    this.pointerListeners.push(fn);
+    return () => {
+      const i = this.pointerListeners.indexOf(fn);
+      if (i >= 0) this.pointerListeners.splice(i, 1);
+    };
+  }
+
   attach(target: Window): void {
+    target.addEventListener('pointermove', (e) => {
+      this.pointer = { x: e.clientX, y: e.clientY };
+    });
+    target.addEventListener('pointerdown', (e) => {
+      if ((e.target as HTMLElement | null)?.closest?.('#debug-overlay, #debug-menu')) return;
+      if (e.button === 2) this.held.add('rake');
+      for (const l of this.pointerListeners) l(e.clientX, e.clientY, e.button);
+    });
+    target.addEventListener('pointerup', (e) => {
+      if (e.button === 2) this.held.delete('rake');
+    });
+    target.addEventListener('contextmenu', (e) => e.preventDefault());
     target.addEventListener('keydown', (e) => {
       this.gesture();
       const a = actionFor(e.code, e.key, e.shiftKey);

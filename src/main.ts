@@ -1,35 +1,37 @@
 /**
- * Palimpsest: boot. Creates the page renderer, input, audio and debug overlay, then runs
- * the current scene. Milestone (a) has a single scene: the test leaf.
+ * Palimpsest: boot. Creates the renderer, input, audio and debug overlay, then runs the
+ * current scene.
  */
 
-import { ART_FLAGS, ART_TIMINGS } from './art/illuminator';
-import { spriteGlobals } from './art/sprite';
 import { AudioEngine } from './audio/engine';
 import { DebugOverlay } from './debug/overlay';
+import { WorldRenderer } from './engine/hd2d/renderer';
 import { Input } from './engine/input';
-import { PageRenderer } from './engine/renderer';
 import type { Scene } from './engine/scene';
-import { TestLeaf } from './scenes/testLeaf';
+import { SeaGateScene } from './scenes/seaGate';
 
 function boot(): void {
   const canvas = document.getElementById('page') as HTMLCanvasElement;
   const loading = document.getElementById('loading');
-  const renderer = new PageRenderer(canvas);
+  const renderer = new WorldRenderer(canvas);
   const input = new Input();
   input.attach(window);
   const audio = new AudioEngine();
   input.onGesture(() => audio.start());
 
-  let scene: Scene = new TestLeaf(renderer, input, audio);
+  let scene: Scene = new SeaGateScene(renderer, input, audio);
   const debug = new DebugOverlay({
-    post: renderer.post,
-    shimmer: () => spriteGlobals.uShimmer.value > 0,
-    setShimmer: (on) => (spriteGlobals.uShimmer.value = on ? 1 : 0),
+    toggles: () =>
+      (Object.keys(renderer.enabled) as (keyof typeof renderer.enabled)[]).map((k) => ({
+        label: k,
+        get: () => renderer.enabled[k],
+        set: (on: boolean) => (renderer.enabled[k] = on),
+      })),
     buttons: () => scene.debugButtons(),
   });
   input.onAction((a) => {
     if (a === 'debug' || a === 'debugMenu') debug.toggle();
+    if (a === 'mute') audio.toggleMute();
   });
   if (new URLSearchParams(location.search).has('debug')) debug.toggle();
 
@@ -40,13 +42,9 @@ function boot(): void {
     const dt = Math.min(0.05, (now - last) / 1000);
     last = now;
     input.pollGamepads();
-    // The gold catches a light that drifts slowly, as if the book were turned in the hands.
-    const t = now / 1000;
-    const a = 2.3 + 0.32 * Math.sin(t * 0.13) + 0.12 * Math.sin(t * 0.37);
-    spriteGlobals.uLight.value.set(Math.cos(a) * 0.85, Math.sin(a) * 0.85);
     scene.update(dt);
     scene.sync();
-    renderer.render();
+    renderer.render(dt);
     debug.frame(dt, () => scene.debugInfo());
     requestAnimationFrame(frame);
   };
@@ -61,8 +59,6 @@ function boot(): void {
     renderer,
     input,
     audio,
-    artTimings: ART_TIMINGS,
-    artFlags: ART_FLAGS,
     get scene(): Scene {
       return scene;
     },
@@ -78,7 +74,7 @@ try {
   const loading = document.getElementById('loading');
   if (loading) {
     loading.className = 'error';
-    loading.textContent = `The page could not be prepared: ${err instanceof Error ? err.message : String(err)}. This game needs WebGL.`;
+    loading.textContent = `The game could not start: ${err instanceof Error ? err.message : String(err)}. This game needs WebGL 2.`;
   }
   throw err;
 }
