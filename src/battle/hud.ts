@@ -393,6 +393,65 @@ export function drawHelp(c: CanvasRenderingContext2D, w: number, h: number, text
   lines.forEach((l, i) => shadowText(c, l, w / 2, h / 2 + (i - (lines.length - 1) / 2) * 22, warn ? '#F4A080' : INK.text));
 }
 
+export const TIP_W = 620;
+
+const tipFonts = () => {
+  const big = prefs.largeText;
+  return { title: `italic 700 ${big ? 22 : 20}px ${SERIF}`, body: `${big ? 20 : 18}px ${SERIF}`, lh: big ? 26 : 24, next: `italic ${big ? 15 : 14}px ${SERIF}` };
+};
+
+/** The height a first-time tip needs for its words. */
+export function tipHeight(body: string): number {
+  const c = document.createElement('canvas').getContext('2d')!;
+  const f = tipFonts();
+  c.font = f.body;
+  return 92 + wrap(c, body, TIP_W - 72).length * f.lh;
+}
+
+/**
+ * A first-time tip, written on a slip of vellum like the banderoles: its subject as a rubric
+ * in red, a line or two in brown ink, and how to go on.
+ */
+export function drawTip(c: CanvasRenderingContext2D, w: number, h: number, title: string, body: string, next: string): void {
+  const f = tipFonts();
+  // Shadow, then the slip, its long edges a little uneven.
+  c.fillStyle = 'rgba(0,0,0,0.35)';
+  c.fillRect(10, 12, w - 14, h - 14);
+  const slip = new Path2D();
+  slip.moveTo(6, 6);
+  for (let x = 6; x <= w - 6; x += 24) slip.lineTo(x, 6 + Math.sin(x * 0.37) * 1.2);
+  slip.lineTo(w - 6, h - 8);
+  for (let x = w - 6; x >= 6; x -= 24) slip.lineTo(x, h - 8 + Math.sin(x * 0.29 + 1) * 1.2);
+  slip.closePath();
+  const g = c.createLinearGradient(0, 6, 0, h - 8);
+  g.addColorStop(0, '#F6ECD2');
+  g.addColorStop(1, '#DCC79C');
+  c.fillStyle = g;
+  c.fill(slip);
+  c.strokeStyle = 'rgba(90, 60, 30, 0.85)';
+  c.lineWidth = 1.4;
+  c.stroke(slip);
+  // The ruled margin a scribe writes against.
+  c.strokeStyle = 'rgba(176, 40, 30, 0.45)';
+  c.lineWidth = 1;
+  c.beginPath();
+  c.moveTo(24, 14);
+  c.lineTo(24, h - 16);
+  c.stroke();
+  c.textBaseline = 'middle';
+  c.textAlign = 'left';
+  c.font = f.title;
+  c.fillStyle = RED_INK;
+  c.fillText(title, 36, 32);
+  c.font = f.body;
+  c.fillStyle = '#3A2410';
+  wrap(c, body, w - 72).forEach((l, i) => c.fillText(l, 36, 62 + i * f.lh));
+  c.textAlign = 'right';
+  c.font = f.next;
+  c.fillStyle = '#7A5A34';
+  c.fillText(`${next}  ›`, w - 22, h - 24);
+}
+
 /** The name of the ability being used, as the old games showed it. */
 export function drawCallout(c: CanvasRenderingContext2D, w: number, h: number, text: string): void {
   drawWindow(c, 0, 0, w, h, 0.92);

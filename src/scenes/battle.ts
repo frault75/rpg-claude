@@ -47,6 +47,7 @@ import {
   drawParty,
   drawSpoils,
   drawTargetHand,
+  drawTip,
   type NumberKind,
   PARTY_W,
   type PartyRow,
@@ -55,6 +56,8 @@ import {
   SPOILS_W,
   type SpoilsLook,
   spoilsHeight,
+  TIP_W,
+  tipHeight,
 } from '../battle/hud';
 import { SATCHEL, SATCHEL_IDS, type SatchelId } from '../battle/satchel';
 import { abilityText, claim, type Difficulty, hpAt, LEVEL_XP, levelFor, MAX_LEVEL, progress, type Spoils } from '../battle/growth';
@@ -71,6 +74,7 @@ import { type BattleSet, dressBattle } from '../maps/battleSets';
 import { CHARACTERS, FRAME_H } from '../pixel/characters';
 import { type EnemyArt, enemyArt } from '../pixel/enemies';
 import type { CharId } from '../story/state';
+import { withControls } from '../ui/prompts';
 import { drawManicule, INK, SERIF, type UiLayer as UiLayerT, type UiPanel, UiLayer } from '../ui/ui';
 import { Actor } from '../world3d/actor';
 import { Billboard, pixelTexture } from '../world3d/billboard';
@@ -234,6 +238,8 @@ interface BanderoleState {
 }
 
 const ENV_ID = 'env';
+/** Where a tip points: a spot on screen, and the side its hand comes from. */
+type TipAt = { x: number; y: number; from: 'left' | 'right' | 'above' };
 /** The number keys that pick a row are shown at the keyboard only. */
 const keyHints = () => (Input.current?.prompts ?? 'keys') === 'keys';
 /** The enemy's name plate, between its head and its banderoles. */
@@ -276,6 +282,11 @@ export class BattleScene implements Scene {
   private readonly hand: UiPanel;
   private readonly pointer: UiPanel;
   private readonly pointerLeft: UiPanel;
+  /** The first-time tip on screen, if any: the battle waits until it has been read. */
+  private tip: { id: string; panel: UiPanel; at: TipAt | null } | null = null;
+  private readonly tipHand: UiPanel;
+  private readonly tipHandLeft: UiPanel;
+  private readonly tipHandDown: UiPanel;
   private readonly banderoles = new Map<string, BanderoleState>();
   private readonly popups: Popup[] = [];
   private readonly bursts: { e: Emitter; t: number }[] = [];
@@ -364,6 +375,19 @@ export class BattleScene implements Scene {
     this.banner.visible = false;
     this.hand.visible = false;
     this.hand.draw((c, w, h) => drawTargetHand(c, w, h));
+    this.tipHand = this.ui.panel(56, 40, 10);
+    this.tipHand.visible = false;
+    this.tipHand.draw((c, _w, h) => drawManicule(c, 34, h / 2, 1.3));
+    this.tipHandDown = this.ui.panel(56, 56, 10);
+    this.tipHandDown.visible = false;
+    this.tipHandDown.draw((c, w, h) => drawTargetHand(c, w, h));
+    this.tipHandLeft = this.ui.panel(56, 40, 10);
+    this.tipHandLeft.visible = false;
+    this.tipHandLeft.draw((c, w, h) => {
+      c.translate(w, 0);
+      c.scale(-1, 1);
+      drawManicule(c, 34, h / 2, 1.3);
+    });
 
     this.unsubs.push(
       input.onDevice(() => (this.cmdDirty = true)),
@@ -1016,6 +1040,147 @@ export class BattleScene implements Scene {
     }
   }
 
+  // ---- first-time tips ----
+
+  /**
+   * What a newcomer needs to read the field, each said once in a playthrough, in the order it
+   * is needed and only when it is on screen: the banderoles, the marks over the heads, the turn,
+   * Ink, hidden intents, wind-ups, places, and the difference between striking out and emending.
+   */
+  private tips(): { id: string; when: () => boolean; vars: () => Record<string, string | number>; at: () => TipAt | null }[] {
+    const b = this.battle;
+    const live = b.intents.filter((i) => !i.cancelled).sort((x, y) => x.order - y.order);
+    const shown = live.filter((i) => b.shows(i));
+    const knows = (who: CharId, a: AbilityId) => b.party.some((u) => u.id === who) && b.abilitiesOf(who).includes(a);
+    const names = { strike: tr(ABILITIES.strike.name), emend: tr(ABILITIES.emend.name), gloss: tr(ABILITIES.gloss.name) };
+    const blow = () => shown.find((i) => i.damage > 0) ?? shown[0];
+    const none = () => ({});
+    return [
+      // The topmost banderole: nothing above it for the hand to cover.
+      { id: 'omen', when: () => shown.length > 0, vars: none, at: () => this.banderoleAt([...shown].sort((x, y) => (this.banderoles.get(x.id)?.y ?? 0) - (this.banderoles.get(y.id)?.y ?? 0))[0]) },
+      { id: 'marks', when: () => live.some((i) => b.aims(i).length > 0), vars: none, at: () => this.marksAt() },
+      { id: 'turn', when: () => true, vars: () => ({ endTurn: t('battle.endTurn'), undo: t('battle.undo') }), at: () => this.cmdAt() },
+      { id: 'hidden', when: () => live.some((i) => !b.shows(i)) && (knows('isot', 'gloss') || knows('hild', 'squint')), vars: () => names, at: () => this.banderoleAt(live.find((i) => !b.shows(i))) },
+      { id: 'windup', when: () => shown.some((i) => i.countdown > 0), vars: none, at: () => this.banderoleAt(shown.find((i) => i.countdown > 0)) },
+      {
+        id: 'ink',
+        when: () => b.round >= 2 && knows('isot', 'strike'),
+        vars: () => ({ ...names, cost: ABILITIES.strike.ink ?? 2, max: b.maxInk, back: t(this.difficulty === 'story' ? 'tip.two' : 'tip.one') }),
+        at: () => this.inkAt(),
+      },
+      { id: 'places', when: () => b.party.filter((u) => !u.fallen).length >= 2, vars: none, at: () => this.partyAt() },
+      {
+        id: 'emend',
+        when: () => knows('isot', 'emend') && knows('isot', 'strike') && !!blow(),
+        vars: () => ({ ...names, sc: ABILITIES.strike.ink ?? 2, ec: ABILITIES.emend.ink ?? 1 }),
+        at: () => this.banderoleAt(blow()),
+      },
+    ];
+  }
+
+  /** Show the first tip not yet read whose moment has come. */
+  private nextTip(): void {
+    if (this.tip || this.mode !== 'command' || this.battle.result !== 'ongoing') return;
+    const flags = session.game.flags;
+    const tip = this.tips().find((x) => !flags[`tip.${x.id}`] && x.when());
+    if (!tip) return;
+    const vars = tip.vars();
+    const title = t(`tip.${tip.id}.title`, vars);
+    const body = t(`tip.${tip.id}`, vars);
+    const h = tipHeight(body);
+    const panel = this.ui.panel(TIP_W, h, 9);
+    panel.zoom = this.zw;
+    const next = tr(withControls({ en: '{confirm} to go on', fr: '{confirm} pour continuer' }));
+    panel.draw((c, w, hh) => drawTip(c, w, hh, title, body, next));
+    this.layoutBanderoles();
+    const at = tip.at();
+    panel.x = (VIEW_W - TIP_W * this.zw) / 2;
+    // Out of the way of what it points at: under the banderoles, or over the windows.
+    panel.y = at && at.y < VIEW_H * 0.5 ? VIEW_H - 18 - h * this.zw : 14;
+    this.tip = { id: tip.id, panel, at };
+    this.helpWin.visible = false;
+    this.cmdDirty = this.partyDirty = true;
+    pageTurn(this.audio);
+  }
+
+  private closeTip(): void {
+    if (!this.tip) return;
+    session.game.flags[`tip.${this.tip.id}`] = true;
+    this.ui.remove(this.tip.panel);
+    this.tip = null;
+    this.tipHand.visible = this.tipHandLeft.visible = this.tipHandDown.visible = false;
+    uiTick(this.audio, true);
+    this.cmdDirty = true;
+    this.nextTip();
+  }
+
+  /** The hand beside what the tip is about, bobbing. */
+  private placeTip(): void {
+    // One hand at a time: while a tip is read, only its own.
+    if (this.tip) this.helpWin.visible = this.hand.visible = this.pointer.visible = this.pointerLeft.visible = false;
+    const at = this.tip?.at;
+    this.tipHand.visible = !!at && at.from === 'left';
+    this.tipHandLeft.visible = !!at && at.from === 'right';
+    this.tipHandDown.visible = !!at && at.from === 'above';
+    if (!at) return;
+    const z = this.z;
+    const bob = Math.sin(this.time * 6) * 4 * z;
+    if (at.from === 'above') {
+      this.tipHandDown.zoom = z;
+      this.tipHandDown.x = at.x - 28 * z;
+      this.tipHandDown.y = at.y - 50 * z + bob;
+      return;
+    }
+    const p = at.from === 'left' ? this.tipHand : this.tipHandLeft;
+    p.zoom = z;
+    p.x = at.from === 'left' ? at.x - 56 * z + bob : at.x - bob;
+    p.y = at.y - 20 * z;
+  }
+
+  private banderoleAt(it: Intent | undefined): TipAt | null {
+    const ban = it && this.banderoles.get(it.id);
+    if (!ban) return null;
+    const z = this.z;
+    const mid = ban.x + (ban.w * z) / 2;
+    // As when a banderole is aimed at: the hand over its middle, pointing down, unless another
+    // banderole sits there; then from its side.
+    const hidesOther = [...this.banderoles.values()].some((o) => o !== ban && mid + 28 * z > o.x && mid - 28 * z < o.x + o.w * z && ban.y - 56 * z < o.y + BANDEROLE_H * z && ban.y > o.y);
+    if (!hidesOther) return { x: mid, y: ban.y - 6, from: 'above' };
+    const y = ban.y + (BANDEROLE_H * z) / 2;
+    return ban.x > 70 * z ? { x: ban.x + 8 * z, y, from: 'left' } : { x: ban.x + ban.w * z - 8 * z, y, from: 'right' };
+  }
+
+  /** The marks over the first ally about to be struck. */
+  private marksAt(): TipAt | null {
+    const b = this.battle;
+    const hit = new Map<string, number>();
+    for (const it of b.intents) if (!it.cancelled && !it.waiting && it.countdown <= 0) for (const u of b.aims(it)) hit.set(u.id, (hit.get(u.id) ?? 0) + 1);
+    const [id, n] = [...hit][0] ?? [];
+    const f = id ? this.fig(id) : undefined;
+    if (!f || !n) return null;
+    const p = this.r.mapToScreen(f.hx, f.hy, f.height + 6);
+    return { x: p.x - ((n * 24 + 44) / 2 + 8) * this.z, y: p.y - 14 * this.z, from: 'left' };
+  }
+
+  /** The foot of the command window, where the turn is ended. */
+  private cmdAt(): TipAt {
+    const r = this.cmdRect();
+    return { x: r.x + r.w - 6, y: r.y + r.h - COMMAND_ROW * this.zw, from: 'right' };
+  }
+
+  /** The places, down the party window's left side. */
+  private partyAt(): TipAt {
+    return { x: this.partyWin.x + 8, y: this.partyWin.y + 40 * this.zw, from: 'left' };
+  }
+
+  /** Isot's inkpots, in her row of the party window. */
+  private inkAt(): TipAt {
+    const rows = [...this.battle.party].sort((x, y) => (this.shown.place.get(x.id) ?? x.place) - (this.shown.place.get(y.id) ?? y.place));
+    const k = Math.max(0, rows.findIndex((u) => u.id === 'isot'));
+    // The pots start right of the HP bar (drawParty): 178 + 170 + 16, a row's middle at 31.
+    return { x: this.partyWin.x + 362 * this.zw, y: this.partyWin.y + (14 + 50 * k + 29) * this.zw, from: 'left' };
+  }
+
   // ---- commands ----
 
   private get speed(): number {
@@ -1033,6 +1198,7 @@ export class BattleScene implements Scene {
     root.cursor = Math.max(0, next);
     this.menus = [root];
     this.cmdDirty = true;
+    this.nextTip();
   }
 
   private rootMenu(): MenuState {
@@ -1481,6 +1647,10 @@ export class BattleScene implements Scene {
   }
 
   private onAction(a: Action): void {
+    if (this.tip) {
+      if (a === 'confirm' || a === 'cancel') this.closeTip();
+      return;
+    }
     if (a === 'confirm') this.hold = true;
     if (this.mode === 'playing' || this.mode === 'intro') return;
     const m = this.menu;
@@ -1548,6 +1718,7 @@ export class BattleScene implements Scene {
   }
 
   private onClick(x: number, y: number): void {
+    if (this.tip) return this.closeTip();
     if (this.mode === 'playing' || this.mode === 'intro') {
       this.hold = true;
       return;
@@ -2087,7 +2258,7 @@ export class BattleScene implements Scene {
         chips: this.chips(u),
         acted: this.mode === 'command' && u.acted,
         fallen: !!this.shown.fallen.get(u.id),
-        selected: selected === u.id,
+        selected: !this.tip && selected === u.id,
         ink: u.id === 'isot' ? { n: this.shown.ink, max: b.maxInk, label: t('battle.ink') } : undefined,
       }));
     const h = partyHeight(rows.length);
@@ -2106,7 +2277,7 @@ export class BattleScene implements Scene {
     this.cmdWin.x = r.x;
     this.cmdWin.y = r.y;
     const inTarget = this.menu?.kind === 'target';
-    this.cmdWin.draw((c, w) => drawCommands(c, w, r.inner, m.title, entries, inTarget ? -1 : m.cursor, this.time, keyHints()));
+    this.cmdWin.draw((c, w) => drawCommands(c, w, r.inner, m.title, entries, inTarget || this.tip ? -1 : m.cursor, this.time, keyHints()));
     // The help bar follows the cursor.
     const cur = this.menu!.options()[this.menu!.cursor];
     this.drawHelpText(cur?.help ?? '', !!cur?.warn);
@@ -2306,6 +2477,7 @@ export class BattleScene implements Scene {
     }
     this.drawBanderoles();
     this.placeHand();
+    this.placeTip();
     this.phaseStaging.update(dt, (id) => this.figures.get(id));
     this.stage.update(dt, this.time);
   }
