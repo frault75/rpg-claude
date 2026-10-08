@@ -58,7 +58,7 @@ import type { Action, Input } from '../engine/input';
 import { prefs } from '../engine/prefs';
 import type { Scene } from '../engine/scene';
 import { session } from '../engine/session';
-import { VIEW_H, VIEW_W } from '../engine/view';
+import { textZoom, VIEW_H, VIEW_W } from '../engine/view';
 import { t, tr } from '../i18n/i18n';
 import { type BattleSet, dressBattle } from '../maps/battleSets';
 import { CHARACTERS, FRAME_H } from '../pixel/characters';
@@ -262,6 +262,9 @@ export class BattleScene implements Scene {
   private activeIntent: string | null = null;
   private hoverIntent: string | null = null;
   private overlayDirty = true;
+  /** Small text shown larger on small screens: banderoles, plates, numbers (z); the windows (zw). */
+  private z = 1;
+  private zw = 1;
   private cmdDirty = true;
   private partyDirty = true;
   private calloutT = 0;
@@ -1249,11 +1252,13 @@ export class BattleScene implements Scene {
     }
   }
 
-  private cmdRect(): { x: number; y: number; w: number; h: number; n: number } {
+  /** The command window as shown (zoomed); `inner` is its height as drawn. */
+  private cmdRect(): { x: number; y: number; w: number; h: number; n: number; inner: number } {
     const m = this.listMenu();
     const n = m ? m.options().length : 0;
-    const h = commandHeight(n);
-    return { x: 18, y: VIEW_H - 18 - h, w: COMMAND_W, h, n };
+    const inner = commandHeight(n);
+    const z = this.zw;
+    return { x: 18, y: VIEW_H - 18 - inner * z, w: COMMAND_W * z, h: inner * z, n, inner };
   }
 
   /** The menu whose list is drawn (target menus keep their parent's list on screen). */
@@ -1264,8 +1269,9 @@ export class BattleScene implements Scene {
 
   private rowAt(x: number, y: number): number {
     const r = this.cmdRect();
-    if (x < r.x || x > r.x + r.w || y < r.y + 48 || y > r.y + r.h) return -1;
-    const i = Math.floor((y - r.y - 48) / COMMAND_ROW);
+    const z = this.zw;
+    if (x < r.x || x > r.x + r.w || y < r.y + 48 * z || y > r.y + r.h) return -1;
+    const i = Math.floor((y - r.y - 48 * z) / (COMMAND_ROW * z));
     return i >= 0 && i < r.n ? i : -1;
   }
 
@@ -1329,7 +1335,7 @@ export class BattleScene implements Scene {
   private intentAt(x: number, y: number): string | null {
     for (const [id, b] of this.banderoles) {
       if (b.appear < 0.5) continue;
-      if (x >= b.x && x <= b.x + BANDEROLE_W && y >= b.y && y <= b.y + BANDEROLE_H) return id;
+      if (x >= b.x && x <= b.x + BANDEROLE_W * this.z && y >= b.y && y <= b.y + BANDEROLE_H * this.z) return id;
     }
     return null;
   }
@@ -1425,8 +1431,10 @@ export class BattleScene implements Scene {
     const p = this.r.mapToScreen(f.hx, f.hy, f.height * 0.8);
     const stack = this.popups.filter((q) => Math.abs(q.x - p.x) < 40 && q.t < 0.5).length;
     const panel = this.ui.panel(260, 64, 9);
+    panel.zoom = this.z;
+    panel.anchor = [0.5, 0.5];
     panel.draw((c, w, h) => drawNumber(c, w, h, text, kind));
-    this.popups.push({ panel, x: p.x, y: p.y - stack * 30, t: 0, life: kind === 'word' ? 1.3 : 1 });
+    this.popups.push({ panel, x: p.x, y: p.y - stack * 30 * this.z, t: 0, life: kind === 'word' ? 1.3 : 1 });
   }
 
   private burst(f: Figure, color: string, count: number, size = 1.6): void {
@@ -1452,6 +1460,7 @@ export class BattleScene implements Scene {
     for (const it of this.shown.intents) {
       if (!this.banderoles.has(it.id)) {
         const panel = this.ui.panel(BANDEROLE_W, BANDEROLE_H, 3);
+        panel.zoom = this.z;
         this.banderoles.set(it.id, { panel, appear: 1, struck: it.cancelled ? 1 : 0, active: false, spent: false, wiggle: 0, x: 0, y: 0, look: it.id });
       }
     }
@@ -1463,14 +1472,16 @@ export class BattleScene implements Scene {
     const out: { id: string; x: number; y: number; w: number }[] = [];
     const c = this.overlay.ctx;
     c.save();
-    c.font = `600 12px ${SERIF}`;
+    const z = this.z;
+    const ph = PLATE_H * z;
+    c.font = `600 ${12 * z}px ${SERIF}`;
     for (const e of this.battle.enemies) {
       if (this.shown.fallen.get(e.id)) continue;
       const f = this.fig(e.id);
       if (!f) continue;
       const p = this.r.mapToScreen(f.hx, f.hy, f.height + 4);
-      const w = Math.max(110, c.measureText(tr(e.name)).width + 52);
-      out.push({ id: e.id, x: p.x - w / 2, y: p.y - PLATE_H + 2, w });
+      const w = Math.max(110 * z, c.measureText(tr(e.name)).width + 52 * z);
+      out.push({ id: e.id, x: p.x - w / 2, y: p.y - ph + 2, w });
     }
     c.restore();
     // Close ranks put plates on top of each other: lift the one further back until clear.
@@ -1478,9 +1489,9 @@ export class BattleScene implements Scene {
     for (let i = 1; i < out.length; i++) {
       const p = out[i]!;
       for (let tries = 0; tries < 6; tries++) {
-        const clash = out.slice(0, i).some((q) => p.x < q.x + q.w + 4 && p.x + p.w + 4 > q.x && p.y < q.y + PLATE_H && p.y + PLATE_H > q.y);
+        const clash = out.slice(0, i).some((q) => p.x < q.x + q.w + 4 && p.x + p.w + 4 > q.x && p.y < q.y + ph && p.y + ph > q.y);
         if (!clash) break;
-        p.y -= PLATE_H + 2;
+        p.y -= ph + 2;
       }
     }
     return out;
@@ -1488,8 +1499,14 @@ export class BattleScene implements Scene {
 
   /** Stack each enemy's banderoles over its head and plate, nudged so nothing overlaps. */
   private layoutBanderoles(): void {
-    const placed: { x: number; y: number; w: number; h: number }[] = this.plates().map((p) => ({ x: p.x - 6, y: p.y - 4, w: p.w + 12, h: 26 }));
-    const hits = (x: number, y: number) => placed.some((p) => x < p.x + p.w && x + BANDEROLE_W > p.x && y < p.y + p.h && y + BANDEROLE_H - 6 > p.y);
+    const z = this.z;
+    const BW = BANDEROLE_W * z;
+    const BH = BANDEROLE_H * z;
+    const PH = PLATE_H * z;
+    const placed: { x: number; y: number; w: number; h: number }[] = this.plates().map((p) => ({ x: p.x - 6 * z, y: p.y - 4 * z, w: p.w + 12 * z, h: 26 * z }));
+    /** How much a banderole at (x, y) would cover what is already placed. */
+    const overlap = (x: number, y: number) =>
+      placed.reduce((sum, p) => sum + Math.max(0, Math.min(x + BW, p.x + p.w) - Math.max(x, p.x)) * Math.max(0, Math.min(y + BH - 6, p.y + p.h) - Math.max(y, p.y)), 0);
     let env = 0;
     const byActor = new Map<string, number>();
     // The nearest enemy first, so its banderoles sit lowest.
@@ -1499,8 +1516,8 @@ export class BattleScene implements Scene {
       if (!b) continue;
       if (it.actor === ENV_ID) {
         b.x = 20;
-        b.y = 78 + env++ * (BANDEROLE_H + 6);
-        placed.push({ x: b.x, y: b.y, w: BANDEROLE_W, h: BANDEROLE_H });
+        b.y = 78 + env++ * (BH + 6);
+        placed.push({ x: b.x, y: b.y, w: BW, h: BH });
         continue;
       }
       const f = this.fig(it.actor);
@@ -1508,23 +1525,28 @@ export class BattleScene implements Scene {
       const k = byActor.get(it.actor) ?? 0;
       byActor.set(it.actor, k + 1);
       const head = this.r.mapToScreen(f.hx, f.hy, f.height + 4);
-      const clampX = (x: number) => Math.max(8, Math.min(VIEW_W - BANDEROLE_W - 8, x));
-      const base = head.y - PLATE_H - BANDEROLE_H * (k + 1);
-      // Straight above the head if there is room; failing that, step aside, left then right.
+      const clampX = (x: number) => Math.max(8, Math.min(VIEW_W - BW - 8, x));
+      const base = head.y - PH - BH * (k + 1);
+      // Straight above the head if there is room; failing that, step aside, left then right,
+      // further out on a small screen where they are larger; at worst, where they cover least.
       let spot: { x: number; y: number } | null = null;
-      for (const dx of [0, -0.6, 0.6, -1.15, 1.15, -1.7]) {
-        const x = clampX(head.x - BANDEROLE_W / 2 + dx * BANDEROLE_W);
-        for (let y = base; y >= 76; y -= 8)
-          if (!hits(x, y)) {
+      let least = { x: clampX(head.x - BW / 2), y: Math.max(76, base), o: Infinity };
+      for (const dx of [0, -0.6, 0.6, -1.15, 1.15, -1.7, 1.7, -2.3, 2.3]) {
+        const x = clampX(head.x - BW / 2 + dx * BW);
+        for (let y = Math.max(76, base); y >= 76; y -= 8) {
+          const o = overlap(x, y);
+          if (o === 0) {
             spot = { x, y };
             break;
           }
+          if (o < least.o) least = { x, y, o };
+        }
         if (spot) break;
       }
-      spot ??= { x: clampX(head.x - BANDEROLE_W / 2), y: Math.max(76, base) };
+      spot ??= least;
       b.x = spot.x;
       b.y = spot.y;
-      placed.push({ x: b.x, y: b.y, w: BANDEROLE_W, h: BANDEROLE_H });
+      placed.push({ x: b.x, y: b.y, w: BW, h: BH });
     }
   }
 
@@ -1590,7 +1612,7 @@ export class BattleScene implements Scene {
             const f = this.fig(u.id);
             if (ban && f) {
               const p = this.r.mapToScreen(f.hx, f.hy, f.height * 0.6);
-              lines.push({ from: [ban.x + BANDEROLE_W / 2, ban.y + BANDEROLE_H - 8], to: [p.x, p.y] });
+              lines.push({ from: [ban.x + (BANDEROLE_W * this.z) / 2, ban.y + (BANDEROLE_H - 8) * this.z], to: [p.x, p.y] });
             }
           }
         }
@@ -1619,9 +1641,15 @@ export class BattleScene implements Scene {
       c.restore();
       // Enemy HP and statuses under their feet.
       c.textBaseline = 'middle';
+      const z = this.z;
       for (const e of enemyInfo) {
+        c.save();
+        c.translate(e.pl.x, e.pl.y);
+        c.scale(z, z);
         c.font = `600 12px ${SERIF}`;
-        const { x, y, w } = e.pl;
+        const x = 0;
+        const y = 0;
+        const w = e.pl.w / z;
         c.fillStyle = 'rgba(4, 8, 24, 0.6)';
         c.beginPath();
         c.roundRect(x - 6, y - 4, w + 12, 26, 7);
@@ -1649,14 +1677,18 @@ export class BattleScene implements Scene {
           c.fillText(chip.text, cx + 5, y + 10.5);
           cx += tw + 4;
         }
+        c.restore();
       }
       // Incoming blows over the allies: the order of each, and the sum.
       for (const a of allyTags) {
+        c.save();
+        c.translate(a.p.x, a.p.y);
+        c.scale(z, z);
         const total = a.list.reduce((s, x) => s + x.dmg, 0);
         const n = a.list.length;
         const w = n * 24 + (total ? 44 : 0);
-        let x = a.p.x - w / 2;
-        const y = a.p.y - 14;
+        let x = -w / 2;
+        const y = -14;
         c.fillStyle = 'rgba(30, 4, 6, 0.6)';
         c.beginPath();
         c.roundRect(x - 6, y - 14, w + 12, 28, 14);
@@ -1681,6 +1713,7 @@ export class BattleScene implements Scene {
           c.fillStyle = '#FFB8A0';
           c.fillText(`−${total}`, x + 4, y + 1);
         }
+        c.restore();
       }
     });
   }
@@ -1702,8 +1735,8 @@ export class BattleScene implements Scene {
         ink: u.id === 'isot' ? { n: this.shown.ink, max: b.maxInk, label: t('battle.ink') } : undefined,
       }));
     const h = partyHeight(rows.length);
-    this.partyWin.x = VIEW_W - PARTY_W - 18;
-    this.partyWin.y = VIEW_H - h - 18;
+    this.partyWin.x = VIEW_W - PARTY_W * this.zw - 18;
+    this.partyWin.y = VIEW_H - h * this.zw - 18;
     this.partyWin.draw((c, w) => drawParty(c, w, h, rows, t('battle.hp'), this.time));
   }
 
@@ -1717,7 +1750,7 @@ export class BattleScene implements Scene {
     this.cmdWin.x = r.x;
     this.cmdWin.y = r.y;
     const inTarget = this.menu?.kind === 'target';
-    this.cmdWin.draw((c, w) => drawCommands(c, w, r.h, m.title, entries, inTarget ? -1 : m.cursor, this.time));
+    this.cmdWin.draw((c, w) => drawCommands(c, w, r.inner, m.title, entries, inTarget ? -1 : m.cursor, this.time));
     // The help bar follows the cursor.
     const cur = this.menu!.options()[this.menu!.cursor];
     this.drawHelpText(cur?.help ?? '', !!cur?.warn);
@@ -1733,7 +1766,7 @@ export class BattleScene implements Scene {
       const o = m.options()[m.cursor];
       if (o?.intent) {
         const b = this.banderoles.get(o.intent);
-        if (b) over = { x: b.x + BANDEROLE_W / 2, y: b.y - 6 };
+        if (b) over = { x: b.x + (BANDEROLE_W * this.z) / 2, y: b.y - 6 };
       } else if (o?.unit && (m.kind === 'target' || m.kind === 'root' || m.kind === 'step')) {
         const f = this.fig(o.unit);
         if (f) {
@@ -1761,8 +1794,20 @@ export class BattleScene implements Scene {
 
   // ---- the frame ----
 
+  /** Follow the size of the game on screen: small screens get larger battle text. */
+  private refreshZoom(): void {
+    const z = textZoom(this.r.viewport.h, prefs.largeText);
+    if (Math.abs(z - this.z) < 0.01) return;
+    this.z = z;
+    this.zw = 1 + (z - 1) * 0.45;
+    this.partyWin.zoom = this.cmdWin.zoom = this.zw;
+    for (const b of this.banderoles.values()) b.panel.zoom = z;
+    this.overlayDirty = this.cmdDirty = this.partyDirty = true;
+  }
+
   update(dt: number): void {
     this.time += dt;
+    this.refreshZoom();
     if (!this.input.isHeld('confirm')) this.hold = false;
     // Play the queue.
     let budget = dt * this.speed;
