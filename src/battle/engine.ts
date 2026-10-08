@@ -48,10 +48,20 @@ export type Refusal =
   | 'reach'
   | 'too-strong'
   | 'not-single'
-  | 'guarded';
+  | 'guarded'
+  | 'lectern';
 
 /** Abilities a Rubric (or Vermilion) can double. */
 const DOUBLES: ReadonlySet<AbilityId> = new Set(['penknife', 'shove', 'shrive', 'immure', 'squint', 'benison', 'lance', 'tally', 'vigil', 'read']);
+
+/** Whit's memories, one for each letter of FINIS as it is written (DESIGN.md §3.8). */
+export const FINIS_MEMORIES: { letter: string; en: string; fr: string }[] = [
+  { letter: 'F', en: 'A man under an apple tree. He asked me to wait until the apples fell. I waited.', fr: 'Un homme sous un pommier. Il m’a demandé d’attendre que les pommes tombent. J’ai attendu.' },
+  { letter: 'I', en: 'A queen, frightened of the dark. I held the candle.', fr: 'Une reine, qui avait peur du noir. J’ai tenu la chandelle.' },
+  { letter: 'N', en: 'A child who wanted to know if I was cold. I said yes. I was.', fr: 'Un enfant qui voulait savoir si j’avais froid. J’ai dit oui. J’avais froid.' },
+  { letter: 'I', en: 'Ten thousand beds. Ten thousand hands. None of them were heavy.', fr: 'Dix mille lits. Dix mille mains. Aucune n’était lourde.' },
+  { letter: 'S', en: 'A woman with grey on her face. Hild. She was not afraid. Then he scraped my name, and I forgot it.', fr: 'Une femme au visage gris. Hild. Elle n’avait pas peur. Puis il a gratté mon nom, et je l’ai oublié.' },
+];
 
 interface Snapshot {
   units: Unit[];
@@ -67,6 +77,10 @@ interface Snapshot {
   revivals: number;
   phases: string[];
   nextUnit: number;
+  letters: number;
+  inscribedRound: number;
+  dealt: [string, number][];
+  falterNext: string[];
   eventsLen: number;
 }
 
@@ -105,6 +119,14 @@ export class Battle {
   phases = new Set<string>();
   /** For naming units that rise mid-battle (Blotlets). */
   private nextUnit = 0;
+  /** Letters of FINIS written (the final battle), and the round the last one was written in. */
+  letters = 0;
+  private inscribedRound = -1;
+  /** Damage dealt to each enemy that falters, and who falters at the next Omen. */
+  private dealt = new Map<string, number>();
+  private falterNext = new Set<string>();
+  /** Intents that have resolved this enemy phase. */
+  private resolved = new Set<string>();
   private nextIntentId = 1;
 
   constructor(setup: BattleSetup) {
@@ -249,6 +271,13 @@ export class Battle {
     if (env) this.intents.push(this.makeIntent('env', env));
     this.intents.forEach((it, i) => (it.order = i + 1));
     this.emit({ type: 'omen', intents: this.intents.map((i) => i.id) });
+    // Whoever faltered last round loses their first intent now.
+    for (const id of this.falterNext) {
+      const it = this.intents.find((i) => i.actor === id && !i.cancelled);
+      if (it) this.loseIntent(it);
+    }
+    this.falterNext.clear();
+    this.resolved.clear();
     // The party's Ward fades as its phase begins (a charm's Ward lasts the first round).
     this.knelt.clear();
     for (const u of this.party) {
@@ -258,6 +287,11 @@ export class Battle {
         u.status.kneeling = false;
       }
       u.acted = u.fallen || this.knelt.has(u.id);
+      // Scraped from the page: can't act while it lasts.
+      if (u.status.forgotten > 0 && !u.fallen) {
+        u.acted = true;
+        u.status.forgotten--;
+      }
     }
     if (this.squinted > 0) {
       this.squinted--;
@@ -283,6 +317,8 @@ export class Battle {
       } else if (e.kind === 'doom' && 'unit' in it.target) {
         const t = this.unit(it.target.unit);
         if (t) t.status.doomed = true;
+      } else if (e.kind === 'scrapeLetters') {
+        this.phases.add('gathering');
       } else if (e.kind === 'guard' && 'unit' in it.target) {
         const t = this.unit(it.target.unit);
         if (t && !t.fallen) {
@@ -300,7 +336,7 @@ export class Battle {
       .map((o) => ({ id: o.id, kind: o.kind, name: o.name, hp: o.hp, maxHp: o.maxHp, place: o.place }));
     const fallen = this.enemies.filter((o) => o !== e && o.fallen).map((o) => ({ id: o.id, kind: o.kind, name: o.name }));
     const party = this.party.filter((u) => !u.fallen).map((u) => ({ id: u.id, name: u.name, hp: u.hp, maxHp: u.maxHp, place: u.place }));
-    return def.behave({ round, phase: e.phase, hp: e.hp, maxHp: e.maxHp, place: e.place, allies, party, fallen, rng });
+    return def.behave({ round, phase: e.phase, hp: e.hp, maxHp: e.maxHp, place: e.place, allies, party, fallen, letters: this.letters, phases: this.phases, rng });
   }
 
   private makeIntent(actor: string, s: IntentSpec): Intent {
@@ -359,6 +395,10 @@ export class Battle {
       revivals: this.revivals,
       phases: [...this.phases],
       nextUnit: this.nextUnit,
+      letters: this.letters,
+      inscribedRound: this.inscribedRound,
+      dealt: [...this.dealt],
+      falterNext: [...this.falterNext],
       eventsLen: this.events.length,
     });
   }
@@ -384,6 +424,10 @@ export class Battle {
     this.revivals = s.revivals;
     this.phases = new Set(s.phases);
     this.nextUnit = s.nextUnit;
+    this.letters = s.letters;
+    this.inscribedRound = s.inscribedRound;
+    this.dealt = new Map(s.dealt);
+    this.falterNext = new Set(s.falterNext);
     this.events.length = s.eventsLen;
     this.result = 'ongoing';
     return true;
@@ -446,6 +490,7 @@ export class Battle {
         if (t.status.immured) return 'immured-target';
         if (t.status.guarded) return 'guarded';
         if (def.reachEnemy && this.rank(t) >= def.reachEnemy) return 'reach';
+        if (ability === 'read' && ENEMIES[t.kind]?.undying) return 'too-strong';
         if (ability === 'read' && t.hp > this.readThreshold(u)) return 'too-strong';
         break;
       case 'ally':
@@ -478,6 +523,7 @@ export class Battle {
         break;
       }
       case 'none':
+        if (ability === 'inscribe' && (this.def.objective !== 'finis' || u.place !== 2 || this.letters >= 5)) return 'lectern';
         if (ability === 'shove') {
           const first = this.standingEnemies()[0];
           if (!first) return 'target';
@@ -612,6 +658,22 @@ export class Battle {
       case 'read':
         this.fell(t!, true);
         break;
+      case 'inscribe': {
+        this.letters++;
+        this.inscribedRound = this.round;
+        const m = FINIS_MEMORIES[this.letters - 1]!;
+        this.emit({ type: 'letter', count: this.letters, lost: false });
+        this.emit({ type: 'phase', title: { en: m.letter, fr: m.letter }, line: { en: m.en, fr: m.fr } });
+        if (this.letters === 3 && !this.phases.has('cleanPage')) {
+          this.phases.add('cleanPage');
+          this.emit({ type: 'phase', title: { en: 'The Clean Page', fr: 'La Page propre' }, line: { en: 'Aumery steps into the Book. Now MERCY tolls on the page itself.', fr: 'Aumery entre dans le Livre. À présent MERCY sonne sur la page même.' } });
+        }
+        if (this.letters === 5) {
+          this.result = 'victory';
+          this.emit({ type: 'victory' });
+        }
+        break;
+      }
     }
     this.checkEnd();
     return true;
@@ -621,6 +683,8 @@ export class Battle {
   private undeclare(it: Intent): void {
     const actor = this.unit(it.actor);
     for (const e of it.effects) {
+      // A gathering struck through or lost can be gathered again.
+      if (e.kind === 'scrapeLetters') this.phases.delete('gathering');
       if (e.kind === 'shell' && actor) actor.status.shelled = false;
       if ((e.kind === 'doom' || e.kind === 'guard') && 'unit' in it.target) {
         const t = this.unit(it.target.unit);
@@ -675,6 +739,7 @@ export class Battle {
   }
 
   private resolve(it: Intent): void {
+    this.resolved.add(it.id);
     if (it.cancelled) return;
     const actor = it.actor === 'env' ? null : this.unit(it.actor)!;
     if (actor?.fallen) return;
@@ -688,6 +753,15 @@ export class Battle {
       return;
     }
     this.emit({ type: 'intent', intent: it.id, actor: it.actor });
+    if (it.effects.some((e) => e.kind === 'scrapeLetters')) {
+      this.phases.delete('gathering');
+      if (this.letters > 0) {
+        this.letters = 0;
+        this.emit({ type: 'letter', count: 0, lost: true });
+        this.emit({ type: 'phase', title: { en: 'Scraped Clean', fr: 'Gratté net' }, line: { en: 'The pumice takes every letter. Begin again: F.', fr: 'La ponce emporte toutes les lettres. Reprendre : F.' } });
+      }
+      return;
+    }
     if (it.effects.some((e) => e.kind === 'turn')) this.turnDance();
     if (it.effects.some((e) => e.kind === 'tune')) this.tuned = true;
     if (it.effects.some((e) => e.kind === 'drain')) {
@@ -774,6 +848,12 @@ export class Battle {
         case 'kneel':
           if (!t.fallen) t.status.kneeling = true;
           break;
+        case 'forget':
+          if (!t.fallen) {
+            t.status.forgotten = Math.max(t.status.forgotten, e.rounds);
+            this.emit({ type: 'status', unit: t.id, status: 'forgotten', on: true });
+          }
+          break;
         case 'swapFrontMiddle': {
           const f = this.allyAt(0);
           const m = this.allyAt(1);
@@ -796,6 +876,7 @@ export class Battle {
         case 'spawn':
         case 'tune':
         case 'turn':
+        case 'scrapeLetters':
           // Declared at the Omen, or handled by the boss scripts that use them.
           break;
       }
@@ -830,8 +911,21 @@ export class Battle {
     // A big enough hit splits off a piece of the Blot.
     const splits = u.side === 'enemy' ? ENEMIES[u.kind]?.splits : undefined;
     if (splits && byParty && a >= splits.at) this.spawn(splits.into, u);
-    if (u.status.readOnly) a = Math.min(a, u.hp - 1);
+    const def = u.side === 'enemy' ? ENEMIES[u.kind] : undefined;
+    if (u.status.readOnly || def?.undying) a = Math.min(a, u.hp - 1);
     u.hp -= a;
+    // Every so much damage, a boss falters: its next intent is lost.
+    if (def?.falterEvery && a > 0) {
+      const before = this.dealt.get(u.id) ?? 0;
+      this.dealt.set(u.id, before + a);
+      for (let k = Math.floor(before / def.falterEvery); k < Math.floor((before + a) / def.falterEvery); k++) this.falter(u);
+    }
+    // A letter written this round smudges if the scribe is hurt before the round is out.
+    if (u.id === 'isot' && a > 0 && this.def.objective === 'finis' && this.inscribedRound === this.round && this.letters > 0) {
+      this.letters--;
+      this.inscribedRound = -1;
+      this.emit({ type: 'letter', count: this.letters, lost: true });
+    }
     this.emit({ type: 'damage', unit: u.id, amount: a, absorbed, source });
     if (u.hp <= 0) {
       this.fell(u, false);
@@ -864,6 +958,21 @@ export class Battle {
     this.emit({ type: 'heal', unit: u.id, amount: u.hp - before });
   }
 
+  /** A boss falters: its next unresolved intent this round is lost, or its first one next round. */
+  private falter(u: Unit): void {
+    this.emit({ type: 'falter', unit: u.id });
+    const it = this.intents.find((i) => i.actor === u.id && !i.cancelled && !this.resolved.has(i.id));
+    if (it) this.loseIntent(it);
+    else this.falterNext.add(u.id);
+  }
+
+  private loseIntent(it: Intent): void {
+    it.cancelled = true;
+    it.countdown = 0;
+    this.undeclare(it);
+    this.emit({ type: 'cancel', intent: it.id });
+  }
+
   private fell(u: Unit, read: boolean): void {
     if (u.fallen) return;
     if (u.status.readOnly && !read) {
@@ -875,6 +984,11 @@ export class Battle {
     u.status.tally = null;
     u.status.ward = 0;
     this.emit({ type: 'fall', unit: u.id });
+    if (this.def.mustSurvive === u.id && this.result === 'ongoing') {
+      this.result = 'defeat';
+      this.emit({ type: 'defeat' });
+      return;
+    }
     // The one who leads falls, and everything bound to it falls too.
     if (u.side === 'enemy' && ENEMIES[u.kind]?.leads)
       for (const o of this.enemies)

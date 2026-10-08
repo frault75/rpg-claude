@@ -98,3 +98,38 @@ export function sideWall(st: Stage, x: number, y: number, d: number, h: number, 
 
 export const FLOOR = { stone: '#6E6862', wood: '#6A4A30' };
 export const WAX = hex('#F2E8D0');
+
+/**
+ * Saint Ebb's at dawn on the Feast of Saint Ebba (DESIGN.md §7.5): brazil-rose and pale gold
+ * through the same windows, azurite paling, the candles burnt low.
+ */
+export function dawnInterior(r: WorldRenderer, o: { outdoor?: boolean } = {}): void {
+  r.atmosphere = {
+    sky: [0.9, 0.7, 0.72],
+    ground: [0.32, 0.24, 0.26],
+    ambient: o.outdoor ? 0.62 : 0.5,
+    key: [1, 0.78, 0.66],
+    keyLevel: o.outdoor ? 0.85 : 0.5,
+    keyDir: [0.7, -0.55, -0.36],
+    fogColor: [0.62, 0.5, 0.56],
+    fogDist: [160, 640],
+    fogMax: 0.36,
+    mist: [8, 0.4, 0.008],
+    mistDrift: [0.03, 0.01],
+    background: [0.5, 0.36, 0.42],
+  };
+  r.grade = {
+    exposure: o.outdoor ? 0.95 : 1.12,
+    contrast: 1.06,
+    saturation: 0.95,
+    lift: [0.03, 0.015, 0.025],
+    gain: [1.05, 0.98, 0.96],
+    vignette: 1,
+    grain: 0.02,
+    bloom: 0.85,
+    bloomThreshold: 0.8,
+    dof: 0.8,
+    focusBand: 100,
+    focusRange: 300,
+  };
+}

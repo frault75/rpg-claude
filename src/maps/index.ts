@@ -7,6 +7,10 @@ import { NINEFOLD } from './blanchwood/ninefold';
 import { OSSUARY } from './blanchwood/ossuary';
 import { WOOD } from './blanchwood/wood';
 import { CELL } from './cell';
+import { DAWN_CLOISTER } from './dawn/cloister';
+import { LODGING } from './dawn/lodging';
+import { NAVE } from './dawn/nave';
+import { DAWN_SCRIPTORIUM } from './dawn/scriptorium';
 import { EDGE_MAP } from './margin/edge';
 import { FAIR } from './margin/fair';
 import { INKWELL } from './margin/inkwell';
@@ -41,4 +45,8 @@ export const MAPS: Record<string, MapDef> = {
   fair: FAIR,
   vine: VINE,
   inkwell: INKWELL,
+  dawnScriptorium: DAWN_SCRIPTORIUM,
+  lodging: LODGING,
+  dawnCloister: DAWN_CLOISTER,
+  nave: NAVE,
 };

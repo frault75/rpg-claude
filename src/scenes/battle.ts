@@ -27,6 +27,7 @@ import {
 } from '../audio/battleSfx';
 import { footstep, pageTurn, uiTick } from '../audio/sfx';
 import { ABILITIES, ENCOUNTERS, ENEMIES } from '../battle/data';
+import { bell, midiToHz } from '../audio/instruments';
 import { Battle, type Refusal } from '../battle/engine';
 import {
   BANDEROLE_H,
@@ -235,6 +236,9 @@ export class BattleScene implements Scene {
   private readonly cmdWin: UiPanel;
   private readonly helpWin: UiPanel;
   private readonly roundTag: UiPanel;
+  /** FINIS as Isot writes it (the final battle only). */
+  private readonly finisTag: UiPanel;
+  private shownLetters = 0;
   private readonly callout: UiPanel;
   private readonly banner: UiPanel;
   private readonly overlay: UiPanel;
@@ -291,6 +295,7 @@ export class BattleScene implements Scene {
     this.cmdWin = this.ui.panel(COMMAND_W, commandHeight(8), 4);
     this.helpWin = this.ui.panel(820, 58, 4);
     this.roundTag = this.ui.panel(170, 46, 4);
+    this.finisTag = this.ui.panel(200, 46, 4);
     this.callout = this.ui.panel(420, 54, 6);
     this.banner = this.ui.panel(1000, 220, 8);
     this.hand = this.ui.panel(56, 56, 7);
@@ -308,6 +313,9 @@ export class BattleScene implements Scene {
     this.helpWin.y = 14;
     this.roundTag.x = 18;
     this.roundTag.y = 18;
+    this.finisTag.x = VIEW_W - 218;
+    this.finisTag.y = 18;
+    this.finisTag.visible = false;
     this.callout.x = (VIEW_W - 420) / 2;
     this.callout.y = 86;
     this.callout.visible = false;
@@ -434,6 +442,8 @@ export class BattleScene implements Scene {
     }
     this.shown.ink = b.ink;
     this.shown.round = b.round;
+    this.shownLetters = b.letters;
+    this.drawFinis();
     this.shown.intents = structuredClone(b.intents);
     this.cursor = b.events.length;
     this.dirty();
@@ -835,6 +845,37 @@ export class BattleScene implements Scene {
           end: () => {
             this.banner.visible = false;
             this.bannerT = -1;
+          },
+        });
+        break;
+      case 'letter':
+        this.queue({
+          dur: e.lost ? 0.6 : 0.8,
+          start: () => {
+            this.shownLetters = e.count;
+            this.drawFinis();
+            if (e.lost) {
+              this.popup('isot', t('battle.smudged'), 'word');
+              fizzleSound(a);
+            } else {
+              const ctx = a.ctx;
+              if (ctx) {
+                bell(ctx, a.bus('sfx'), midiToHz([55, 57, 59, 62, 67][e.count - 1] ?? 55), ctx.currentTime, 0.4, 7);
+                bell(ctx, a.reverbIn, midiToHz([55, 57, 59, 62, 67][e.count - 1] ?? 55), ctx.currentTime, 0.3, 7);
+              }
+              this.r.screen.flash = 0.35;
+              const f = this.fig('isot');
+              if (f) this.burst(f, '#F4D070', 50);
+            }
+          },
+        });
+        break;
+      case 'falter':
+        this.queue({
+          dur: 0.5,
+          start: () => {
+            this.popup(e.unit, t('battle.falters'), 'word');
+            this.screenShake(4, 0.4);
           },
         });
         break;
@@ -1313,10 +1354,33 @@ export class BattleScene implements Scene {
     if (s.doomed) out.push({ text: t('status.doomed'), color: '#E07070' });
     if (s.guarded) out.push({ text: t('status.guarded'), color: '#E8D8A0' });
     if (s.readOnly) out.push({ text: t('status.readOnly'), color: '#C8A8E8' });
+    if (s.forgotten > 0) out.push({ text: t('status.forgotten'), color: '#E8E4DA' });
     // The dance keeps its secret until it is Glossed or Squinted.
     if (s.revealed && s.hollow) out.push({ text: t('status.hollow'), color: '#D8D0C0' });
     if (s.revealed && u.side === 'enemy' && ENEMIES[u.kind]?.leads) out.push({ text: t('status.leads'), color: '#F0C060' });
     return out;
+  }
+
+  private drawFinis(): void {
+    const n = this.shownLetters;
+    this.finisTag.visible = this.battle.def.objective === 'finis';
+    if (!this.finisTag.visible) return;
+    this.finisTag.draw((c, w, h) => {
+      c.fillStyle = 'rgba(4, 8, 24, 0.6)';
+      c.beginPath();
+      c.roundRect(0, 0, w, h, 10);
+      c.fill();
+      c.strokeStyle = 'rgba(232,199,106,0.8)';
+      c.lineWidth = 1.2;
+      c.stroke();
+      c.textAlign = 'center';
+      c.textBaseline = 'middle';
+      c.font = `700 26px ${SERIF}`;
+      [...'FINIS'].forEach((ch, i) => {
+        c.fillStyle = i < n ? INK.gold : 'rgba(232,220,192,0.22)';
+        c.fillText(ch, 30 + i * 35, h / 2 + 1);
+      });
+    });
   }
 
   private drawRoundTag(): void {

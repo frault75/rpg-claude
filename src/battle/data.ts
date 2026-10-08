@@ -19,6 +19,7 @@ export const ABILITIES: Record<AbilityId, AbilityDef> = {
   tally: { id: 'tally', name: { en: 'Tally', fr: 'Décompte' }, owner: 'whit', target: 'enemy', text: { en: 'Set Tally 3: at 0, a Reckoning of 7.', fr: 'Pose un Décompte de 3 : à 0, le Règlement inflige 7.' } },
   vigil: { id: 'vigil', name: { en: 'Vigil', fr: 'Veille' }, owner: 'whit', target: 'none', fromFront: true, text: { en: 'The first enemy to strike an ally is struck first, for 4.', fr: 'Le premier ennemi qui frappe un allié est frappé avant, pour 4.' } },
   read: { id: 'read', name: { en: 'Read Aloud', fr: 'Lire à voix haute' }, owner: 'whit', target: 'enemy', text: { en: 'End an enemy with 6 HP or fewer.', fr: 'Achève un ennemi à 6 PV ou moins.' } },
+  inscribe: { id: 'inscribe', name: { en: 'Inscribe', fr: 'Inscrire' }, owner: 'isot', target: 'none', text: { en: 'At the lectern in the Rear: write the next letter of FINIS.', fr: 'Au lutrin, à l’Arrière : écrire la lettre suivante de FINIS.' } },
 };
 
 export const PARTY_STATS: Record<CharId, { name: LocalText; hp: number }> = {
@@ -53,6 +54,10 @@ export interface BehaviourCtx {
   party: { id: string; name: LocalText; hp: number; maxHp: number; place: number }[];
   /** Fallen allies, nearest first. */
   fallen: { id: string; kind: string; name: LocalText }[];
+  /** Letters of FINIS written so far (the final battle). */
+  letters: number;
+  /** Phase changes so far. */
+  phases: ReadonlySet<string>;
   rng: () => number;
 }
 
@@ -74,6 +79,10 @@ export interface EnemyDef {
   inkwell?: boolean;
   /** At this HP or below, a phase change (announced once). */
   phaseAt?: { hp: number; id: string; title: LocalText; line: LocalText };
+  /** Can't be brought below 1 HP, and can't be Read (Aumery). */
+  undying?: boolean;
+  /** Every this much damage it falters: its next intent is lost. */
+  falterEvery?: number;
   behave(ctx: BehaviourCtx): IntentSpec[];
 }
 
@@ -309,6 +318,39 @@ export const ENEMIES: Record<string, EnemyDef> = {
       return [{ label: { en: 'Spatters the Rear · 2', fr: 'Éclabousse l’Arrière · 2' }, target: { place: 2 }, damage: 2, reach: 'far' }];
     },
   },
+  aumery: {
+    name: { en: 'Abbot Aumery', fr: 'L’abbé Aumery' },
+    hp: 40,
+    undying: true,
+    falterEvery: 10,
+    behave: (c) => {
+      if (c.letters >= 4 && !c.phases.has('gathering'))
+        return [
+          {
+            label: { en: 'Gathers the pumice…', fr: 'Rassemble la ponce…' },
+            rule: { en: 'Next round, every letter is scraped away', fr: 'Au prochain tour, toutes les lettres sont grattées' },
+            target: { self: true },
+            reach: 'any',
+            countdown: 1,
+            effects: [{ kind: 'scrapeLetters' }],
+          },
+        ];
+      if (c.phases.has('cleanPage') && c.phase % 3 === 0)
+        return [{ label: { en: 'MERCY tolls: the Middle is blanked', fr: 'MERCY sonne : le Milieu est effacé' }, rule: { en: 'Forgotten for a round', fr: 'Oublié pour un tour' }, target: { place: 1 }, reach: 'any', effects: [{ kind: 'forget', rounds: 1 }] }];
+      switch (c.phase % 5) {
+        case 0:
+          return [{ label: { en: 'EDICT: let none stand before me', fr: 'ÉDIT : que nul ne se tienne devant moi' }, rule: { en: 'Front · 6', fr: 'Avant · 6' }, target: { place: 0 }, damage: 6, reach: 'any' }];
+        case 1:
+          return [{ label: { en: 'Scrapes WHIT from the page', fr: 'Gratte WHIT de la page' }, rule: { en: 'Whit is Forgotten for 2 rounds', fr: 'Whit est Oublié pendant 2 tours' }, target: { unit: 'whit' }, reach: 'any', effects: [{ kind: 'forget', rounds: 2 }] }];
+        case 2:
+          return [{ label: { en: 'Pumices the page: Isot · 4', fr: 'Ponce la page : Isot · 4' }, rule: { en: 'Aimed at her by name: a Step won’t save her', fr: 'Visée par son nom : un Pas ne la sauvera pas' }, target: { unit: 'isot' }, damage: 4, reach: 'any' }];
+        case 3:
+          return [{ label: { en: 'Sermon: Ward 6', fr: 'Sermon : Garde 6' }, target: { self: true }, reach: 'any', effects: [{ kind: 'wardAlly', amount: 6 }] }];
+        default:
+          return [{ label: { en: 'Calls a Brother', fr: 'Appelle un Frère' }, target: { self: true }, reach: 'any', effects: [{ kind: 'spawn', enemy: 'brother' }] }];
+      }
+    },
+  },
   greatSnail: {
     name: { en: 'The Great Snail', fr: 'Le Grand Escargot' },
     hp: 24,
@@ -336,6 +378,10 @@ export interface EncounterDef {
   env?: (round: number, phases: ReadonlySet<string>) => IntentSpec | null;
   /** Where the fight is drawn. */
   stage: string;
+  /** The final battle: won by writing FINIS, not by felling the enemy. */
+  objective?: 'finis';
+  /** The battle is lost if this ally falls. */
+  mustSurvive?: CharId;
 }
 
 export const ENCOUNTERS: Record<string, EncounterDef> = {
@@ -366,6 +412,8 @@ export const ENCOUNTERS: Record<string, EncounterDef> = {
         ? { label: { en: 'Ermeline scrapes at Isot’s inkhorn: −1 Ink', fr: 'Ermeline gratte la corne d’Isot : −1 Encre' }, rule: { en: 'Emend her stroke onto an enemy to free her', fr: 'Amendez son geste vers un ennemi pour la libérer' }, target: { unit: 'isot' }, reach: 'any', effects: [{ kind: 'drain' }] }
         : null,
   },
+  f9: { id: 'f9', name: { en: 'The cloister at dawn', fr: 'Le cloître à l’aube' }, party: ['whit', 'hild', 'isot'], enemies: ['brother', 'gaudry', 'brother'], stage: 'cloisterDawn' },
+  b5: { id: 'b5', name: { en: 'The Writing of FINIS', fr: 'L’Écriture de FINIS' }, party: ['whit', 'hild', 'isot'], enemies: ['brother', 'aumery', 'brother'], stage: 'nave', objective: 'finis', mustSurvive: 'isot' },
   b2: { id: 'b2', name: { en: 'The Mummers’ Play', fr: 'La pièce des Mimes' }, party: ['whit', 'hild', 'isot'], enemies: ['george', 'slasher', 'doctor'], stage: 'green' },
   b1: {
     id: 'b1',

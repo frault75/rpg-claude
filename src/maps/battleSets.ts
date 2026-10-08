@@ -8,7 +8,7 @@ import type { WorldRenderer } from '../engine/diorama/renderer';
 import { hash2 } from '../engine/noise';
 import { rock, reeds } from '../pixel/nature';
 import { hex, PixelImage, ramp } from '../pixel/pixel';
-import { armarium, candleStand, lectern, writingDesk } from '../pixel/furniture';
+import { armarium, candleStand, coffer, lectern, writingDesk } from '../pixel/furniture';
 import { gravestone, lanternPost, mooringPost, stoneCross } from '../pixel/props';
 import { GROUND_DEFAULT } from '../pixel/terrain';
 import { NIGHT_SKY } from '../world3d/sky';
@@ -17,7 +17,7 @@ import { arcade } from './cloister';
 import { SNOW_GROUND, WINTER_NIGHT_SKY, WINTER_SKY, winterDay, winterNight } from './lychford/winter';
 import { bareTree, cottage3D, lychGate, snowHedge } from '../world3d/lychford';
 import { CHARACTERS, drawCharacter, FRAMES } from '../pixel/characters';
-import { backWall, FLOOR, moonThrough, nightInterior, sideWall } from './interior';
+import { backWall, dawnInterior, FLOOR, moonThrough, nightInterior, sideWall } from './interior';
 import { bush, yewTree } from '../pixel/nature';
 import { wellHead } from '../pixel/furniture';
 import { blanch, ninefoldGate, outlineBird } from '../world3d/blanchwood';
@@ -432,6 +432,26 @@ function marginSet(kind: 'ivy' | 'fair' | 'inkwell', r: WorldRenderer, st: Stage
   return { camera: { x: tiles(17), y: tiles(5.8), h: 36 }, enemies: TIGHT, party: PARTY_PLACES, seaward: [tiles(17), tiles(9)] };
 }
 
+/** The Abbey church at dawn (B5): the Book on the altar, MERCY above, a lectern at the party's Rear. */
+function naveSet(r: WorldRenderer, st: Stage): BattleSet {
+  dawnInterior(r);
+  r.grade = { ...r.grade, focusBand: 60, focusRange: 220 };
+  st.ground({ ground: ROOM, heights: ROOM.map((row) => '0'.repeat(row.length)), seed: 95, palette: { ...GROUND_DEFAULT, stone: FLOOR.stone } });
+  const windows = [tiles(4), tiles(11), tiles(18), tiles(25)].map((x) => ({ x: x - tiles(1), w: 18, h: 50, top: 8 }));
+  backWall(st, tiles(1), tiles(1), tiles(32), tiles(1), 100, { stone: '#A89C8C', seed: 97, windows, frieze: 64 });
+  st.addArt(coffer(12), tiles(12), tiles(3.4));
+  st.addArt(lectern(5), tiles(12), tiles(3.8));
+  for (const dx of [-30, 30]) {
+    st.addArt(candleStand(), tiles(12) + dx, tiles(3.6));
+    st.addCandle(tiles(12) + dx, tiles(3.6), 29, 0.6, 70);
+  }
+  // A lectern behind the party, where Isot writes.
+  st.addArt(lectern(7, true), tiles(24.4), tiles(7.2));
+  st.addLight(tiles(17), tiles(9.5), 40, 160, '#FFD8C0', 0.5);
+  st.addEmitter({ kind: 'mote', area: [tiles(1), tiles(2), tiles(32), tiles(8)], heights: [2, 60], count: 30, color: '#FFE8D8', size: 1.5, intensity: 0.35 }, 31);
+  return { camera: { x: tiles(17), y: tiles(5.8), h: 36 }, enemies: TIGHT, party: PARTY_PLACES, seaward: [tiles(17), tiles(9)] };
+}
+
 /** Build the set for a battle's stage. */
 export function dressBattle(stage: string, r: WorldRenderer, st: Stage): BattleSet {
   switch (stage) {
@@ -439,6 +459,14 @@ export function dressBattle(stage: string, r: WorldRenderer, st: Stage): BattleS
       return scriptorium(r, st);
     case 'cloister':
       return cloisterGarth(r, st);
+    case 'cloisterDawn': {
+      const set = cloisterGarth(r, st);
+      dawnInterior(r, { outdoor: true });
+      r.grade = { ...r.grade, focusBand: 60, focusRange: 220 };
+      return set;
+    }
+    case 'nave':
+      return naveSet(r, st);
     case 'lane':
     case 'lychgate':
     case 'green':

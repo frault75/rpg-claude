@@ -117,7 +117,7 @@ export function stool(seed = 1): Prop {
 }
 
 /** The lectern that holds the Book of Names: a tall post, a slope, the Book, its chain. */
-export function lectern(seed = 3): Prop {
+export function lectern(seed = 3, empty = false): Prop {
   const W = 30;
   const H = 46;
   const art = newArt(W, H);
@@ -138,11 +138,13 @@ export function lectern(seed = 3): Prop {
     [3, 6],
   ], wood, 3.6, seed);
   img.rect(1, 17, 28, 2, wood[1]!);
-  // The Book: thick, open, its gold catching the candles.
-  img.rect(4, 15, 22, 2, hex('#4A1E1A'));
-  openBook(art, 4, 5, 22, 10, seed + 4, true);
+  // The Book: thick, open, its gold catching the candles. (At dawn on Ebba's feast it is gone.)
+  if (!empty) {
+    img.rect(4, 15, 22, 2, hex('#4A1E1A'));
+    openBook(art, 4, 5, 22, 10, seed + 4, true);
+  }
   // The chain from the binding down to the post.
-  for (let i = 0; i < 9; i++) {
+  for (let i = 0; i < (empty ? 5 : 9); i++) {
     const x = 26 - Math.round(i * 1.1);
     const y = 16 + i * 2 + Math.round(Math.sin(i * 0.7) * 1);
     img.set(x, y, IRON[i % 2 ? 3 : 1]!);

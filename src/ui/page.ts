@@ -80,8 +80,15 @@ export class PageView {
       c.fillStyle = '#9A2A1E';
       c.fillText(title, 70, 80);
       let y = 124;
+      // A long page (the epilogue, with its Lost Names) shrinks its script to fit the leaf.
+      let size = prefs.largeText ? 25 : 23;
+      const height = (sz: number) => {
+        c.font = `${sz}px ${SERIF}`;
+        return lines.reduce((sum, l) => sum + wrap(c, l.text, w - 150).length * (sz + 14 * (sz / 23)), 0);
+      };
+      while (size > 13 && height(size) > h - 124 - 64) size--;
+      const lead = Math.round(14 * (size / 23));
       for (const l of lines) {
-        const size = prefs.largeText ? 25 : 23;
         c.font = `${size}px ${SERIF}`;
         const rows = wrap(c, l.text, w - 150);
         for (const row of rows) {
@@ -103,7 +110,7 @@ export class PageView {
             c.fillStyle = l.red ? '#A82A1E' : '#2A1E18';
             c.fillText(row, 74, y);
           }
-          y += size + 14;
+          y += size + lead;
         }
       }
       // How to read it.
