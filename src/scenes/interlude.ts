@@ -65,8 +65,11 @@ export class InterludeScene implements Scene {
   private readonly glowTex: THREE.CanvasTexture;
   private readonly pen: GameLight;
   private readonly rows: Row[] = [];
-  private readonly total: number;
+  private total = 0;
   private readonly initial: string;
+  /** The page's leaves: one, or on the last page two (her words, then the Lost Names). */
+  private readonly leaves: { text: string; red: boolean }[][] = [];
+  private leaf = 0;
   private readonly drollery: HTMLCanvasElement | null;
   private font = FONT;
   private lead = LEAD;
@@ -78,7 +81,7 @@ export class InterludeScene implements Scene {
   private quillAt = 0;
   private sincePaint = 0;
   private glowShown = 0;
-  private state: 'appear' | 'ink' | 'wait' | 'turn' | 'card' | 'done' = 'appear';
+  private state: 'appear' | 'ink' | 'wait' | 'flip' | 'turn' | 'card' | 'done' = 'appear';
   private readonly music: GainNode | null = null;
   private stopDrone: (() => void) | null = null;
   private readonly unsubs: (() => void)[] = [];
@@ -165,22 +168,16 @@ export class InterludeScene implements Scene {
     this.pen = st.addLight(PAGE.x + PAGE.w / 2, PAGE.y + PAGE.h / 2, 10, 46, '#FFD890', 0, 'none');
     st.addEmitter({ kind: 'mote', area: [PAGE.x, PAGE.y - 10, PAGE.w + 30, PAGE.h], heights: [4, 60], count: 30, color: '#FFD8A0', size: 1.2, intensity: 0.5 }, 11);
 
-    // Lay out the prose: beside the initial first, then the full measure. A long page (the
-    // last one, with its Lost Names) writes smaller until it fits the leaf.
-    const c = this.pageCanvas.getContext('2d')!;
+    // Lay out the prose: beside the initial first, then the full measure. The last page gives
+    // its Lost Names a leaf of their own, so that neither her words nor the names are written small.
     const paras = this.def.prose.map((p) => ({ text: tr(p), red: !!p.red }));
     const [first, rest] = splitInitial(paras[0]?.text ?? '');
     this.initial = first.toUpperCase();
     if (paras[0]) paras[0].text = rest;
-    for (const line of extra) paras.push({ text: line, red: true });
-    for (this.font = FONT; ; this.font -= 2) {
-      this.lead = Math.round(LEAD * (this.font / FONT));
-      this.rows.length = 0;
-      const end = this.layout(c, paras);
-      // The last page keeps clear of the FINIS cartouche at its foot.
-      if (end <= CH - (this.def.finale ? 88 : 64) || this.font <= 18) break;
-    }
-    this.total = this.rows.length ? this.rows[this.rows.length - 1]!.from + this.rows[this.rows.length - 1]!.text.length : 0;
+    const names = extra.map((line) => ({ text: line, red: true }));
+    if (this.def.finale && names.length) this.leaves.push(paras, names);
+    else this.leaves.push([...paras, ...names]);
+    this.layLeaf();
 
     this.ui = new UiLayer(r);
     this.card = new LocationCard(this.ui);
@@ -216,6 +213,24 @@ export class InterludeScene implements Scene {
     );
   }
 
+  private get lastLeaf(): boolean {
+    return this.leaf === this.leaves.length - 1;
+  }
+
+  /** Lay out the leaf in hand, writing smaller only if it does not fit. */
+  private layLeaf(): void {
+    const c = this.pageCanvas.getContext('2d')!;
+    for (this.font = FONT; ; this.font -= 2) {
+      this.lead = Math.round(LEAD * (this.font / FONT));
+      this.rows.length = 0;
+      const end = this.layout(c, this.leaves[this.leaf]!);
+      // The last page keeps clear of the FINIS cartouche at its foot.
+      if (end <= CH - (this.def.finale && this.lastLeaf ? 88 : 64) || this.font <= 18) break;
+    }
+    const last = this.rows[this.rows.length - 1];
+    this.total = last ? last.from + last.text.length : 0;
+  }
+
   /** Lay the paragraphs out into rows; returns the baseline of the last. */
   private layout(c: CanvasRenderingContext2D, paras: { text: string; red: boolean }[]): number {
     c.font = `${this.font}px ${SERIF}`;
@@ -227,7 +242,7 @@ export class InterludeScene implements Scene {
       let left = para.text.replace(/\s+/g, ' ').trimStart();
       while (left.length) {
         // Beside the initial while any of the row's letters would reach down to its frame.
-        const x = y - this.font * 0.8 < INI.y + INI.s + 14 ? TEXT_X : INI.x;
+        const x = this.leaf === 0 && y - this.font * 0.8 < INI.y + INI.s + 14 ? TEXT_X : INI.x;
         const [row] = wrap(c, left, RIGHT - x);
         const take = row ?? left;
         this.rows.push({ text: take, x, y, from, red: para.red });
@@ -271,7 +286,7 @@ export class InterludeScene implements Scene {
       this.inked = this.total;
       this.state = 'wait';
     } else if (this.state === 'wait') {
-      this.state = 'turn';
+      this.state = this.lastLeaf ? 'turn' : 'flip';
       pageTurn(this.audio);
     } else if (this.state === 'card') this.finish();
   }
@@ -297,6 +312,22 @@ export class InterludeScene implements Scene {
       // A long page (the last) is written faster, so that it never takes more than half a minute.
       this.inked = Math.min(this.total, this.inked + dt * Math.max(INK_CPS, this.total / 24));
       if (this.inked >= this.total) this.state = 'wait';
+    } else if (this.state === 'flip') {
+      // A leaf goes over and the next is under it, still to be written.
+      this.turn = Math.min(1, this.turn + dt / 1.1);
+      const k = this.turn * this.turn * (3 - 2 * this.turn);
+      this.pivot.rotation.z = k * Math.PI * 0.96;
+      this.page.material.opacity = 1 - Math.max(0, (k - 0.55) / 0.45);
+      if (this.turn >= 1) {
+        this.leaf++;
+        this.turn = 0;
+        this.pivot.rotation.z = 0;
+        this.page.material.opacity = 1;
+        this.inked = 0;
+        this.painted = -1;
+        this.layLeaf();
+        this.state = 'ink';
+      }
     } else if (this.state === 'turn') {
       // The leaf lifts from its right edge and goes over to the left.
       this.turn = Math.min(1, this.turn + dt / 1.3);
@@ -359,13 +390,14 @@ export class InterludeScene implements Scene {
     g.fillStyle = '#000';
     g.fillRect(0, 0, CW, CH);
     paintBorder(c, g, this.time);
-    paintInitial(c, g, this.initial, this.def.scene);
-    // The rubric title.
+    if (this.leaf === 0) paintInitial(c, g, this.initial, this.def.scene);
+    // The rubric title; the leaf of Lost Names has its own, across the full measure.
     c.font = `italic 600 ${Math.max(FONT - 2, this.font) + 2}px ${SERIF}`;
     c.textAlign = 'left';
     c.textBaseline = 'alphabetic';
     c.fillStyle = '#A82A1E';
-    c.fillText(tr(this.def.title), TEXT_X, INI.y + 46);
+    if (this.leaf === 0) c.fillText(tr(this.def.title), TEXT_X, INI.y + 46);
+    else c.fillText(t('interlude.names'), INI.x, INI.y + 46);
     // Her hand, inked as far as the pen has gone; rubrics and the Lost Names in red.
     c.font = `${this.font}px ${SERIF}`;
     for (const row of this.rows) {
@@ -397,7 +429,7 @@ export class InterludeScene implements Scene {
         c.fill();
       }
     }
-    if (this.def.finale && this.inked >= this.total) {
+    if (this.def.finale && this.lastLeaf && this.inked >= this.total) {
       // The last word of the book, in a cartouche set into the border at its foot.
       const cx = (INI.x + RIGHT) / 2;
       const cy = CH - 46;
@@ -434,7 +466,7 @@ export class InterludeScene implements Scene {
     }
     this.pageTex.needsUpdate = true;
     // The gold only changes when the page first shows and when FINIS is set in its cartouche.
-    const glowKey = this.def.finale && this.inked >= this.total ? 2 : 1;
+    const glowKey = this.leaf * 10 + (this.def.finale && this.lastLeaf && this.inked >= this.total ? 2 : 1);
     if (glowKey !== this.glowShown) {
       this.glowShown = glowKey;
       this.glowTex.needsUpdate = true;

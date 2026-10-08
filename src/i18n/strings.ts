@@ -299,6 +299,7 @@ registerStrings('fr', {
 registerStrings('en', {
   'prologue.skip': 'Skip: {menu}',
   'interlude.turn': 'Turn the page',
+  'interlude.names': 'The names given back',
   'chapter.1': 'Chapter I',
   'chapter.1.name': 'The Scraping',
   'chapter.2': 'Chapter II',
@@ -307,6 +308,7 @@ registerStrings('en', {
 registerStrings('fr', {
   'prologue.skip': 'Passer : {menu}',
   'interlude.turn': 'Tourner la page',
+  'interlude.names': 'Les noms rendus',
   'chapter.1': 'Chapitre I',
   'chapter.1.name': 'Le Grattage',
   'chapter.2': 'Chapitre II',
