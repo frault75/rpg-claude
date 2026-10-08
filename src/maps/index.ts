@@ -16,6 +16,7 @@ import { EDGE_MAP } from './margin/edge';
 import { FAIR } from './margin/fair';
 import { INKWELL } from './margin/inkwell';
 import { IVY } from './margin/ivy';
+import { LANES } from './margin/lanes';
 import { VINE } from './margin/vine';
 import { CLOISTER } from './cloister';
 import { BELLTOWER } from './lychford/belltower';
@@ -47,6 +48,7 @@ export const MAPS: Record<string, MapDef> = {
   edge: EDGE_MAP,
   ivy: IVY,
   fair: FAIR,
+  lanes: LANES,
   vine: VINE,
   inkwell: INKWELL,
   dawnScriptorium: DAWN_SCRIPTORIUM,

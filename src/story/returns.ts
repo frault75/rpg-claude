@@ -26,6 +26,11 @@ export const RETURNS: Record<string, { xp: number; to: LocalText; keepsake: Loca
     to: { en: 'to her brother', fr: 'à son frère' },
     keepsake: { en: 'A stick of willow charcoal from the hermit’s kiln, for drawing.', fr: 'Un bâton de fusain de saule, de la meule de l’ermite, pour dessiner.' },
   },
+  cutha: {
+    xp: 15,
+    to: { en: 'to the bees', fr: 'aux abeilles' },
+    keepsake: { en: 'A comb of honey, left on the bench by the bees.', fr: 'Un rayon de miel, laissé sur le banc par les abeilles.' },
+  },
   gervase: {
     xp: 15,
     to: { en: 'to himself', fr: 'à lui-même' },

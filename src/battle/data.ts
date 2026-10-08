@@ -61,6 +61,8 @@ export interface BehaviourCtx {
   letters: number;
   /** Phase changes so far. */
   phases: ReadonlySet<string>;
+  /** The last thing the party did to this enemy last round: the ability, who, and the damage it dealt. */
+  copied?: { ability: AbilityId; by: string; byName: LocalText; amount: number };
   rng: () => number;
 }
 
@@ -386,6 +388,24 @@ export const ENEMIES: Record<string, EnemyDef> = {
         ? [{ label: { en: 'Spits embers at the Rear · 2', fr: 'Crache des braises sur l’Arrière · 2' }, target: { place: 2 }, damage: 2, reach: 'far' }]
         : [{ label: { en: 'Butts the Front · 2', fr: 'Cogne l’Avant · 2' }, rule: { en: 'When it falls it bursts: the Front · 2', fr: 'En tombant il éclate : l’Avant · 2' }, target: { place: 0 }, damage: 2, reach: 'close' }],
   },
+  // The Fair's back lanes (DESIGN.md §3.14): the ape-scribes' copying stall. A copyist copies
+  // the last thing done to it, back at whoever did it, as hard as it was done.
+  apeScribe: {
+    name: { en: 'Ape-scribe', fr: 'Singe copiste' },
+    hp: 12,
+    behave: (c) => {
+      const k = c.copied;
+      if (k && k.amount > 0) {
+        const n = ABILITIES[k.ability].name;
+        return [{ label: { en: `Copies the ${n.en} back at ${k.byName.en} · ${k.amount}`, fr: `Recopie ${n.fr} sur ${k.byName.fr} · ${k.amount}` }, rule: { en: 'As hard as it was done', fr: 'Aussi fort qu’on le lui a fait' }, target: { unit: k.by }, damage: k.amount, reach: 'any' }];
+      }
+      if (k && k.ability === 'gloss')
+        return [{ label: { en: `Copies the Gloss onto ${k.byName.en}`, fr: `Recopie la Glose sur ${k.byName.fr}` }, rule: { en: 'Their next wound is +3', fr: 'Leur prochaine blessure est +3' }, target: { unit: k.by }, effects: [{ kind: 'gloss' }], reach: 'any' }];
+      return (c.phase + c.place) % 2 === 0
+        ? [{ label: { en: 'Scribbles over the Middle · 2', fr: 'Griffonne sur le Milieu · 2' }, target: { place: 1 }, damage: 2, reach: 'any' }]
+        : [{ label: { en: 'Blots the Rear: Smudge', fr: 'Tache l’Arrière : Bavure' }, target: { place: 2 }, reach: 'far', effects: [{ kind: 'smudge' }] }];
+    },
+  },
   wodewoseMother: {
     name: { en: 'Wodewose mother', fr: 'Mère sauvage' },
     hp: 24,
@@ -458,6 +478,7 @@ export const ENCOUNTERS: Record<string, EncounterDef> = {
     stage: 'ossuary',
     env: () => ({ label: { en: 'The dance turns: every dancer one place back', fr: 'La danse tourne : chaque danseur recule d’une place' }, target: { self: true }, reach: 'any', effects: [{ kind: 'turn' }] }),
   },
+  s3: { id: 's3', name: { en: 'The copying stall', fr: 'L’étal des copistes' }, party: ['whit', 'hild', 'isot'], enemies: ['apeScribe', 'apeScribe', 'apeScribe', 'apeScribe'], stage: 'lanes' },
   f7: { id: 'f7', name: { en: 'The Ivy Gate', fr: 'La porte du Lierre' }, party: ['whit', 'hild', 'isot'], enemies: ['hare', 'caladrius', 'hare'], stage: 'ivy' },
   f8: { id: 'f8', name: { en: 'The Court of Unreason', fr: 'La cour de Déraison' }, party: ['whit', 'hild', 'isot'], enemies: ['babewyn', 'bishopFish', 'snail'], stage: 'fair' },
   b4: {
@@ -509,6 +530,8 @@ export const REWARDS: Record<string, { xp: number; pennies: number; optional?: t
   f7: { xp: 18, pennies: 10 },
   // The Court of Unreason can be left in peace.
   f8: { xp: 20, pennies: 12, optional: true },
+  // The ape-scribes' stall in the Fair's back lanes.
+  s3: { xp: 20, pennies: 14, optional: true },
   b4: { xp: 34, pennies: 30 },
   f9: { xp: 22, pennies: 12 },
   // The last fight is the end of the Book: nothing comes after it to spend on.

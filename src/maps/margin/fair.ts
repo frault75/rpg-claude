@@ -51,7 +51,7 @@ export const FAIR: MapDef = {
   ambience: () => new MarginAmbience(),
   checkpoint: true,
   candle: false,
-  spawns: { west: { x: tiles(1.6), y: tiles(8), dir: 'right' } },
+  spawns: { west: { x: tiles(1.6), y: tiles(8), dir: 'right' }, lanes: { x: tiles(4), y: tiles(14.4), dir: 'up' } },
   build(r, st) {
     marginLight(r);
     st.ground({ ground: GROUND, heights: HEIGHTS, seed: 77, palette: MARGIN_GROUND });
@@ -184,7 +184,11 @@ export const FAIR: MapDef = {
     { id: 'name-fishers', x: tiles(6), y: tiles(1.3), h: 16, art: ghostWords(['NELL AND TOM FISHER', 'WHO ARGUED SIXTY YEARS'], true), lostName: 'fishers' },
     { id: 'name-cutha', x: ALCOVE[0], y: ALCOVE[1] - 6, h: 20, art: ghostWords(['OLD CUTHA', 'WHO TOLD THE BEES'], true), lostName: 'cutha', when: (c) => c.cleared('f8') },
   ],
-  exits: [{ rect: [tiles(W - 0.6), tiles(5), tiles(0.6), tiles(6)], to: 'vine', spawn: 'west' }],
+  exits: [
+    { rect: [tiles(W - 0.6), tiles(5), tiles(0.6), tiles(6)], to: 'vine', spawn: 'west' },
+    // Between two stalls at the bottom of the Fair, a way round the back.
+    { rect: [tiles(2.4), tiles(15.2), tiles(3.2), tiles(0.8)], to: 'lanes', spawn: 'fair' },
+  ],
   async enter(c: MapContext, from) {
     if (from === 'battle:f8') {
       for (const g of guards) g.visible = false;

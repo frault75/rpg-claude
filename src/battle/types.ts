@@ -150,7 +150,9 @@ export type IntentEffect =
   /** Every letter of FINIS written so far is scraped away. */
   | { kind: 'scrapeLetters' }
   /** The blow's damage, as dealt, heals the one who struck (the corpse-candles take warmth). */
-  | { kind: 'leech' };
+  | { kind: 'leech' }
+  /** The target is Glossed: their next wound is +3 (an ape-scribe copying Isot's Gloss). */
+  | { kind: 'gloss' };
 
 export type AbilityId =
   | 'penknife'

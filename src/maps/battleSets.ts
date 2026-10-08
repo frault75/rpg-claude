@@ -469,7 +469,7 @@ function ossuarySet(r: WorldRenderer, st: Stage): BattleSet {
 }
 
 /** The Margin (F7, F8) and the Ink-Well (B4): gold underfoot, acanthus, the page above. */
-function marginSet(kind: 'ivy' | 'fair' | 'inkwell', r: WorldRenderer, st: Stage): BattleSet {
+function marginSet(kind: 'ivy' | 'fair' | 'inkwell' | 'lanes', r: WorldRenderer, st: Stage): BattleSet {
   marginLight(r, kind === 'inkwell' ? 0.55 : 0);
   r.grade = { ...r.grade, focusBand: 60, focusRange: 220 };
   const well = kind === 'inkwell';
@@ -485,6 +485,8 @@ function marginSet(kind: 'ivy' | 'fair' | 'inkwell', r: WorldRenderer, st: Stage
   for (let x = 0; x < tiles(34); x += 90) st.addImage(goldBar(86, 14, x), x + 43, tiles(1.4));
   if (kind === 'ivy') for (let x = tiles(3); x < tiles(34); x += 120) st.addImage(ivyRun(90, x), x, tiles(9.8));
   if (kind === 'fair') for (let i = 0; i < 6; i++) st.addImage(goose(i), tiles(22 + i * 1.6), tiles(3.6) + (i % 2) * 8);
+  // The copying stall: desks under a gold awning, a stack of pages copied and copied again.
+  if (kind === 'lanes') for (let i = 0; i < 4; i++) st.addArt(writingDesk(i + 30, { book: i % 2 === 0 }), tiles(4 + i * 7.6), tiles(3.4));
   st.addEmitter({ kind: 'glint', area: [0, tiles(1), tiles(34), tiles(10)], heights: [2, 60], count: 26, color: '#FFF4C8', size: 1.6, intensity: 1.2 }, 29);
   return { camera: { x: tiles(17), y: tiles(5.8), h: 36 }, enemies: TIGHT, party: PARTY_PLACES, seaward: [tiles(17), tiles(9)] };
 }
@@ -540,6 +542,7 @@ export function dressBattle(stage: string, r: WorldRenderer, st: Stage): BattleS
     case 'ivy':
     case 'fair':
     case 'inkwell':
+    case 'lanes':
       return marginSet(stage, r, st);
     default:
       return causeway(r, st);

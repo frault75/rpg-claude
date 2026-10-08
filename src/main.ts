@@ -245,7 +245,7 @@ function boot(): void {
   /** Ready to fight an encounter directly (debug menu, ?scene=battle): its chapter's party and abilities. */
   const fightState = (id: string): void => {
     const ch5 = ['f9', 'b5'].includes(id);
-    const ch4 = ['f7', 'f8', 'b4'].includes(id) || ch5;
+    const ch4 = ['f7', 'f8', 's3', 'b4'].includes(id) || ch5;
     const ch3 = ['f5', 's2', 'f6', 'b3'].includes(id) || ch4;
     const ch2 = ['f3', 's1', 'f4', 'b2'].includes(id);
     if (ch5) chapterFive();

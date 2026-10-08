@@ -18,7 +18,7 @@ export const ORDINARY = ORDER.filter((id) => id.startsWith('f') || id.startsWith
 /** The abilities known at each fight, as the story teaches them (DESIGN.md §5.6). */
 export function known(id: string): Record<CharId, AbilityId[]> {
   const ch5 = ['f9', 'b5'].includes(id);
-  const ch4 = ['f7', 'f8', 'b4'].includes(id) || ch5;
+  const ch4 = ['f7', 'f8', 's3', 'b4'].includes(id) || ch5;
   const ch3 = ['f5', 's2', 'f6', 'b3'].includes(id) || ch4;
   const ch2 = ['f3', 's1', 'f4', 'b2'].includes(id) || ch3;
   const ab = Object.fromEntries(Object.entries(CHAPTER_ONE_ABILITIES).map(([k, v]) => [k, [...v]])) as Record<CharId, AbilityId[]>;
@@ -45,7 +45,7 @@ export function begin(id: string, difficulty: Difficulty = 'normal'): Battle {
     party: ENCOUNTERS[id]!.party,
     abilities: known(id),
     equipment: { isot: { relic: null, charm: 'wystansPumice' }, hild: { relic: 'psalterChain', charm: null } },
-    emendAnywhere: id === 'b3' || ['f7', 'f8', 'b4', 'f9', 'b5'].includes(id),
+    emendAnywhere: id === 'b3' || ['f7', 'f8', 's3', 'b4', 'f9', 'b5'].includes(id),
     level: storyLevel(id),
     difficulty,
   });

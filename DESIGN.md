@@ -482,12 +482,12 @@ Where they lie: Little Joan in the penitent's cell and Brother Osric on the cloi
 - Each return is worth experience once (12 to 18), and the Journal keeps the keepsake under the name.
 - **Maud of the mill** goes to the hermit at the Charcoal Hollow (Ch III), who was her brother and has kept the kilns lit for a hundred and fifty years so she would see the fire from the white. *She isn't coming, is she.* He sits down for the first time, and gives Isot willow charcoal: *Draw her a door that doesn't want oil.*
 - **Gervase** goes to himself (§6.3).
-- **Old Cutha** goes to the bees (Ch IV). In the Margin, by the Fair, there is a skep that has had no one to talk to, and Isot *tells the bees*, as the old custom is.
+- **Old Cutha** goes to the bees (Ch IV). Behind the Fair there is a skep that has had no one to talk to, and Isot *tells the bees*, as the old custom is: they come out slowly, *the way people come out of a church*, and leave a comb of honey on the bench.
 
 **Optional places**, one or more in every chapter, each with its own fights, caches and new marginalia:
 - **Ch II, the Fen Mill.** Lychford's mill on the frozen fen, whose wheel has turned under the ice for ten years. Corpse-candles burn there, people who should have died and now light the fen (S1); when they go out, Whit says they looked at him *as if I were late*. Ralf is found on its roof. It is reached from the lane, through the gateway in the hedge, once the hares are dealt with.
 - **Ch III, the Charcoal Hollow.** A clearing in the Blanchwood where the burners' kilns still smoulder, a hundred and fifty years after the burners were scraped; near the fires the wood keeps its colour. Ember-grylli and a wodewose mother live there (S2): she only keeps them warm. The hermit of Ninefold rakes the kilns. It is reached down a thread of smoke south of the path, once the wild man of the wood is past, and Ninefold now has a way back west to it.
-- **Ch IV, the Fair's back lanes.** The ape-scribes' copying stall (an optional fight with marginalia that copy the last thing done to them), the skep of bees, and Gervase's stall.
+- **Ch IV, the Fair's back lanes.** Reached between two stalls at the bottom of the Fair. The ape-scribes' copying stall (S3: marginalia that copy the last thing done to them), the skep of bees, and a hidden cache. Gervase keeps his stall in the Fair itself.
 - **Ch V, the Undercroft.** The Rasure Vault under the scriptorium, where ten years of scrapings have been swept. Its scraped Brothers, palimpsest knights and inkhorn hounds guard **the Heap**, an optional boss made of every letter ever scraped, trying to become a word.
 
 ---
@@ -791,6 +791,7 @@ These are baseline numbers, to be tuned in playtests.
 | **Caladrius**, a bestiary bird | IV | 6 | *Looks away from [ally]: that ally takes double damage this round* (Doomed from the Omen; the bird of the bestiary looks away from those about to die), or *Flutters: Ward 2* |
 | **Bishop-fish** | IV | 8 | *Blesses an ally: heals 4 and gives Ward 2* |
 | **Blotlet** | IV boss | 4 | See Boss IV |
+| **Ape-scribe**, a copyist of the Margin | IV, behind the Fair | 12 | **Copies the last thing done to it**, back at whoever did it, as hard as it was done: *Copies the Lance back at Whit · 4*; a Gloss is copied onto the one who glossed. Otherwise *Scribbles over the Middle · 2* or *Blots the Rear: Smudge*. Hit gently, finish one at once, Strike Through the copy, or Emend it onto another ape. |
 | **Ember-gryllus**, a spark of the kilns | III, the Charcoal Hollow | 5 | *Spits embers at the Rear · 2* or *Butts the Front · 2*, by turns. **Bursts when it falls:** the Front · 2. |
 | **Wodewose mother** | III, the Charcoal Hollow | 24 | *Gathers herself to club the Front · 10 (in 1)*; *Blows on the coals: a fallen ember-gryllus rekindles* (at full HP), or *Shields her young: Ward 3*; *Roars: the party's Ward is stripped*. |
 | **Corpse-candle**, someone who should have died | II, the Fen Mill | 9 | By turns: *Leans to the Front for warmth · 2, and keeps it* (heals itself by what it deals), *Gutters at the Middle · 3*, and *Lends its flame to another · +3* (or, if none is hurt, *Leans to the Rear for warmth*). **Burns down by 1** at the end of every round in which it took no warmth: Strike Through its reaching, and it starves. |
@@ -807,6 +808,7 @@ There are 14 fights in all, each placed by hand and visible on the map. Touching
 | F3 | II | Lychford Lane | 3 Hares | Protecting the Rear, Emend |
 | S1 | II | The Fen Mill (optional) | 4 Corpse-candles | What to cancel: starving the ones that feed |
 | S2 | III | The Charcoal Hollow (optional) | Wodewose mother and 2 Ember-grylli | Order: embers burst on the Front, and she rekindles them |
+| S3 | IV | The copying stall, behind the Fair (optional) | 4 Ape-scribes | How hard to hit: every blow comes back |
 | F4 | II | Lych-gate | 2 Babewyns | Several intents per enemy, Immure |
 | **B2** | II | Village Green | **The Mummers' Play** | Shove rotation, reach, kill order, Vigil |
 | F5 | III | Blanchwood | Wodewose and Gryllus | Wind-ups |
@@ -1663,7 +1665,8 @@ Each milestone is playable and arrives as its own PR, with build and tests green
 | **Done** | Satchel, caches and the pedlar | §6.1–§6.3: the satchel in battle (given back if the fight is lost), thirteen Glossator caches with their notes, seven of them found by raking light; Gervase's stall on the lane, at the Wood's Edge and at the Fair, his name read back to him and his ribbon; eleven new relics and charms, each bending one rule |
 | **Done** | The Fen Mill and returned names | §3.14: the mill on the frozen fen, its wheel in the ice, the corpse-candles (S1) that feed on warmth and burn down when starved; Ralf on the roof and Edda's name; Dunstan at the bell and Hamo's; returning a name gives a keepsake and experience, and the Journal keeps them |
 | **Done** | The Charcoal Hollow | §3.14: the kilns still burning in the Blanchwood, the wodewose mother and her ember-grylli (S2: embers burst when put out, she blows them back to life), the hermit and Maud's name, a hidden cache; Ninefold opens back to the wood |
-| **Planned** | Side stories | §3.14: the Fair's back lanes and the Undercroft, each with its own fights, monsters and caches |
+| **Done** | The Fair's back lanes | §3.14: the copying stall and its ape-scribes (S3: every blow copied back at whoever struck it, as hard), the skep and Old Cutha told to the bees, a hidden cache |
+| **Planned** | The Undercroft | §3.14: the Rasure Vault under the scriptorium, its scraped Brothers, palimpsest knights and inkhorn hounds, and the Heap; Osric given back to Cuthwin; Gervase's last stall |
 
 ---
 

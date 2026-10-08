@@ -910,3 +910,31 @@ describe('the Charcoal Hollow (S2)', () => {
     expect(b.unit('e0')!.fallen).toBe(false);
   });
 });
+
+describe('the ape-scribes (S3)', () => {
+  it('copy the last thing done to them, back at whoever did it, as hard', () => {
+    const b = fight(custom(['apeScribe', 'apeScribe']), ['whit', 'hild', 'isot']);
+    b.act('whit', 'lance', { unit: 'e0' });
+    expect(b.unit('e0')!.hp).toBe(12 - 4);
+    b.endTurn();
+    const copy = b.intents.find((i) => i.actor === 'e0')!;
+    expect(copy.label.en).toBe('Copies the Lance back at Whit · 4');
+    expect(copy.target).toEqual({ unit: 'whit' });
+    expect(copy.damage).toBe(4);
+    const hp = b.unit('whit')!.hp;
+    b.endTurn();
+    expect(b.unit('whit')!.hp).toBe(hp - 4);
+  });
+
+  it('a Gloss is copied too; and undoing the blow undoes the copy', () => {
+    const b = fight(custom(['apeScribe']), ['whit', 'hild', 'isot']);
+    b.act('isot', 'gloss', { unit: 'e0' });
+    b.endTurn();
+    expect(b.intents[0]!.effects).toEqual([{ kind: 'gloss' }]);
+    const c = fight(custom(['apeScribe']), ['whit', 'hild', 'isot']);
+    c.act('whit', 'lance', { unit: 'e0' });
+    c.undo();
+    c.endTurn();
+    expect(c.intents[0]!.label.en).not.toContain('Copies');
+  });
+});

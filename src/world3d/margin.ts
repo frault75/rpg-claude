@@ -212,3 +212,27 @@ export function fallingLetter(ch: string): PixelImage {
   for (let y = 0; y < img.h; y++) for (let x = 0; x < img.w; x++) img.set(x, y, t.get(x >> 1, y >> 1));
   return img;
 }
+
+/** A straw skep on a bench: the bees' house, coiled straw bound with bramble. */
+export function skep(seed = 1): PixelImage {
+  const img = new PixelImage(26, 30);
+  const straw = ramp('#C8A858', 5);
+  const wood = ramp('#6A4A30', 4);
+  // The bench.
+  img.rect(1, 24, 24, 3, wood[2]!);
+  img.hline(1, 24, 24, wood[3]!);
+  img.vline(3, 27, 29, wood[1]!);
+  img.vline(22, 27, 29, wood[1]!);
+  // The skep: a dome of coils, a dark door at the foot.
+  for (let y = 4; y < 24; y++) {
+    const k = (y - 4) / 20;
+    const half = Math.sqrt(Math.max(0, 1 - (1 - k) * (1 - k))) * 10;
+    for (let x = Math.round(13 - half); x <= Math.round(13 + half); x++) {
+      const coil = (y + Math.floor(seed)) % 3 === 0;
+      img.set(x, y, straw[coil ? 1 : x < 13 ? 4 : 3]!);
+    }
+  }
+  img.rect(11, 20, 4, 4, hex('#2A1A10'));
+  img.outline(hex('#3A2810'));
+  return img;
+}
