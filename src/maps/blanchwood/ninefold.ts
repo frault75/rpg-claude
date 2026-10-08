@@ -205,7 +205,11 @@ export const NINEFOLD: MapDef = {
       },
     },
   ],
-  exits: [{ rect: [tiles(W - 0.6), tiles(6), tiles(0.6), tiles(5)], to: 'gate', spawn: 'west' }],
+  exits: [
+    { rect: [tiles(W - 0.6), tiles(6), tiles(0.6), tiles(5)], to: 'gate', spawn: 'west' },
+    // Back to the wood: the hermit at the kilns may want to hear a name found here.
+    { rect: [0, tiles(6), tiles(0.6), tiles(5)], to: 'wood', spawn: 'ninefold' },
+  ],
   watch: (c) => (strayed(c) ? foldBack : null),
   async enter(c, from) {
     setDepth(c.r, 0.72);

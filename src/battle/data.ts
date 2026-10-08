@@ -88,6 +88,8 @@ export interface EnemyDef {
   falterEvery?: number;
   /** It burns down: this much HP lost at the end of every round in which it took no warmth (the corpse-candles). */
   wanes?: number;
+  /** When it falls, it bursts: this much to whoever stands in this place (the ember-grylli). */
+  bursts?: { damage: number; place: number };
   behave(ctx: BehaviourCtx): IntentSpec[];
 }
 
@@ -373,6 +375,32 @@ export const ENEMIES: Record<string, EnemyDef> = {
       return [{ label: { en: 'Leans to the Rear for warmth · 2, and keeps it', fr: 'Se penche vers l’Arrière pour sa chaleur · 2, et la garde' }, rule: { en: 'Heals itself by what it takes', fr: 'Se soigne de ce qu’elle prend' }, target: { place: 2 }, damage: 2, reach: 'any', effects: [{ kind: 'leech' }] }];
     },
   },
+  // The Charcoal Hollow (DESIGN.md §3.14): sparks of the burners' kilns, gone wild, and the
+  // wodewose who keeps them as her young. A gryllus of embers bursts when it is put out.
+  emberGryllus: {
+    name: { en: 'Ember-gryllus', fr: 'Grylle de braise' },
+    hp: 5,
+    bursts: { damage: 2, place: 0 },
+    behave: (c) =>
+      (c.phase + c.place) % 2 === 0
+        ? [{ label: { en: 'Spits embers at the Rear · 2', fr: 'Crache des braises sur l’Arrière · 2' }, target: { place: 2 }, damage: 2, reach: 'far' }]
+        : [{ label: { en: 'Butts the Front · 2', fr: 'Cogne l’Avant · 2' }, rule: { en: 'When it falls it bursts: the Front · 2', fr: 'En tombant il éclate : l’Avant · 2' }, target: { place: 0 }, damage: 2, reach: 'close' }],
+  },
+  wodewoseMother: {
+    name: { en: 'Wodewose mother', fr: 'Mère sauvage' },
+    hp: 24,
+    behave: (c) => {
+      const down = c.fallen.find((f) => f.kind === 'emberGryllus');
+      if (down && c.phase % 3 === 1)
+        return [{ label: { en: 'Blows on the coals: an ember rekindles', fr: 'Souffle sur les braises : une braise se rallume' }, rule: { en: 'A fallen ember-gryllus rises at full HP', fr: 'Un grylle de braise tombé se relève, tous PV' }, target: { unit: down.id }, effects: [{ kind: 'raise' }], reach: 'any' }];
+      const young = c.allies.filter((a) => a.kind === 'emberGryllus').sort((a, b) => a.hp - b.hp)[0];
+      if (c.phase % 3 === 1 && young)
+        return [{ label: { en: 'Shields her young: Ward 3', fr: 'Protège son petit : Garde 3' }, target: { unit: young.id }, effects: [{ kind: 'wardAlly', amount: 3 }], reach: 'any' }];
+      if (c.phase % 3 === 0)
+        return [{ label: { en: 'Gathers herself to club the Front · 10', fr: 'Se ramasse pour assommer l’Avant · 10' }, target: { place: 0 }, damage: 10, reach: 'close', countdown: 1 }];
+      return [{ label: { en: 'Roars: the party’s Ward is stripped', fr: 'Rugit : la Garde du groupe tombe' }, target: { all: true }, effects: [{ kind: 'stripWard' }], reach: 'any' }];
+    },
+  },
   greatSnail: {
     name: { en: 'The Great Snail', fr: 'Le Grand Escargot' },
     hp: 24,
@@ -420,6 +448,7 @@ export const ENCOUNTERS: Record<string, EncounterDef> = {
   s1: { id: 's1', name: { en: 'The corpse-candles', fr: 'Les chandelles des morts' }, party: ['whit', 'hild', 'isot'], enemies: ['corpseCandle', 'corpseCandle', 'corpseCandle', 'corpseCandle'], stage: 'fen' },
   f4: { id: 'f4', name: { en: 'Babewyns on the lych-gate', fr: 'Babouins sur le porche' }, party: ['whit', 'hild', 'isot'], enemies: ['babewyn', 'babewyn'], stage: 'lychgate' },
   f5: { id: 'f5', name: { en: 'The wild man of the wood', fr: 'L’homme sauvage du bois' }, party: ['whit', 'hild', 'isot'], enemies: ['wodewose', 'gryllus'], stage: 'blanchwood' },
+  s2: { id: 's2', name: { en: 'The Charcoal Hollow', fr: 'La combe aux charbonniers' }, party: ['whit', 'hild', 'isot'], enemies: ['emberGryllus', 'wodewoseMother', 'emberGryllus'], stage: 'hollow' },
   f6: { id: 'f6', name: { en: 'Prior Gaudry at Ninefold Gate', fr: 'Le prieur Gaudry à la porte de Ninefold' }, party: ['whit', 'hild', 'isot'], enemies: ['brother', 'gaudry', 'brother'], stage: 'gate' },
   b3: {
     id: 'b3',
@@ -473,6 +502,8 @@ export const REWARDS: Record<string, { xp: number; pennies: number; optional?: t
   f4: { xp: 13, pennies: 7 },
   b2: { xp: 25, pennies: 20 },
   f5: { xp: 15, pennies: 8 },
+  // The Charcoal Hollow, off the Blanchwood.
+  s2: { xp: 18, pennies: 12, optional: true },
   f6: { xp: 18, pennies: 10 },
   b3: { xp: 30, pennies: 25 },
   f7: { xp: 18, pennies: 10 },

@@ -55,6 +55,7 @@ export const WOOD: MapDef = {
   spawns: {
     start: { x: tiles(2), y: PATH_Y, dir: 'right' },
     ninefold: { x: tiles(W - 2), y: PATH_Y, dir: 'left' },
+    hollow: { x: tiles(34.5), y: tiles(11.4), dir: 'up' },
   },
   build(r, st) {
     woodLight(r, 0);
@@ -125,7 +126,11 @@ export const WOOD: MapDef = {
       },
     },
   ],
-  exits: [{ rect: [tiles(W - 1), tiles(5), tiles(1), tiles(4)], to: 'ninefold', spawn: 'west' }],
+  exits: [
+    { rect: [tiles(W - 1), tiles(5), tiles(1), tiles(4)], to: 'ninefold', spawn: 'west' },
+    // A thread of smoke south of the path: the way down to the Charcoal Hollow.
+    { rect: [tiles(33), tiles(12.4), tiles(3), tiles(0.6)], to: 'hollow', spawn: 'wood', when: (c) => c.cleared('f5') },
+  ],
   watch: (c) => {
     setDepth(c.r, depthAt(c.player.x));
     return null;

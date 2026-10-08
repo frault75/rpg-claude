@@ -2,6 +2,7 @@
 
 import { CHAPEL } from './blanchwood/chapel';
 import { FLIGHT } from './blanchwood/flight';
+import { HOLLOW } from './blanchwood/hollow';
 import { GATEHOUSE } from './blanchwood/gate';
 import { NINEFOLD } from './blanchwood/ninefold';
 import { OSSUARY } from './blanchwood/ossuary';
@@ -38,6 +39,7 @@ export const MAPS: Record<string, MapDef> = {
   mill: MILL_MAP,
   wood: WOOD,
   ninefold: NINEFOLD,
+  hollow: HOLLOW,
   gate: GATEHOUSE,
   flight: FLIGHT,
   chapel: CHAPEL,
