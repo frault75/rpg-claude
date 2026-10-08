@@ -34,7 +34,7 @@ const GROUND = [
 export const WALL_Y = tiles(2);
 const ISOT_DESK: [number, number] = [tiles(6.5), tiles(6)];
 export const WYSTAN_DESK: [number, number] = [tiles(6.5), tiles(9.4)];
-const CUTHWIN_DESK: [number, number] = [tiles(14.5), tiles(6)];
+export const CUTHWIN_DESK: [number, number] = [tiles(14.5), tiles(6)];
 export const LECTERN: [number, number] = [tiles(19.5), tiles(6.6)];
 export const DOOR_X = tiles(22.5);
 

@@ -488,7 +488,10 @@ Where they lie: Little Joan in the penitent's cell and Brother Osric on the cloi
 - **Ch II, the Fen Mill.** Lychford's mill on the frozen fen, whose wheel has turned under the ice for ten years. Corpse-candles burn there, people who should have died and now light the fen (S1); when they go out, Whit says they looked at him *as if I were late*. Ralf is found on its roof. It is reached from the lane, through the gateway in the hedge, once the hares are dealt with.
 - **Ch III, the Charcoal Hollow.** A clearing in the Blanchwood where the burners' kilns still smoulder, a hundred and fifty years after the burners were scraped; near the fires the wood keeps its colour. Ember-grylli and a wodewose mother live there (S2): she only keeps them warm. The hermit of Ninefold rakes the kilns. It is reached down a thread of smoke south of the path, once the wild man of the wood is past, and Ninefold now has a way back west to it.
 - **Ch IV, the Fair's back lanes.** Reached between two stalls at the bottom of the Fair. The ape-scribes' copying stall (S3: marginalia that copy the last thing done to them), the skep of bees, and a hidden cache. Gervase keeps his stall in the Fair itself.
-- **Ch V, the Undercroft.** The Rasure Vault under the scriptorium, where ten years of scrapings have been swept. Its scraped Brothers, palimpsest knights and inkhorn hounds guard **the Heap**, an optional boss made of every letter ever scraped, trying to become a word.
+- **Ch V, the Undercroft.** The Rasure Vault under the scriptorium, where ten years of scrapings have been swept down a chute. Gervase, at his last stall by the third window of the scriptorium at dawn, leans on what Isot always took for a cupboard: a low round-headed door, older than the wall. Down there MERCY is only a hum in the stone.
+  - **The sweepers (S4).** A Brother scraped so long ago his robe is the colour of vellum sweeps the shavings from one side of the vault to the other, with three inkhorn hounds at his feet. The raking light finds his name by the chute: *GODRIC RASOR, XL ANNOS*, the rasor who kept the pumice and scraped the skins for forty years. Given his name back in the margin, he leaves the fight with his hounds, tells who he was, and goes up to see the scriptorium by daylight for the first time. Felled, he comes apart into the drift and his broom stands a moment alone.
+  - **The palimpsest knights (S5).** Two knights written over something older keep the inner bays. Once they are scraped off, the wall behind them reads *DOMINE, FAC ME UTILEM*: Lord, make me useful.
+  - **The Heap (B6).** Every letter ever scraped in Saint Ebb's, trying to become a word. It is **ADSUM**, *here*, the answer at the roll-call: everyone it was made of, answering a roll nobody read. Whit reads it; Isot kneels in the shavings and reads the names on them until her candle is half gone, and at each one a curl of vellum lies down flat, *the way a dog lies down when it is home*. At the bottom is the slip of the roll-call (§6.4).
 
 ---
 
@@ -794,11 +797,16 @@ These are baseline numbers, to be tuned in playtests.
 | **Ape-scribe**, a copyist of the Margin | IV, behind the Fair | 12 | **Copies the last thing done to it**, back at whoever did it, as hard as it was done: *Copies the Lance back at Whit · 4*; a Gloss is copied onto the one who glossed. Otherwise *Scribbles over the Middle · 2* or *Blots the Rear: Smudge*. Hit gently, finish one at once, Strike Through the copy, or Emend it onto another ape. |
 | **Ember-gryllus**, a spark of the kilns | III, the Charcoal Hollow | 5 | *Spits embers at the Rear · 2* or *Butts the Front · 2*, by turns. **Bursts when it falls:** the Front · 2. |
 | **Wodewose mother** | III, the Charcoal Hollow | 24 | *Gathers herself to club the Front · 10 (in 1)*; *Blows on the coals: a fallen ember-gryllus rekindles* (at full HP), or *Shields her young: Ward 3*; *Roars: the party's Ward is stripped*. |
+| **Scraped Brother** (Godric) | V, the Undercroft | 18 | **Gloss him three times and he remembers his name**: he leaves the fight, and his hounds go with him. While he has a letter of it back, he plans *Sweeps the margin clean* (the letters given back so far are lost): Strike it Through or Immure him. Otherwise *Shortens the leash: a hound gains Ward 3*, or *Sweeps pumice dust at the Rear · 2: Smudge*. He leads the hounds: felled, they fall with him. |
+| **Inkhorn hound** | V, the Undercroft | 8 | **Hunts by the scent of fresh ink:** *Runs [ally] down by the scent · 3*, at whoever acted last in the party's last phase, by name (a Step won't save them). Otherwise *Snaps at the Front · 2*. Choose who acts last. |
+| **Palimpsest knight** | V, the Undercroft | 18 | **Writes itself over:** whatever it loses in that round, it has back at the end. Fell it within the round, Strike the writing out, or Immure it. Otherwise *Rides down the Front · 5* or *Couches its lance at the Middle · 4*. Two of them take turns. |
+| **The Heap** | V, the Undercroft (boss) | 30 | See Boss VI below. |
+| **Stray letter** | V, the Undercroft | 4 | *Flutters at the Rear · 2* or *Nicks the Middle · 2*. **Cut down, it falls back into the Heap:** a letter of its word. |
 | **Corpse-candle**, someone who should have died | II, the Fen Mill | 9 | By turns: *Leans to the Front for warmth · 2, and keeps it* (heals itself by what it deals), *Gutters at the Middle · 3*, and *Lends its flame to another · +3* (or, if none is hurt, *Leans to the Rear for warmth*). **Burns down by 1** at the end of every round in which it took no warmth: Strike Through its reaching, and it starves. |
 
 ### 5.12 Encounters
 
-There are 14 fights in all, each placed by hand and visible on the map. Touching the enemies starts the fight.
+There are 20 fights in all (six of them off the path), each placed by hand and visible on the map. Touching the enemies starts the fight.
 
 | # | Ch | Where | Enemies | Teaches |
 |---|---|---|---|---|
@@ -809,6 +817,9 @@ There are 14 fights in all, each placed by hand and visible on the map. Touching
 | S1 | II | The Fen Mill (optional) | 4 Corpse-candles | What to cancel: starving the ones that feed |
 | S2 | III | The Charcoal Hollow (optional) | Wodewose mother and 2 Ember-grylli | Order: embers burst on the Front, and she rekindles them |
 | S3 | IV | The copying stall, behind the Fair (optional) | 4 Ape-scribes | How hard to hit: every blow comes back |
+| S4 | V | The Undercroft (optional) | A scraped Brother and 3 Inkhorn hounds | Order of acting; a name given back instead of a blow |
+| S5 | V | The Undercroft (optional) | 2 Palimpsest knights | Burst damage in the right round |
+| **B6** | V | The Undercroft (optional) | **The Heap** | Restraint: let it finish, then read it |
 | F4 | II | Lych-gate | 2 Babewyns | Several intents per enemy, Immure |
 | **B2** | II | Village Green | **The Mummers' Play** | Shove rotation, reach, kill order, Vigil |
 | F5 | III | Blanchwood | Wodewose and Gryllus | Wind-ups |
@@ -923,6 +934,19 @@ Each intent is shown as a rhyming couplet with the rule written underneath.
   - Tally plus Lance makes Aumery Falter at the right moment.
 - **Sound.** Each letter tolls a bell. The fifth toll merges with the passing bell of Lychford.
 
+#### Boss VI (optional): the Heap
+*The far end of the Undercroft. Every drift of shavings rises into one heap, higher than a man, moving like a page in a draught.*
+
+- **Objective.** The Heap is trying to say a word, **ADSUM**. It can only be Read, and only once the word is whole; then it can be Read at any strength. The word shows above the field as dots, a letter taking the place of each dot as it is found.
+- **The Heap: 30 HP, Read only, two places.** **Every blow from the party knocks a letter loose** (the first time, *Knocked Loose: it was trying to say something*), so the party mostly leaves it alone.
+- **Its intents, in turn:**
+  - *Reaches for its next letter: thrashes the Front · 4.* If it reaches, the word has one more letter, whether or not the blow lands.
+  - *Sheds a stray letter:* a Stray letter rises into an empty place. **Cut down, it falls back into the Heap,** a letter nearer.
+  - *Reaches for its next letter: rakes the Middle and the Rear · 3.*
+  - *Mouths a word it learned upstairs: F, I, N, I, S… everyone · 5 (in 1).* Not its word: Strike it Through, or Immure the Heap.
+- **Tools.** Lance and Penknife on the strays (Shove, Tally and Vigil would strike the Heap); Strike Through for the false word; Shrive, Benison and wax seals to stand the reaching; Read Aloud at the end.
+- **After.** Whit reads ADSUM. The slip of the roll-call is left at the bottom of the Heap: the wearer can't be Forgotten.
+
 ### 5.15 Boss intros and phase changes
 
 Each boss has a staged entrance and one phase change, announced on a banderole of its own. The new rule holds for the rest of the fight.
@@ -995,6 +1019,7 @@ Equipment never inflates stats. Every item is a sidegrade that bends one rule, s
 | **Ebb Shell** | Charm | The first blow taken in each battle deals 1 less. | *Picked up on the causeway, still wet.* |
 | **Pot of Vermilion** | Charm | The wearer's first ability that can be doubled (§5.6) is doubled, once per battle. | *Red is read first.* |
 | **Gervase's Ribbon** | Charm | The first time the wearer would fall in a battle, they stay at 1 HP. | *Faded to the colour of the road. He kept the last one for whoever said his name.* |
+| **Slip of the roll-call** | Charm | The wearer can't be Forgotten: they answer to their name. Left at the bottom of the Heap (B6). | *A scrap from the bottom of the Heap, with one word on it in every hand at once: ADSUM.* |
 | **Mourning brooch** | Charm | When another ally falls, the wearer gains Ward 3. | *From before the dying stopped. No one remembers whose hair is behind the glass.* |
 | **Hare's-foot brush** | Charm | The free Step can be taken twice each round. | *Gilders sweep the loose gold away with one. This one still wants to run.* |
 | **Rosary of oak-galls** | Charm | Healing the wearer receives is +2. | *Strung by a nun who made ink, and prayed while it steeped.* |
@@ -1065,7 +1090,7 @@ Up to three of each kind are carried. In battle, any ally can use one instead of
   - on Lychford Lane (Ch II);
   - at the Wood's Edge (Ch III);
   - at the Drollery Fair (Ch IV);
-  - at the mouth of the Undercroft (Ch V), whose way he knows, because he has walked every road twice.
+  - at the mouth of the Undercroft (Ch V), whose way he knows, because he has walked every road twice. His last stall: nothing new, everything still unsold. He shows the party the low door, and, if his name has been read, says that after this he will only walk the one road.
 - **His stock** grows from stall to stall, and nothing the party owns is offered again:
   - Lychford Lane: poultices, wax seals, oak-gall ink; the hare's-foot brush (30d), the rosary of oak-galls (26d), the coronel (32d);
   - the Wood's Edge adds holy water; the silverpoint (38d), the leper's clapper (34d), Saint Ebb's girdle (36d);
@@ -1670,7 +1695,7 @@ Each milestone is playable and arrives as its own PR, with build and tests green
 | **Done** | The Fen Mill and returned names | §3.14: the mill on the frozen fen, its wheel in the ice, the corpse-candles (S1) that feed on warmth and burn down when starved; Ralf on the roof and Edda's name; Dunstan at the bell and Hamo's; returning a name gives a keepsake and experience, and the Journal keeps them |
 | **Done** | The Charcoal Hollow | §3.14: the kilns still burning in the Blanchwood, the wodewose mother and her ember-grylli (S2: embers burst when put out, she blows them back to life), the hermit and Maud's name, a hidden cache; Ninefold opens back to the wood |
 | **Done** | The Fair's back lanes | §3.14: the copying stall and its ape-scribes (S3: every blow copied back at whoever struck it, as hard), the skep and Old Cutha told to the bees, a hidden cache |
-| **Planned** | The Undercroft | §3.14: the Rasure Vault under the scriptorium, its scraped Brothers, palimpsest knights and inkhorn hounds, and the Heap; Osric given back to Cuthwin; Gervase's last stall |
+| **Done** | The Undercroft | §3.14: the low door Gervase opens at his last stall; the Rasure Vault, its chute, drifts, herses and pumice tubs; the sweepers (S4: hounds that hunt whoever acted last, and Godric given his name in three Glosses), the palimpsest knights (S5: what they lose in a round they write back), and the Heap (B6: every blow knocks a letter of its word loose; it is read once it has said ADSUM), a hidden cache; Osric given back to Cuthwin, who hums the flat Amen |
 
 ---
 

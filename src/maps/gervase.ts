@@ -8,12 +8,14 @@
 import { session } from '../engine/session';
 import { CHARACTERS, type Dir } from '../pixel/characters';
 import { returnName } from '../story/returns';
+import { openLowDoor } from './dawn/lowDoor';
+import { WALL_Y } from './scriptorium';
 import type { MapContext, NpcDef, Thing } from './types';
 
-type Stall = 'lane' | 'woodsEdge' | 'fair';
+type Stall = 'lane' | 'woodsEdge' | 'fair' | 'undercroft';
 
 /** How faint he is at each stall; a name read back brings him most of the way home. */
-const FRAY: Record<Stall, number> = { lane: 0.18, woodsEdge: 0.38, fair: 0.55 };
+const FRAY: Record<Stall, number> = { lane: 0.18, woodsEdge: 0.38, fair: 0.55, undercroft: 0.7 };
 
 const named = () => !!session.game.flags.gervaseNamed;
 
@@ -42,6 +44,7 @@ async function meet(c: MapContext, stall: Stall): Promise<void> {
     c.set(met);
     if (stall === 'lane') await onTheLane(c);
     else if (stall === 'woodsEdge') await atTheWoodsEdge(c);
+    else if (stall === 'undercroft') await atTheUndercroft(c);
     else await atTheFair(c);
   } else if (stall === 'fair' && !named() && session.game.lostNames.includes('gervase')) await atTheFair(c);
   else
@@ -70,6 +73,25 @@ async function atTheWoodsEdge(c: MapContext): Promise<void> {
   await c.say('isot', { en: 'You look… paler.', fr: 'Vous avez l’air… plus pâle.' }, 'alarmed');
   await c.say('pedlar', { en: 'The wood does that. It forgets what it’s looking at. Buy something quickly, before it forgets me.', fr: 'Le bois fait ça. Il oublie ce qu’il regarde. Achetez vite, avant qu’il m’oublie.' });
   await c.say('hild', { en: 'Nobody is forgetting you while I’m stood here.', fr: 'Personne ne vous oublie tant que je suis là.' }, 'stern');
+}
+
+/** The last stall, at the dawn scriptorium, by a door Isot always took for a cupboard. */
+async function atTheUndercroft(c: MapContext): Promise<void> {
+  const who = named() ? 'gervase' : 'pedlar';
+  await c.narrate(
+    named()
+      ? { en: 'Gervase is sitting on his pack under the third window, in the rose light, as if he had always worked here.', fr: 'Gervais est assis sur son ballot sous la troisième fenêtre, dans la lumière rose, comme s’il avait toujours travaillé ici.' }
+      : { en: 'Under the third window, a pack of ribbons, and the pedlar sitting on it, so faint that the dawn shows through him.', fr: 'Sous la troisième fenêtre, un ballot de rubans, et le colporteur assis dessus, si pâle que l’aube passe au travers.' },
+  );
+  await c.say(who, { en: 'Every road twice. This one goes down. I went down it once, a long time ago, and I came back up, so it’s a road.', fr: 'Chaque route deux fois. Celle-ci descend. Je l’ai descendue une fois, il y a longtemps, et je suis remonté : c’est donc une route.' });
+  await c.say('isot', { en: 'That’s a cupboard. I’ve walked past it every day for six years.', fr: 'C’est un placard. Je passe devant tous les jours depuis six ans.' });
+  await c.narrate({ en: 'He leans on it. It is a door, low and round-headed, older than the wall around it. Cold air comes up, and a smell of pumice.', fr: 'Il s’y appuie. C’est une porte, basse, en plein cintre, plus vieille que le mur autour. Un air froid monte, et une odeur de ponce.' });
+  c.set('undercroftOpen');
+  openLowDoor(c, WALL_Y);
+  await c.say(who, { en: 'The Rasure Vault. Everything they scraped up here, they swept down there. Mind the dogs. And there’s something at the bottom that has been trying to say a word for longer than I’ve been walking.', fr: 'La Crypte des raclures. Tout ce qu’ils grattaient ici, ils le balayaient là-dessous. Méfiez-vous des chiens. Et il y a, tout au fond, quelque chose qui essaie de dire un mot depuis plus longtemps que je ne marche.' });
+  if (named())
+    await c.say('gervase', { en: 'This is my last stall. After this I’ll only walk the one road, and I won’t need a pack for it. Buy what you like. It’s all a quarter off, and all of it is yours if you’re short.', fr: 'C’est mon dernier étal. Après, je ne marcherai plus que sur une seule route, et je n’aurai pas besoin de ballot. Prenez ce qui vous plaît. Tout est à un quart de moins, et tout est à vous s’il vous manque de quoi.' });
+  else await c.say('pedlar', { en: 'Buy something. I don’t think I’ll be setting this pack down again.', fr: 'Achetez quelque chose. Je crois que je ne poserai plus ce ballot.' });
 }
 
 async function atTheFair(c: MapContext): Promise<void> {

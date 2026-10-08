@@ -51,14 +51,18 @@ export interface BehaviourCtx {
   maxHp: number;
   /** Its own place in the enemy line. */
   place: number;
+  /** Letters of its own name given back so far (a scraped Brother). */
+  named: number;
   /** Standing allies of the enemy (other than itself), with their HP and places. */
   allies: { id: string; kind: string; name: LocalText; hp: number; maxHp: number; place: number }[];
   /** The party as it stands. */
   party: { id: string; name: LocalText; hp: number; maxHp: number; place: number }[];
   /** Fallen allies, nearest first. */
   fallen: { id: string; kind: string; name: LocalText }[];
-  /** Letters of FINIS written so far (the final battle). */
+  /** Letters of FINIS written so far (the final battle), or of the word the Heap is becoming. */
   letters: number;
+  /** Whoever acted last in the party's last phase, if they still stand (the inkhorn hounds hunt by it). */
+  scent?: { id: string; name: LocalText };
   /** Phase changes so far. */
   phases: ReadonlySet<string>;
   /** The last thing the party did to this enemy last round: the ability, who, and the damage it dealt. */
@@ -92,6 +96,12 @@ export interface EnemyDef {
   wanes?: number;
   /** When it falls, it bursts: this much to whoever stands in this place (the ember-grylli). */
   bursts?: { damage: number; place: number };
+  /** Glossed this many times, it remembers its name and leaves the fight, with all it leads (a scraped Brother). */
+  named?: number;
+  /** Every blow from the party knocks a letter of its word loose; it can only be Read once the word is whole (the Heap). */
+  loosens?: boolean;
+  /** Cut down, it falls back into the one that loosens: a letter of the word (a stray letter). */
+  returns?: boolean;
   behave(ctx: BehaviourCtx): IntentSpec[];
 }
 
@@ -421,6 +431,82 @@ export const ENEMIES: Record<string, EnemyDef> = {
       return [{ label: { en: 'Roars: the party’s Ward is stripped', fr: 'Rugit : la Garde du groupe tombe' }, target: { all: true }, effects: [{ kind: 'stripWard' }], reach: 'any' }];
     },
   },
+  // The Undercroft (DESIGN.md §3.14): the Rasure Vault under the scriptorium, where ten
+  // years of scrapings have been swept. A Brother scraped of his own name sweeps it still,
+  // with the hounds of the inkhorns at heel. Gloss him three times and he has his name back:
+  // he puts the broom down and goes up the stair, and the hounds go with him. Let him, and
+  // he sweeps the margin clean.
+  scrapedBrother: {
+    name: { en: 'Scraped Brother', fr: 'Frère gratté' },
+    hp: 18,
+    named: 3,
+    leads: true,
+    behave: (c) => {
+      if (c.named > 0)
+        return [{ label: { en: 'Sweeps the margin clean', fr: 'Balaie la marge' }, rule: { en: 'The letters of his name given back so far are lost', fr: 'Les lettres de son nom rendues jusqu’ici sont perdues' }, target: { self: true }, reach: 'any', effects: [{ kind: 'unname' }] }];
+      const hound = c.allies.filter((a) => a.kind === 'inkhornHound').sort((a, b) => a.hp - b.hp)[0];
+      if (c.phase % 2 === 1 && hound)
+        return [{ label: { en: `Shortens the leash: ${hound.name.en} gains Ward 3`, fr: `Raccourcit la laisse : ${hound.name.fr} gagne Garde 3` }, target: { unit: hound.id }, reach: 'any', effects: [{ kind: 'wardAlly', amount: 3 }] }];
+      return [{ label: { en: 'Sweeps pumice dust at the Rear · 2: Smudge', fr: 'Balaie la poussière de ponce sur l’Arrière · 2 : Bavure' }, target: { place: 2 }, damage: 2, reach: 'far', effects: [{ kind: 'smudge' }] }];
+    },
+  },
+  // Hounds born of inkhorns, that hunt by the smell of fresh ink: whoever did something last.
+  inkhornHound: {
+    name: { en: 'Inkhorn hound', fr: 'Chien d’encrier' },
+    hp: 8,
+    bound: true,
+    behave: (c) => {
+      if (c.scent && (c.phase + c.place) % 2 === 1)
+        return [{ label: { en: `Runs ${c.scent.name.en} down by the scent · 3`, fr: `Traque ${c.scent.name.fr} à l’odeur · 3` }, rule: { en: 'It hunts whoever acted last', fr: 'Il traque qui a agi en dernier' }, target: { unit: c.scent.id }, damage: 3, reach: 'any' }];
+      return [{ label: { en: 'Snaps at the Front · 2', fr: 'Happe l’Avant · 2' }, target: { place: 0 }, damage: 2, reach: 'close' }];
+    },
+  },
+  // Knights written over something older: whatever is scraped off them in a round, they
+  // write back. Fell one in the round it writes itself over, or strike the writing out.
+  palimpsestKnight: {
+    name: { en: 'Palimpsest knight', fr: 'Chevalier palimpseste' },
+    hp: 18,
+    behave: (c) => {
+      const k = (c.phase + c.place) % 3;
+      if (k === 0)
+        return [{ label: { en: 'Writes itself over', fr: 'Se récrit par-dessus' }, rule: { en: 'Whatever it loses this round, it has back', fr: 'Ce qu’il perd ce tour-ci, il le récupère' }, target: { self: true }, reach: 'any', effects: [{ kind: 'rewrite' }] }];
+      if (k === 1) return [{ label: { en: 'Rides down the Front · 5', fr: 'Charge l’Avant · 5' }, target: { place: 0 }, damage: 5, reach: 'close' }];
+      return [{ label: { en: 'Couches its lance at the Middle · 4', fr: 'Met sa lance en arrêt sur le Milieu · 4' }, target: { place: 1 }, damage: 4, reach: 'any' }];
+    },
+  },
+  // The Heap: every letter ever scraped in Saint Ebb's, swept together for ten years,
+  // trying to become a word. It hurts whoever is near as it reaches for its letters, and
+  // a blow knocks one loose. Let it finish, and read what it says.
+  heap: {
+    name: { en: 'The Heap', fr: 'Le Tas' },
+    hp: 30,
+    size: 2,
+    readOnly: true,
+    leads: true,
+    loosens: true,
+    behave: (c) => {
+      switch (c.phase % 4) {
+        case 0:
+          return [{ label: { en: 'Reaches for its next letter: thrashes the Front · 4', fr: 'Cherche sa prochaine lettre : se débat contre l’Avant · 4' }, rule: { en: 'If it reaches, its word has one more letter', fr: 'S’il l’atteint, son mot a une lettre de plus' }, target: { place: 0 }, damage: 4, reach: 'any', effects: [{ kind: 'letter' }] }];
+        case 1:
+          return [{ label: { en: 'Sheds a stray letter', fr: 'Perd une lettre égarée' }, target: { self: true }, reach: 'any', effects: [{ kind: 'spawn', enemy: 'strayLetter' }] }];
+        case 2:
+          return [{ label: { en: 'Reaches for its next letter: rakes the Middle and the Rear · 3', fr: 'Cherche sa prochaine lettre : racle le Milieu et l’Arrière · 3' }, rule: { en: 'If it reaches, its word has one more letter', fr: 'S’il l’atteint, son mot a une lettre de plus' }, target: { places: [1, 2] }, damage: 3, reach: 'any', effects: [{ kind: 'letter' }] }];
+        default:
+          return [{ label: { en: 'Mouths a word it learned upstairs: F, I, N, I, S… everyone · 5', fr: 'Articule un mot appris là-haut : F, I, N, I, S… tous · 5' }, rule: { en: 'Not its word', fr: 'Ce n’est pas son mot' }, target: { all: true }, damage: 5, reach: 'any', countdown: 1 }];
+      }
+    },
+  },
+  strayLetter: {
+    name: { en: 'Stray letter', fr: 'Lettre égarée' },
+    hp: 4,
+    bound: true,
+    returns: true,
+    behave: (c) =>
+      (c.phase + c.place) % 2 === 0
+        ? [{ label: { en: 'Flutters at the Rear · 2', fr: 'Voltige sur l’Arrière · 2' }, rule: { en: 'Cut down, it falls back into the Heap', fr: 'Abattue, elle retombe dans le Tas' }, target: { place: 2 }, damage: 2, reach: 'any' }]
+        : [{ label: { en: 'Nicks the Middle · 2', fr: 'Entaille le Milieu · 2' }, rule: { en: 'Cut down, it falls back into the Heap', fr: 'Abattue, elle retombe dans le Tas' }, target: { place: 1 }, damage: 2, reach: 'any' }],
+  },
   greatSnail: {
     name: { en: 'The Great Snail', fr: 'Le Grand Escargot' },
     hp: 24,
@@ -455,8 +541,10 @@ export interface EncounterDef {
   env?: (round: number, phases: ReadonlySet<string>) => IntentSpec | null;
   /** Where the fight is drawn. */
   stage: string;
-  /** The final battle: won by writing FINIS, not by felling the enemy. */
-  objective?: 'finis';
+  /** The final battle: won by writing FINIS, not by felling the enemy. A word: the Heap's, won by reading it whole. */
+  objective?: 'finis' | 'word';
+  /** The word, and what is said when it is whole and when a letter is first knocked loose. */
+  word?: { text: string; whole: { title: LocalText; line: LocalText }; loose: { title: LocalText; line: LocalText } };
   /** The battle is lost if this ally falls. */
   mustSurvive?: CharId;
 }
@@ -491,6 +579,27 @@ export const ENCOUNTERS: Record<string, EncounterDef> = {
       phases.has('rasure') && !phases.has('ermelineFree')
         ? { label: { en: 'Ermeline scrapes at Isot’s inkhorn: −1 Ink', fr: 'Ermeline gratte la corne d’Isot : −1 Encre' }, rule: { en: 'Emend her stroke onto an enemy to free her', fr: 'Amendez son geste vers un ennemi pour la libérer' }, target: { unit: 'isot' }, reach: 'any', effects: [{ kind: 'drain' }] }
         : null,
+  },
+  s4: { id: 's4', name: { en: 'The sweepers', fr: 'Les balayeurs' }, party: ['whit', 'hild', 'isot'], enemies: ['inkhornHound', 'inkhornHound', 'inkhornHound', 'scrapedBrother'], stage: 'undercroft' },
+  s5: { id: 's5', name: { en: 'The palimpsest knights', fr: 'Les chevaliers palimpsestes' }, party: ['whit', 'hild', 'isot'], enemies: ['palimpsestKnight', 'palimpsestKnight'], stage: 'undercroft' },
+  b6: {
+    id: 'b6',
+    name: { en: 'The Heap', fr: 'Le Tas' },
+    party: ['whit', 'hild', 'isot'],
+    enemies: ['heap'],
+    stage: 'undercroft',
+    objective: 'word',
+    word: {
+      text: 'ADSUM',
+      whole: {
+        title: { en: 'ADSUM', fr: 'ADSUM' },
+        line: { en: '“Here.” The answer at the roll-call: every name it was made of, answering at once. Read it.', fr: '« Présent. » La réponse à l’appel : tous les noms dont il est fait, répondant d’une seule voix. Lisez-le.' },
+      },
+      loose: {
+        title: { en: 'Knocked Loose', fr: 'Détachée' },
+        line: { en: 'A letter falls back into the scrapings. It was trying to say something.', fr: 'Une lettre retombe dans les raclures. Il essayait de dire quelque chose.' },
+      },
+    },
   },
   f9: { id: 'f9', name: { en: 'The cloister at dawn', fr: 'Le cloître à l’aube' }, party: ['whit', 'hild', 'isot'], enemies: ['brother', 'gaudry', 'brother'], stage: 'cloisterDawn' },
   b5: { id: 'b5', name: { en: 'The Writing of FINIS', fr: 'L’Écriture de FINIS' }, party: ['whit', 'hild', 'isot'], enemies: ['brother', 'aumery', 'brother'], stage: 'nave', objective: 'finis', mustSurvive: 'isot' },
@@ -533,6 +642,9 @@ export const REWARDS: Record<string, { xp: number; pennies: number; optional?: t
   // The ape-scribes' stall in the Fair's back lanes.
   s3: { xp: 20, pennies: 14, optional: true },
   b4: { xp: 34, pennies: 30 },
+  s4: { xp: 22, pennies: 14, optional: true },
+  s5: { xp: 24, pennies: 16, optional: true },
+  b6: { xp: 40, pennies: 0, optional: true },
   f9: { xp: 22, pennies: 12 },
   // The last fight is the end of the Book: nothing comes after it to spend on.
   b5: { xp: 0, pennies: 0 },

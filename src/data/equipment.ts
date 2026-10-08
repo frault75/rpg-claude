@@ -103,6 +103,15 @@ export const ITEMS: Record<string, ItemDef> = {
     lore: { en: 'Faded to the colour of the road. He kept the last one for whoever said his name.', fr: 'Passé à la couleur de la route. Il gardait le dernier pour qui dirait son nom.' },
     color: '#C89AB0',
   },
+  // Left when the Heap in the Undercroft has said its word.
+  adsumSlip: {
+    id: 'adsumSlip',
+    slot: 'charm',
+    name: { en: 'Slip of the roll-call', fr: 'Billet de l’appel' },
+    text: { en: 'The wearer can’t be Forgotten: they answer to their name.', fr: 'Le porteur ne peut être Oublié : il répond à son nom.' },
+    lore: { en: 'A scrap from the bottom of the Heap, with one word on it in every hand at once: ADSUM.', fr: 'Un bout du fond du Tas, avec un seul mot dessus, de toutes les mains à la fois : ADSUM.' },
+    color: '#E4DCC4',
+  },
   // Found in a cache in the Blanchwood.
   mourningBrooch: {
     id: 'mourningBrooch',

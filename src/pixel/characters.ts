@@ -5,7 +5,8 @@
  * mirror the left. The feet stand on the bottom row.
  */
 
-import { hex, PixelImage, type RGBA, ramp } from './pixel';
+import { hash2 } from '../engine/noise';
+import { hex, lerpColor, PixelImage, type RGBA, ramp } from './pixel';
 
 export const FRAME_W = 32;
 export const FRAME_H = 48;
@@ -50,6 +51,8 @@ export interface CharSpec {
   fur?: boolean;
   /** A drollery's face: a fox's snout and ears, or an ape's muzzle (the Margin). */
   muzzle?: 'fox' | 'ape';
+  /** Lines of an older text showing through, in this ink (the palimpsest knights). */
+  script?: string;
 }
 
 export const CHARACTERS: Record<string, CharSpec> = {
@@ -90,6 +93,10 @@ export const CHARACTERS: Record<string, CharSpec> = {
   ralf: { id: 'ralf', skin: '#DDB494', hair: '#8A7A5A', eyes: '#2A2018', headwear: 'cap', headwearColor: '#5A6A4A', robe: '#7A6244', belt: '#C8B070', held: 'none' },
   // Gervase the pedlar: a man of Ninefold, scraped a hundred and fifty years ago, still walking.
   gervase: { id: 'gervase', skin: '#E2C2A4', hair: '#A89A88', eyes: '#3A3028', headwear: 'cap', headwearColor: '#7A4A3A', robe: '#8A7A62', belt: '#C8909C', held: 'ribbons' },
+  // The Undercroft: a Brother scraped so long ago his robe has gone the colour of vellum,
+  // and knights written over something older, its lines still showing through the mail.
+  scrapedBrother: { id: 'scrapedBrother', skin: '#E4DCD0', hair: '#C8C2B8', eyes: '#8A8478', headwear: 'hood', headwearColor: '#CEC6B4', veil: '#8A8272', robe: '#CEC6B4', belt: '#8A7A62', held: 'broom', rags: true },
+  palimpsestKnight: { id: 'palimpsestKnight', skin: '#D8D0C0', hair: '#B8B0A0', eyes: '#2A2420', headwear: 'helm', headwearColor: '#A8A498', robe: '#E2D8C0', belt: '#8A6A4A', armour: true, held: 'lance', shield: '#D8CCB0', script: '#8A4A2A', scale: 1.06 },
   eadgyth: { id: 'eadgyth', skin: '#E8C6A8', hair: '#A8462A', eyes: '#2A4A3A', headwear: 'none', headwearColor: '#000000', robe: '#2E5A3A', cape: '#4A3A2A', belt: '#6A4A2A', held: 'bow' },
 };
 
@@ -995,6 +1002,7 @@ export function drawCharacter(s: CharSpec, dir: Dir, pose: Pose): PixelImage {
   if (dir === 'down' || dir === 'up') drawFront(img, s, dir === 'down', pose);
   else drawSide(img, s, pose);
   if (s.rags) tatter(img, s);
+  if (s.script) underwrite(img, hex(s.script));
   if (s.skull) {
     // Bare shins under the tattered hem.
     const bone = ramp(s.skin, 5);
@@ -1008,6 +1016,16 @@ export function drawCharacter(s: CharSpec, dir: Dir, pose: Pose): PixelImage {
     return m;
   }
   return img;
+}
+
+/** Rows of an older text across the body, below the face: short strokes of ink and gaps for words. */
+function underwrite(img: PixelImage, ink: RGBA): void {
+  for (let y = 18; y < 45; y += 3)
+    for (let x = 0; x < FRAME_W; x++) {
+      const p = img.get(x, y);
+      if (!p[3] || hash2(Math.floor(x / 4), y, 9) < 0.28 || hash2(x, y, 4) < 0.35) continue;
+      img.set(x, y, lerpColor(p, ink, 0.5));
+    }
 }
 
 /** A sheet: one row per direction (down, up, left, right), one column per frame. */

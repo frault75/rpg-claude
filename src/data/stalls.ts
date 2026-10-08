@@ -20,6 +20,8 @@ export const STALLS: readonly StallDef[] = [
   { id: 'lane', satchel: ['poultice', 'waxSeal', 'gallInk'], items: ['haresFoot', 'gallRosary', 'coronel'] },
   { id: 'woodsEdge', satchel: ['holyWater'], items: ['silverpoint', 'lepersClapper', 'ebbGirdle'] },
   { id: 'fair', satchel: ['salVolatile'], items: ['hornInkwell', 'plumbLine', 'scallop'] },
+  // The last stall, at the mouth of the Undercroft: nothing new, everything still unsold.
+  { id: 'undercroft', satchel: [], items: [] },
 ];
 
 /** What he offers at this stall: everything from the stalls so far that the party lacks. */

@@ -656,7 +656,14 @@ export class BattleScene implements Scene {
               shellSound(a);
             }
             if (e.on && e.status !== 'ward' && e.status !== 'revealed') {
-              const word = e.status === 'tally' ? t('status.tally', { n: u?.status.tally ?? 3 }) : t(`status.${e.status}`);
+              const word =
+                e.status === 'tally'
+                  ? t('status.tally', { n: u?.status.tally ?? 3 })
+                  : e.status === 'named'
+                    ? u?.side === 'party'
+                      ? t('battle.answers')
+                      : t('status.named', { n: u?.status.named ?? 1, m: ENEMIES[u?.kind ?? '']?.named ?? 3 })
+                    : t(`status.${e.status}`);
               this.popup(e.unit, word, 'word');
             }
             this.partyDirty = true;
@@ -746,6 +753,25 @@ export class BattleScene implements Scene {
             fallSound(a, u?.side === 'enemy');
             this.overlayDirty = true;
             this.partyDirty = true;
+            this.syncBanderoles();
+          },
+        });
+        break;
+      case 'leave':
+        // He remembers his name: no scatter of ink, he simply goes.
+        this.queue({
+          dur: 0.9,
+          start: () => {
+            const f = this.fig(e.unit);
+            this.shown.fallen.set(e.unit, true);
+            if (f) {
+              f.alphaTarget = 0;
+              this.burst(f, '#F4E2A8', 24);
+            }
+            this.popup(e.unit, t('battle.remembers'), 'word');
+            const ctx = a.ctx;
+            if (ctx) bell(ctx, a.reverbIn, midiToHz(64), ctx.currentTime, 0.25, 5);
+            this.overlayDirty = true;
             this.syncBanderoles();
           },
         });
@@ -874,6 +900,8 @@ export class BattleScene implements Scene {
             this.mode = 'result';
             this.defeats = 0;
             this.spoils = claim(session.game, this.encounter);
+            // Who went by remembering their name, not by a blow (the map tells it after).
+            for (const u of this.battle.enemies) if (u.left) session.game.flags[`left.${u.kind}`] = true;
             // What was used from the satchel is gone only once the fight is won.
             const sat = session.game.satchel;
             for (const [id, n] of Object.entries(this.battle.spent())) sat[id] = Math.max(0, (sat[id] ?? 0) - (n ?? 0));
@@ -922,8 +950,10 @@ export class BattleScene implements Scene {
           start: () => {
             this.shownLetters = e.count;
             this.drawFinis();
+            // The Heap's word: letters come and go on the Heap itself, not at Isot's lectern.
+            const heap = this.battle.def.objective === 'word' ? this.battle.enemies.find((u) => ENEMIES[u.kind]?.loosens) : undefined;
             if (e.lost) {
-              this.popup('isot', t('battle.smudged'), 'word');
+              this.popup(heap?.id ?? 'isot', t(heap ? 'battle.loosened' : 'battle.smudged'), 'word');
               fizzleSound(a);
             } else {
               const ctx = a.ctx;
@@ -932,7 +962,7 @@ export class BattleScene implements Scene {
                 bell(ctx, a.reverbIn, midiToHz([55, 57, 59, 62, 67][e.count - 1] ?? 55), ctx.currentTime, 0.3, 7);
               }
               this.r.screen.flash = 0.35;
-              const f = this.fig('isot');
+              const f = this.fig(heap?.id ?? 'isot');
               if (f) this.burst(f, '#F4D070', 50);
             }
           },
@@ -1584,6 +1614,8 @@ export class BattleScene implements Scene {
     if (s.guarded) out.push({ text: t('status.guarded'), color: '#E8D8A0' });
     if (s.readOnly) out.push({ text: t('status.readOnly'), color: '#C8A8E8' });
     if (s.forgotten > 0) out.push({ text: t('status.forgotten'), color: '#E8E4DA' });
+    const named = u.side === 'enemy' ? ENEMIES[u.kind]?.named : undefined;
+    if (named && s.named > 0) out.push({ text: t('status.named', { n: s.named, m: named }), color: '#F4E2A8' });
     // The dance keeps its secret until it is Glossed or Squinted.
     if (s.revealed && s.hollow) out.push({ text: t('status.hollow'), color: '#D8D0C0' });
     if (s.revealed && u.side === 'enemy' && ENEMIES[u.kind]?.leads) out.push({ text: t('status.leads'), color: '#F0C060' });
@@ -1592,8 +1624,12 @@ export class BattleScene implements Scene {
 
   private drawFinis(): void {
     const n = this.shownLetters;
-    this.finisTag.visible = this.battle.def.objective === 'finis';
+    const def = this.battle.def;
+    this.finisTag.visible = def.objective === 'finis' || def.objective === 'word';
     if (!this.finisTag.visible) return;
+    // FINIS shows its letters to come, faintly; the Heap's word is not known until it is said.
+    const word = def.objective === 'word' ? (def.word?.text ?? '') : 'FINIS';
+    const blind = def.objective === 'word';
     this.finisTag.draw((c, w, h) => {
       c.fillStyle = 'rgba(4, 8, 24, 0.6)';
       c.beginPath();
@@ -1605,9 +1641,9 @@ export class BattleScene implements Scene {
       c.textAlign = 'center';
       c.textBaseline = 'middle';
       c.font = `700 26px ${SERIF}`;
-      [...'FINIS'].forEach((ch, i) => {
+      [...word].forEach((ch, i) => {
         c.fillStyle = i < n ? INK.gold : 'rgba(232,220,192,0.22)';
-        c.fillText(ch, 30 + i * 35, h / 2 + 1);
+        c.fillText(i < n || !blind ? ch : '·', 30 + i * 35, h / 2 + 1);
       });
     });
   }

@@ -17,7 +17,7 @@ export const ORDINARY = ORDER.filter((id) => id.startsWith('f') || id.startsWith
 
 /** The abilities known at each fight, as the story teaches them (DESIGN.md §5.6). */
 export function known(id: string): Record<CharId, AbilityId[]> {
-  const ch5 = ['f9', 'b5'].includes(id);
+  const ch5 = ['s4', 's5', 'b6', 'f9', 'b5'].includes(id);
   const ch4 = ['f7', 'f8', 's3', 'b4'].includes(id) || ch5;
   const ch3 = ['f5', 's2', 'f6', 'b3'].includes(id) || ch4;
   const ch2 = ['f3', 's1', 'f4', 'b2'].includes(id) || ch3;
@@ -45,7 +45,7 @@ export function begin(id: string, difficulty: Difficulty = 'normal'): Battle {
     party: ENCOUNTERS[id]!.party,
     abilities: known(id),
     equipment: { isot: { relic: null, charm: 'wystansPumice' }, hild: { relic: 'psalterChain', charm: null } },
-    emendAnywhere: id === 'b3' || ['f7', 'f8', 's3', 'b4', 'f9', 'b5'].includes(id),
+    emendAnywhere: id === 'b3' || ['f7', 'f8', 's3', 'b4', 's4', 's5', 'b6', 'f9', 'b5'].includes(id),
     level: storyLevel(id),
     difficulty,
   });
@@ -99,9 +99,40 @@ export function writeFinis(difficulty: Difficulty): Battle {
   return b;
 }
 
+/**
+ * The Heap's answer: let it finish its word. Never strike the Heap itself; cut the stray
+ * letters down so they fall back into it, strike out the word it learned upstairs, keep
+ * everyone standing, and read it once it is whole.
+ */
+export function readTheHeap(difficulty: Difficulty): Battle {
+  const b = begin('b6', difficulty);
+  const heap = b.enemies.find((e) => e.kind === 'heap')!;
+  for (let r = 0; r < 20 && b.result === 'ongoing'; r++) {
+    if (!b.check('whit', 'read', { unit: heap.id })) {
+      b.act('whit', 'read', { unit: heap.id });
+      break;
+    }
+    const stray = () => b.standingEnemies().find((e) => e.kind === 'strayLetter');
+    const finis = b.intents.find((i) => !i.cancelled && i.countdown > 0);
+    if (finis && !b.check('isot', 'strike', { intent: finis.id })) b.act('isot', 'strike', { intent: finis.id });
+    const s1 = stray();
+    if (s1 && !b.check('whit', 'lance', { unit: s1.id })) b.act('whit', 'lance', { unit: s1.id });
+    const s2 = stray();
+    if (s2 && !b.check('isot', 'penknife', { unit: s2.id })) b.act('isot', 'penknife', { unit: s2.id });
+    const low = [...b.party].filter((x) => !x.fallen).sort((x, y) => x.hp / x.maxHp - y.hp / y.maxHp)[0]!;
+    const down = b.party.find((x) => x.fallen);
+    if (down && !b.check('hild', 'shrive', { unit: down.id })) b.act('hild', 'shrive', { unit: down.id });
+    else if (finis && finis.countdown === 0 && !finis.cancelled && !b.check('hild', 'immure', { unit: heap.id })) b.act('hild', 'immure', { unit: heap.id });
+    else if (low.hp < low.maxHp * 0.6 && !b.check('hild', 'shrive', { unit: low.id })) b.act('hild', 'shrive', { unit: low.id });
+    b.endTurn();
+  }
+  return b;
+}
+
 /** Can the fight be won by its answer? The beam search finds it; two fights have theirs written out. */
 export function answered(id: string, difficulty: Difficulty): Battle['result'] {
   if (id === 'b5') return writeFinis(difficulty).result;
+  if (id === 'b6') return readTheHeap(difficulty).result;
   if (id === 'b1') return play(id, difficulty, strikeShell).result;
   return solve(begin(id, difficulty), known(id), Number(process.env.BEAM ?? 4));
 }

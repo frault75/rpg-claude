@@ -8,7 +8,7 @@ import type { WorldRenderer } from '../engine/diorama/renderer';
 import { hash2 } from '../engine/noise';
 import { rock, reeds } from '../pixel/nature';
 import { hex, PixelImage, ramp } from '../pixel/pixel';
-import { armarium, candleStand, coffer, lectern, writingDesk } from '../pixel/furniture';
+import { armarium, candle, candleStand, coffer, lectern, writingDesk } from '../pixel/furniture';
 import { gravestone, lanternPost, mooringPost, stoneCross } from '../pixel/props';
 import { GROUND_DEFAULT } from '../pixel/terrain';
 import { NIGHT_SKY } from '../world3d/sky';
@@ -28,6 +28,7 @@ import { acanthusRow, MARGIN_GROUND, MARGIN_SKY, marginLight, pageAbove } from '
 import { goldBar, goose, ivy as ivyRun } from '../world3d/margin';
 import { millWheel } from '../world3d/fenmill';
 import { kiln } from '../world3d/hollow';
+import { chute, herse, paintBays, pumiceTub, scrapings } from '../world3d/undercroft';
 
 export interface BattleSet {
   /** Camera: where it looks and from what height. */
@@ -511,6 +512,41 @@ function naveSet(r: WorldRenderer, st: Stage): BattleSet {
   return { camera: { x: tiles(17), y: tiles(5.8), h: 36 }, enemies: TIGHT, party: PARTY_PLACES, seaward: [tiles(17), tiles(9)] };
 }
 
+/** The Undercroft (S4, S5, B6): a low round-headed vault drifted with shavings, lit by candles on the pumice tubs. */
+function undercroftSet(r: WorldRenderer, st: Stage): BattleSet {
+  nightInterior(r, { ambient: 0.34, moon: 0.06 });
+  r.grade = { ...r.grade, exposure: 1.3, saturation: 0.92, focusBand: 60, focusRange: 200 };
+  st.ground({ ground: ROOM, heights: ROOM.map((row) => '0'.repeat(row.length)), seed: 151, palette: { ...GROUND_DEFAULT, stone: '#625C58' } });
+  const bays = [tiles(4), tiles(10), tiles(16), tiles(22), tiles(28)].map((x) => x - tiles(1));
+  backWall(st, tiles(1), tiles(1), tiles(32), tiles(1), 66, { stone: '#7A746A', seed: 153, paint: (a) => paintBays(a, bays, 30, 14, 59) });
+  st.addArt(chute(6), tiles(7), tiles(2) + 2, { h: 18 });
+  st.addImage(scrapings(60, 3), tiles(7), tiles(3.8));
+  st.addImage(herse(5), tiles(19.5), tiles(2) + 8);
+  st.addImage(herse(6), tiles(25.5), tiles(2) + 8);
+  st.addImage(pumiceTub(7), tiles(16.6), tiles(3.4));
+  st.addArt(candle(), tiles(16.6) + 3, tiles(3.4) - 2, { h: 13 });
+  st.addCandle(tiles(16.6) + 3, tiles(3.4) - 2, 20, 0.55, 70);
+  // Drifts close to the camera, soft with depth of field.
+  st.addImage(scrapings(48, 8), tiles(5), tiles(10.6));
+  st.addImage(scrapings(40, 9), tiles(28.5), tiles(10.4));
+  st.addImage(pumiceTub(10), tiles(24), tiles(10.2));
+  st.addArt(candle(), tiles(24) + 3, tiles(10.2) - 2, { h: 13 });
+  st.addCandle(tiles(24) + 3, tiles(10.2) - 2, 20, 0.45, 70);
+  st.addLight(tiles(17), tiles(9.5), 36, 150, '#FFD2A0', 0.45);
+  st.addEmitter({ kind: 'mote', area: [tiles(2), tiles(2.5), tiles(30), tiles(8)], heights: [2, 50], count: 30, color: '#E8DCC0', size: 1.2, intensity: 0.3 }, 157);
+  return {
+    camera: { x: tiles(17), y: tiles(5.8), h: 36 },
+    enemies: [
+      [tiles(14.4), tiles(7.0)],
+      [tiles(12.3), tiles(6.3)],
+      [tiles(10.3), tiles(7.3)],
+      [tiles(8.3), tiles(6.6)],
+    ],
+    party: PARTY_PLACES,
+    seaward: [tiles(17), tiles(9)],
+  };
+}
+
 /** Build the set for a battle's stage. */
 export function dressBattle(stage: string, r: WorldRenderer, st: Stage): BattleSet {
   switch (stage) {
@@ -532,6 +568,8 @@ export function dressBattle(stage: string, r: WorldRenderer, st: Stage): BattleS
       return lychford(stage, r, st);
     case 'fen':
       return fenSet(r, st);
+    case 'undercroft':
+      return undercroftSet(r, st);
     case 'hollow':
       return hollowSet(r, st);
     case 'blanchwood':

@@ -11,6 +11,11 @@ import type { MapContext } from '../maps/types';
 import type { GameState } from './state';
 
 export const RETURNS: Record<string, { xp: number; to: LocalText; keepsake: LocalText }> = {
+  osric: {
+    xp: 15,
+    to: { en: 'to Cuthwin', fr: 'à Cuthwin' },
+    keepsake: { en: 'Osric’s pitch-pipe, a quarter-tone flat, from Cuthwin.', fr: 'Le diapason d’Osric, faux d’un quart de ton, de la part de Cuthwin.' },
+  },
   edda: {
     xp: 12,
     to: { en: 'to Ralf', fr: 'à Ralf' },
