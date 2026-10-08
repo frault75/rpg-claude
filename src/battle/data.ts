@@ -361,7 +361,8 @@ export const ENEMIES: Record<string, EnemyDef> = {
         return [{ label: { en: 'Horns out: lashes the Front · 5', fr: 'Cornes dehors : fouette l’Avant · 5' }, target: { place: 0 }, damage: 5, reach: 'close', effects: [{ kind: 'unshell' }] }];
       if (k === 1)
         return [
-          { label: { en: 'Withdraws into its shell', fr: 'Rentre dans sa coquille' }, target: { self: true }, effects: [{ kind: 'shell' }], reach: 'any' },
+          // It licks its wounds in there: chipping at the shell barely keeps up; Strike Through the withdrawal instead.
+          { label: { en: 'Withdraws into its shell', fr: 'Rentre dans sa coquille' }, rule: { en: 'Licks its wounds: heals 4', fr: 'Lèche ses plaies : se soigne de 4' }, target: { self: true }, effects: [{ kind: 'shell' }, { kind: 'heal', amount: 4 }], reach: 'any' },
           { label: { en: 'Gathers the tide… (next: everyone · 3)', fr: 'Appelle la marée… (ensuite : tous · 3)' }, target: { self: true }, reach: 'any' },
         ];
       return [{ label: { en: 'Slime tide: drenches everyone · 3', fr: 'Marée de bave : trempe tout le monde · 3' }, target: { all: true }, damage: 3, reach: 'any' }];
