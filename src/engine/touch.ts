@@ -8,6 +8,13 @@ import type { Input } from './input';
 
 const STICK_RADIUS = 56;
 
+/** A candle tilted to one side, in gold. */
+const CANDLE =
+  '<svg viewBox="0 0 24 24" width="58%" height="58%" aria-label="candle"><g transform="rotate(-24 12 14)">' +
+  '<rect x="9.5" y="9" width="5" height="12" rx="1" fill="#F4E2A8"/>' +
+  '<path d="M12 2 C14.5 5 14.5 7.5 12 8.5 C9.5 7.5 9.5 5 12 2 Z" fill="#FFB040"/>' +
+  '<path d="M12 4.5 C13 6 13 7 12 7.6 C11 7 11 6 12 4.5 Z" fill="#FFF4C0"/></g></svg>';
+
 export class TouchControls {
   private readonly root: HTMLDivElement;
   private readonly base: HTMLDivElement;
@@ -30,6 +37,8 @@ export class TouchControls {
     this.button('A', 'confirm', 86, 120, 74);
     this.button('B', 'cancel', 24, 70, 56);
     this.button('☰', 'menu', 20, -1, 46);
+    // The raking light: hold to tilt the candle (DESIGN.md §10.3).
+    this.button(CANDLE, 'rake', 176, 60, 54, true);
     document.body.append(this.root);
 
     // The first touch anywhere reveals the controls (and still counts as a tap).
@@ -63,9 +72,10 @@ export class TouchControls {
     return d;
   }
 
-  private button(label: string, action: 'confirm' | 'cancel' | 'menu', right: number, bottom: number, size: number): void {
+  private button(label: string, action: 'confirm' | 'cancel' | 'menu' | 'rake', right: number, bottom: number, size: number, html = false): void {
     const b = document.createElement('div');
-    b.textContent = label;
+    if (html) b.innerHTML = label;
+    else b.textContent = label;
     this.buttons.push({ el: b, right, bottom, size });
     Object.assign(b.style, {
       position: 'absolute',

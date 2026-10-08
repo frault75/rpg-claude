@@ -359,10 +359,10 @@ registerStrings('fr', {
 });
 
 registerStrings('en', {
-  'page.help': 'Hold R (or the right button) to tilt the candle · Enter to close',
+  'page.help': 'Hold R, the right button, Y or the candle to tilt it · Enter to close',
   'map.look': 'Look',
 });
 registerStrings('fr', {
-  'page.help': 'Maintenez R (ou le bouton droit) pour incliner la bougie · Entrée pour fermer',
+  'page.help': 'Maintenez R, le bouton droit, Y ou la bougie pour l’incliner · Entrée pour fermer',
   'map.look': 'Regarder',
 });
