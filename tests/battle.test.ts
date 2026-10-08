@@ -997,7 +997,7 @@ describe('the ape-scribes (S3)', () => {
     expect(b.unit('e0')!.hp).toBe(12 - 4);
     b.endTurn();
     const copy = b.intents.find((i) => i.actor === 'e0')!;
-    expect(copy.label.en).toBe('Copies the Lance back');
+    expect(copy.label.en).toBe('Returns the blow');
     expect(copy.target).toEqual({ unit: 'whit' });
     expect(copy.damage).toBe(4);
     const hp = b.unit('whit')!.hp;
