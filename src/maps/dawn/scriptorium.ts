@@ -54,7 +54,7 @@ export const DAWN_SCRIPTORIUM: MapDef = {
       note: { en: '“Isot. We saw you scrape the line, and we saw you cry over it. Write it back. — the Glossators.”', fr: '« Isot. Nous t’avons vue gratter la ligne, et nous t’avons vue pleurer dessus. Réécris-la. — les Glossateurs. »' },
     },
   ],
-  card: { title: { en: 'Saint Ebb’s', fr: 'Saint-Ebb' }, line: { en: 'Dawn, the Feast of Saint Ebba', fr: 'L’aube, la fête de sainte Ebba' } },
+  card: { title: { en: 'Saint Ebb’s', fr: 'Saint-Ebb' }, line: { en: 'Dawn, the Feast of Saint Ebba', fr: 'À l’aube, jour de la Sainte-Ebba' } },
   ambience: () => new EbbNightAmbience(),
   checkpoint: true,
   candle: true,
@@ -85,7 +85,7 @@ export const DAWN_SCRIPTORIUM: MapDef = {
       y: LECTERN[1] + 2,
       h: 30,
       run: async (c) => {
-        await c.say('isot', { en: 'The lectern’s bare. Only the chain, cut. He’s carried the Book into the church.', fr: 'Le lutrin est vide. Seulement la chaîne, coupée. Il a porté le Livre dans l’église.' }, 'grave');
+        await c.say('isot', { en: 'The lectern’s bare. Only the chain, cut. He’s carried the Book into the church.', fr: 'Le lutrin est vide. Il ne reste que la chaîne, coupée. Il a porté le Livre dans l’église.' }, 'grave');
         if (!c.flag('seen.motto')) await c.say('hild', { en: 'There’s writing under the varnish. Tilt your candle.', fr: 'Il y a de l’écriture sous le vernis. Incline ta bougie.' });
       },
     },
@@ -98,7 +98,7 @@ export const DAWN_SCRIPTORIUM: MapDef = {
       h: 34,
       art: ghostWords(['QUOD LECTUM EST', 'LIGATUR']),
       revealed: async (c) => {
-        await c.say('isot', { en: '“Quod lectum est, ligatur.” What is read is bound. That’s the other half of the motto. Someone scraped it off the lectern.', fr: '« Quod lectum est, ligatur. » Ce qui est lu est lié. C’est l’autre moitié de la devise. Quelqu’un l’a grattée du lutrin.' }, 'alarmed');
+        await c.say('isot', { en: '“Quod lectum est, ligatur.” What is read is bound. That’s the other half of the motto. Someone scraped it off the lectern.', fr: '« Quod lectum est, ligatur. » Ce qui est lu est lié. C’est l’autre moitié de la devise. Quelqu’un l’a grattée sur le lutrin.' }, 'alarmed');
         await c.say('whit', { en: 'What is written is held, and what is read is bound. So reading is how a thing is finished.', fr: 'Ce qui est écrit est retenu, et ce qui est lu est lié. Alors c’est en lisant qu’une chose est finie.' });
       },
     },
@@ -140,7 +140,7 @@ async function cuthwin(c: MapContext): Promise<void> {
   }
   hum(true);
   await c.narrate({ en: 'Brother Cuthwin has not left his desk. He is humming the Amen of the night office, and it goes flat at the end, a quarter of a tone, every time.', fr: 'Frère Cuthwin n’a pas quitté son pupitre. Il fredonne l’Amen de l’office de nuit, et la fin descend, d’un quart de ton, à chaque fois.' });
-  await c.say('cuthwin', { en: 'I can never get that note. Ten years. It’s like singing next to a hole.', fr: 'Je n’arrive jamais à avoir cette note. Dix ans. C’est comme chanter à côté d’un trou.' });
+  await c.say('cuthwin', { en: 'I can never get that note. Ten years. It’s like singing next to a hole.', fr: 'Je n’arrive jamais à trouver cette note. Dix ans. C’est comme chanter à côté d’un trou.' });
   if (!g.lostNames.includes('osric')) return;
   const pick = await c.choose([
     { en: 'Read him the name from the cloister wall.', fr: 'Lui lire le nom du mur du cloître.' },
@@ -156,6 +156,6 @@ async function cuthwin(c: MapContext): Promise<void> {
   await c.narrate({ en: 'Cuthwin opens the drawer of his desk and takes out a little wooden pitch-pipe, worn dark where a thumb held it.', fr: 'Cuthwin ouvre le tiroir de son pupitre et en sort un petit diapason de bois, noirci là où un pouce le tenait.' });
   await c.say('cuthwin', { en: 'It was in my stall. I never knew whose. It’s a quarter-tone flat. Of course it is. Take it. I don’t need it now.', fr: 'Il était dans ma stalle. Je n’ai jamais su à qui. Il est faux d’un quart de ton. Évidemment. Prends-le. Je n’en ai plus besoin.' });
   hum(true);
-  await c.narrate({ en: 'He hums the Amen again. It goes flat at the end, the same as before, and this time it sounds like two voices.', fr: 'Il fredonne l’Amen encore. La fin descend, comme avant, et cette fois on dirait deux voix.' });
+  await c.narrate({ en: 'He hums the Amen again. It goes flat at the end, the same as before, and this time it sounds like two voices.', fr: 'Il fredonne de nouveau l’Amen. La fin descend, comme avant, et cette fois on dirait deux voix.' });
   await returnName(c, 'osric');
 }

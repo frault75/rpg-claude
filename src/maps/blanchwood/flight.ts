@@ -149,7 +149,7 @@ export const FLIGHT: MapDef = {
     c.shake(3, 1);
     await c.narrate({ en: 'Behind them Ermeline’s blade rises and falls, and with every stroke a strip of the wood is gone.', fr: 'Derrière eux, la lame d’Ermeline monte et descend, et à chaque coup une bande du bois disparaît.' });
     await c.say('ermeline', { en: '…Agnes, Cole, Wenna… I’m sorry. Hold still.', fr: '…Agnès, Cole, Wenna… Pardon. Ne bougez pas.' });
-    await c.say('hild', { en: 'My legs won’t, child. Go without me.', fr: 'Mes jambes ne veulent pas, petite. Partez sans moi.' });
+    await c.say('hild', { en: 'My legs won’t, child. Go without me.', fr: 'Mes jambes ne suivent plus, petite. Partez sans moi.' });
     await c.say('whit', { en: 'No.', fr: 'Non.' });
     await c.narrate({ en: 'Whit lifts Hild as if she weighed nothing, and runs.', fr: 'Whit soulève Hild comme si elle ne pesait rien, et court.' });
     c.letterbox(false);

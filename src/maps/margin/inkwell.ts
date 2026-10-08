@@ -93,7 +93,7 @@ export const INKWELL: MapDef = {
 async function afterTheBlot(c: MapContext): Promise<void> {
   c.letterbox(true);
   await c.wait(0.6);
-  await c.narrate({ en: 'The ink drains away. One bright word lies in the empty well. Isot kneels and fills her inkhorn with it, and it is heavier than ink should be.', fr: 'L’encre s’écoule. Un mot brillant repose dans le puits vide. Isot s’agenouille et en remplit sa corne d’encre, et c’est plus lourd que de l’encre ne devrait l’être.' });
+  await c.narrate({ en: 'The ink drains away. One bright word lies in the empty well. Isot kneels and fills her inkhorn with it, and it is heavier than ink should be.', fr: 'L’encre s’écoule. Un mot brillant repose dans le puits vide. Isot s’agenouille et en remplit son encrier, et c’est plus lourd que de l’encre ne devrait l’être.' });
   if (word) word.visible = false;
   c.set('inkhornFilled');
   const e = c.npc('ermeline');

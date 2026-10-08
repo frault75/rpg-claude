@@ -217,7 +217,7 @@ export class SeaGateScene implements Scene {
     await this.dialogue.say('isot', { en: 'You need a name. Something they can’t scrape out.', fr: 'Il vous faut un nom. Quelque chose qu’ils ne pourront pas gratter.' }, 'grave');
     await this.dialogue.say('knight', { en: 'I had one, I think. I put it down somewhere and forgot where.', fr: 'J’en avais un, je crois. Je l’ai posé quelque part et j’ai oublié où.' });
     await this.dialogue.say('isot', { en: 'Then I’ll lend you one. Whit. It’s short, and there isn’t a whit of colour on you.', fr: 'Alors je vous en prête un. Whit. C’est court, et ça vous va : vous êtes tout blanc.' }, 'warm');
-    await this.dialogue.narrate({ en: 'She writes it on his wrist in ink, small and steady, so that he won’t fade.', fr: 'Elle l’écrit sur son poignet à l’encre, petit et net, pour qu’il ne s’efface pas.' });
+    await this.dialogue.narrate({ en: 'She writes it on his wrist in ink, small and steady, so that he won’t fade.', fr: 'Elle le lui écrit à l’encre sur le poignet, petit et net, pour qu’il ne s’efface pas.' });
     await this.dialogue.say('whit', { en: 'Whit.', fr: 'Whit.' });
     await this.dialogue.say('whit', { en: 'Thank you.', fr: 'Merci.' });
     hild.emote('silence', 2);
@@ -340,7 +340,7 @@ export class SeaGateScene implements Scene {
     this.party.push(w);
     if (!session.game.party.includes('whit')) session.game.party.push('whit');
     // His pennon comes with him: white, with nothing on it.
-    await this.found('blankPennon', { en: 'From his lance hangs a pennon with no device on it at all.', fr: 'À sa lance pend un fanion nu, sans aucune armoirie.' });
+    await this.found('blankPennon', { en: 'From his lance hangs a pennon with no device on it at all.', fr: 'À sa lance pend un fanion nu, sans aucun blason.' });
     const eq = session.game.equipment.whit;
     if (eq && !eq.relic) eq.relic = 'blankPennon';
     this.letterbox.target = 0;

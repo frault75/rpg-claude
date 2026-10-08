@@ -116,7 +116,7 @@ export const FAIR: MapDef = {
         await c.say('abbotUnreason', { en: 'Brothers, sisters, ganders! Today’s text: the world is upside down, and it is lovely here, and nobody ends.', fr: 'Mes frères, mes sœurs, mes jars ! Le texte du jour : le monde est à l’envers, il fait bon ici, et personne ne finit.' });
         await c.say('abbotUnreason', { en: 'Oh. Oh, look. A knight with a blank shield. Are you the Reader? Is it time?', fr: 'Oh. Oh, regardez. Un chevalier au bouclier blanc. Êtes-vous le Lecteur ? Est-ce l’heure ?' });
         await c.say('whit', { en: 'I don’t know yet.', fr: 'Je ne sais pas encore.' });
-        await c.say('abbotUnreason', { en: 'That’s what the Reader would say. Go and see the old ape on the vine. He knows the way down.', fr: 'C’est ce que dirait le Lecteur. Allez voir le vieux singe sur la vigne. Il connaît le chemin du fond.' });
+        await c.say('abbotUnreason', { en: 'That’s what the Reader would say. Go and see the old ape on the vine. He knows the way down.', fr: 'C’est ce que dirait le Lecteur. Allez voir le vieux singe sur la vigne. Il connaît le chemin pour descendre.' });
       },
     },
     {
@@ -158,7 +158,7 @@ export const FAIR: MapDef = {
       when: (c) => c.flag('amabelScraped'),
       run: async (c) => {
         await c.narrate({ en: 'A little brown hen comes and stands on Isot’s foot.', fr: 'Une petite poule brune vient se poser sur le pied d’Isot.' });
-        await c.say('amabel', { en: 'Bok. …Isot? It’s me, love. It doesn’t hurt here. I just can’t remember Hob’s face.', fr: 'Bok. …Isot ? C’est moi, ma belle. Ça ne fait pas mal, ici. C’est le visage de Hob que je n’arrive plus à retrouver.' });
+        await c.say('amabel', { en: 'Bok. …Isot? It’s me, love. It doesn’t hurt here. I just can’t remember Hob’s face.', fr: 'Cot. …Isot ? C’est moi, ma belle. Ça ne fait pas mal, ici. C’est le visage de Hob que je n’arrive plus à retrouver.' });
         await c.say('isot', { en: 'I’ll write you back. I promise. With his hand in yours.', fr: 'Je te réécrirai. Promis. Avec sa main dans la tienne.' }, 'sad');
         c.set('amabelFound');
       },
@@ -193,14 +193,14 @@ export const FAIR: MapDef = {
     if (from === 'battle:f8') {
       for (const g of guards) g.visible = false;
       c.letterbox(true);
-      await c.say('bishop', { en: 'Well blessed. The name is yours to read, if you tilt your candle.', fr: 'Bien béni. Le nom est à vous, si vous inclinez votre bougie.' });
+      await c.say('bishop', { en: 'Well blessed. The name is yours to read, if you tilt your candle.', fr: 'Soyez bénis. Le nom est à vous, si vous inclinez votre bougie.' });
       c.letterbox(false);
     }
     if (from === 'west' && !c.flag('fairSeen')) {
       c.set('fairSeen');
       c.letterbox(true);
       await c.wait(1);
-      await c.narrate({ en: 'The Drollery Fair: everything the world forgot, putting on a show for no one in particular.', fr: 'La foire aux drôleries : tout ce que le monde a oublié, donnant un spectacle pour personne en particulier.' });
+      await c.narrate({ en: 'The Drollery Fair: everything the world forgot, putting on a show for no one in particular.', fr: 'La foire aux drôleries : tout ce que le monde a oublié, qui se donne en spectacle pour personne en particulier.' });
       c.letterbox(false);
     }
   },

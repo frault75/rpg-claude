@@ -77,7 +77,7 @@ export const CHURCHYARD: MapDef = {
       hidden: true,
       pennies: 6,
       satchel: { gallInk: 1 },
-      note: { en: '“Dunstan digs. We write down the names he digs for, so that somebody still has them.”', fr: '« Dunstan creuse. Nous écrivons les noms pour qui il creuse, pour que quelqu’un les ait encore. »' },
+      note: { en: '“Dunstan digs. We write down the names he digs for, so that somebody still has them.”', fr: '« Dunstan creuse. Nous écrivons les noms de ceux pour qui il creuse, pour que quelqu’un les ait encore. »' },
     },
   ],
   card: { title: { en: 'Lychford', fr: 'Lychford' }, line: { en: 'The Churchyard of Saint Hilda', fr: 'Le cimetière de Sainte-Hilda' } },

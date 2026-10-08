@@ -56,7 +56,7 @@ export const SCRIPTORIUM: MapDef = {
       y: tiles(3.2),
       pennies: 3,
       satchel: { poultice: 1 },
-      note: { en: 'Inside the lid, in a small careful hand: “For whoever is scraped next. We were scraped too, and we kept writing. — the Glossators.”', fr: 'Sous le couvercle, d’une petite main soigneuse : « Pour qui sera gratté le prochain. Nous l’avons été aussi, et nous avons continué d’écrire. — les Glossateurs. »' },
+      note: { en: 'Inside the lid, in a small careful hand: “For whoever is scraped next. We were scraped too, and we kept writing. — the Glossators.”', fr: 'Sous le couvercle, d’une petite main soigneuse : « Pour le prochain qu’on grattera. Nous l’avons été aussi, et nous avons continué d’écrire. — les Glossateurs. »' },
     },
   ],
   card: { title: { en: 'Saint Ebb’s', fr: 'Saint-Ebb' }, line: { en: 'The Scriptorium, the night before', fr: 'Le scriptorium, la nuit d’avant' } },
@@ -147,7 +147,7 @@ export const SCRIPTORIUM: MapDef = {
       run: async (c) => {
         await c.say('isot', { en: 'Psalm ninety, half copied. “We bring our years to an end, as it were a tale that is told.”', fr: 'Psaume quatre-vingt-dix, à moitié copié. « Nos années s’achèvent comme un conte qu’on raconte. »' }, 'tired');
         await c.say('isot', { en: 'Nobody’s years have ended in ten winters. The psalm doesn’t know that.', fr: 'Depuis dix hivers, personne n’a vu ses années s’achever. Le psaume ne le sait pas.' }, 'wry');
-        await c.find('lampBlack', { en: 'She scrapes the soot from her lamp into a little pot and grinds it with gum, the way Wystan showed her.', fr: 'Elle gratte la suie de sa lampe dans un petit pot et la broie à la gomme, comme Wystan le lui a montré.' });
+        await c.find('lampBlack', { en: 'She scrapes the soot from her lamp into a little pot and grinds it with gum, the way Wystan showed her.', fr: 'Elle gratte la suie de sa lampe dans un petit pot et la broie avec un peu de gomme, comme Wystan le lui a montré.' });
       },
     },
     {
@@ -279,7 +279,7 @@ export const SCRIPTORIUM: MapDef = {
       c.set('talkedToDesk');
       c.letterbox(false);
       c.close();
-      await c.narrate({ en: 'Something is wrong with tonight’s page. The Book lies open on the lectern, to the east.', fr: 'Quelque chose cloche avec la page de ce soir. Le Livre est ouvert sur le lutrin, à l’est.' });
+      await c.narrate({ en: 'Something is wrong with tonight’s page. The Book lies open on the lectern, to the east.', fr: 'Quelque chose cloche dans la page de ce soir. Le Livre est ouvert sur le lutrin, à l’est.' });
     } else if (from === 'battle:f1' && !c.flag('sentenced')) {
       await theSentence(c);
     }
@@ -360,8 +360,8 @@ async function theSentence(c: MapContext): Promise<void> {
     await c.say('isot', { en: 'I didn’t do it.', fr: 'Ce n’est pas moi.' }, 'alarmed');
     await c.say('aumery', { en: 'Then the Book will forget you without a lie in your mouth. That is better.', fr: 'Alors le Livre t’oubliera sans mensonge dans la bouche. C’est mieux.' });
   } else await c.say('aumery', { en: 'Good. Silence is a kind of prayer.', fr: 'Bien. Le silence est une sorte de prière.' });
-  await c.narrate({ en: 'Through the window, by torchlight, brothers are lifting bells off the carts in the yard. Big ones, from a dozen parishes.', fr: 'Par la fenêtre, à la lueur des torches, des frères descendent des cloches des charrettes dans la cour. De grosses cloches, d’une douzaine de paroisses.' });
-  await c.say('aumery', { en: 'Take her to the penitent’s cell. Let her pray, if she remembers how.', fr: 'Menez-la à la cellule du pénitent. Qu’elle prie, si elle s’en souvient.' });
+  await c.narrate({ en: 'Through the window, by torchlight, brothers are lifting bells off the carts in the yard. Big ones, from a dozen parishes.', fr: 'Par la fenêtre, à la lueur des torches, des frères déchargent des cloches dans la cour. De grosses cloches, d’une douzaine de paroisses.' });
+  await c.say('aumery', { en: 'Take her to the penitent’s cell. Let her pray, if she remembers how.', fr: 'Menez-la en cellule de pénitence. Qu’elle prie, si elle s’en souvient.' });
   c.set('sentenced');
   await c.wait(0.6);
   c.goto('cell', 'start');

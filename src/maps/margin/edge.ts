@@ -30,7 +30,7 @@ export const EDGE_MAP: MapDef = {
       y: tiles(12.4),
       pennies: 8,
       satchel: { gallInk: 1 },
-      note: { en: '“Past here the page runs out. Mind your feet: the margin is deeper than it looks.”', fr: '« Passé ce point, la page s’arrête. Gare à tes pieds : la marge est plus profonde qu’elle n’en a l’air. »' },
+      note: { en: '“Past here the page runs out. Mind your feet: the margin is deeper than it looks.”', fr: '« Passé ce point, la page s’arrête. Regarde où tu mets les pieds : la marge est plus profonde qu’elle n’en a l’air. »' },
     },
   ],
   card: { title: { en: 'The Margin', fr: 'La Marge' }, line: { en: 'Off the page', fr: 'Hors de la page' } },
@@ -73,7 +73,7 @@ export const EDGE_MAP: MapDef = {
       c.set('edgeSeen');
       c.letterbox(true);
       await c.wait(1.2);
-      await c.narrate({ en: 'Beyond the chapel, the scraped wood thins to a few lines of ink, and then to nothing at all.', fr: 'Au-delà de la chapelle, le bois gratté s’amincit en quelques traits d’encre, puis en rien du tout.' });
+      await c.narrate({ en: 'Beyond the chapel, the scraped wood thins to a few lines of ink, and then to nothing at all.', fr: 'Au-delà de la chapelle, le bois gratté se réduit à quelques traits d’encre, puis à rien du tout.' });
       c.letterbox(false);
     }
   },

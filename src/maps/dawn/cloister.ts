@@ -41,7 +41,7 @@ export const DAWN_CLOISTER: MapDef = {
         c.letterbox(true);
         c.shake(2, 0.6);
         await c.narrate({ en: 'Arrows arc over the cloister wall from the causeway: the Fyrd is at the gate. In the garth Prior Gaudry waits with two Brothers, his bell-hammer on his shoulder.', fr: 'Des flèches passent en arc au-dessus du mur du cloître depuis la chaussée : la milice est à la porte. Dans le préau, le prieur Gaudry attend avec deux Frères, son marteau de cloche sur l’épaule.' });
-        await c.say('gaudry', { en: 'Nothing is lost that is properly scraped, children. Put down the inkhorn.', fr: 'Rien n’est perdu de ce qui est bien gratté, mes enfants. Posez la corne d’encre.' });
+        await c.say('gaudry', { en: 'Nothing is lost that is properly scraped, children. Put down the inkhorn.', fr: 'Rien n’est perdu de ce qui est bien gratté, mes enfants. Posez cet encrier.' });
         await c.say('brother', { en: 'Prior… is it true? Did he scrape the Reader?', fr: 'Prieur… est-ce vrai ? A-t-il gratté le Lecteur ?' });
         await c.say('gaudry', { en: 'Hold the line, brother.', fr: 'Tiens ton rang, frère.' });
         c.battle('f9');

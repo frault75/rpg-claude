@@ -212,8 +212,8 @@ export const CLOISTER: MapDef = {
       tollAlarm(c);
       await c.wait(1);
       await c.say('isot', { en: 'The alarm bell. Every brother in Saint Ebb’s will be awake.', fr: 'La cloche d’alarme. Tous les frères de Saint-Ebb vont se réveiller.' }, 'alarmed');
-      await c.say('hild', { en: 'There was a stair down to the sea gate, when I was young. They painted the door over, the year of the Mercy. The west wall.', fr: 'Il y avait un escalier jusqu’à la porte de la mer, quand j’étais jeune. Ils ont peint la porte, l’année de la Miséricorde. Le mur ouest.' }, 'grave');
-      await c.say('isot', { en: 'Painted over. Then the candle will find it.', fr: 'Peinte par-dessus. Alors la bougie la trouvera.' }, 'stern');
+      await c.say('hild', { en: 'There was a stair down to the sea gate, when I was young. They painted the door over, the year of the Mercy. The west wall.', fr: 'Il y avait un escalier jusqu’à la Porte de la Mer, quand j’étais jeune. Ils ont peint par-dessus, l’année de la Miséricorde. Le mur ouest.' }, 'grave');
+      await c.say('isot', { en: 'Painted over. Then the candle will find it.', fr: 'Sous la peinture ? Alors la bougie la trouvera.' }, 'stern');
       c.letterbox(false);
     }
     if (c.flag('seen.paintedDoor')) openDoor(c);
@@ -245,7 +245,7 @@ async function theFlight(c: MapContext): Promise<void> {
   tollAlarm(c);
   await c.narrate({ en: 'Down the stair in the dark, the alarm ringing over their heads, torches in the cloister behind them.', fr: 'Dans l’escalier, dans le noir, l’alarme sonnant au-dessus d’eux, des torches dans le cloître derrière.' });
   c.shake(6, 1.2);
-  await c.narrate({ en: 'At the foot of it, the sea gate. Its portcullis is coming down.', fr: 'En bas, la porte de la mer. Sa herse est en train de tomber.' });
+  await c.narrate({ en: 'At the foot of it, the sea gate. Its portcullis is coming down.', fr: 'En bas, la Porte de la Mer. Sa herse s’abaisse.' });
   c.flash(0.6);
   c.shake(10, 0.6);
   await c.narrate({ en: 'They roll under it as it drops.', fr: 'Ils roulent dessous au moment où elle tombe.' });

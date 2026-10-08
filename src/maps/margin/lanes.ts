@@ -89,7 +89,7 @@ export const LANES: MapDef = {
         c.letterbox(true);
         await c.narrate({ en: 'At the copying stall three ape-scribes look up at once, quills raised, and copy the way Isot stops: the same foot, the same breath.', fr: 'À l’étal des copistes, trois singes scribes lèvent la tête en même temps, plume en l’air, et recopient la façon dont Isot s’arrête : le même pied, le même souffle.' });
         await c.say('isot', { en: 'They copy whatever is done to them. If we hit them, they’ll hit back just as hard, at whoever did it.', fr: 'Ils recopient tout ce qu’on leur fait. Si on les frappe, ils rendront le coup aussi fort, à celui qui l’a donné.' }, 'alarmed');
-        await c.say('hild', { en: 'Then do them gently, or do them all at once.', fr: 'Alors vas-y doucement, ou fais-le d’un seul coup.' }, 'wry');
+        await c.say('hild', { en: 'Then do them gently, or do them all at once.', fr: 'Alors vas-y doucement, ou frappe-les tous à la fois.' }, 'wry');
         c.letterbox(false);
         c.battle('s3');
       },

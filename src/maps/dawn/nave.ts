@@ -262,7 +262,7 @@ async function goldLineByLine(c: MapContext): Promise<void> {
     c.r.grade.exposure = 1.12 + k * 0.006;
     await c.wait(0.08);
   }
-  await c.narrate({ en: 'The blanching lifts. Colour floods back over Hollin from the fens to Holmcaster, and out of the Margin the overflow rises as lines of gold.', fr: 'Le blanchiment se lève. La couleur revient sur tout Hollin, des marais jusqu’à Holmcaster, et de la Marge le trop-plein s’élève en lignes d’or.' });
+  await c.narrate({ en: 'The blanching lifts. Colour floods back over Hollin from the fens to Holmcaster, and out of the Margin the overflow rises as lines of gold.', fr: 'Le blanchiment se dissipe. La couleur revient sur tout Hollin, des marais jusqu’à Holmcaster, et de la Marge le trop-plein s’élève en lignes d’or.' });
   await c.say('whit', { en: 'Ten years of names. I’d best begin.', fr: 'Dix ans de noms. Il est temps que je m’y mette.' });
   await c.say('hild', { en: 'Read mine first. I’ve been at the front of the line a long time.', fr: 'Lis le mien en premier. Ça fait longtemps que je suis en tête de la file.' }, 'warm');
   await c.say('hild', { en: 'Aumery. Live. Remember me. That’s your penance. It’s a light one.', fr: 'Aumery. Vis. Souviens-toi de moi. C’est ta pénitence. Elle est légère.' }, 'grave');

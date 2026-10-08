@@ -22,11 +22,11 @@ const won = (g: GameState, id: string) => g.cleared.includes(id);
 /** For each map, the first rule that holds says what to do; the last has no condition. */
 const BY_MAP: Record<string, Rule[]> = {
   scriptorium: [
-    [(g) => !won(g, 'f1'), { en: 'A line has been scraped from the Book tonight. If I tilt my candle over the page, the vellum may remember what was there.', fr: 'Une ligne a été grattée du Livre cette nuit. Si j’incline ma bougie sur la page, le vélin se souviendra peut-être de ce qui y était écrit.' }],
+    [(g) => !won(g, 'f1'), { en: 'A line has been scraped from the Book tonight. If I tilt my candle over the page, the vellum may remember what was there.', fr: 'Une ligne a été grattée dans le Livre cette nuit. Si j’incline ma bougie sur la page, le vélin se souviendra peut-être de ce qui y était écrit.' }],
     [() => true, { en: 'The Abbot has found the scraped line, and my penknife. At the dawn bell I am to be scraped.', fr: 'L’abbé a trouvé la ligne grattée, et mon canif. À la cloche de l’aube, je dois être grattée.' }],
   ],
   cell: [
-    [(g) => !flag(g, 'hildAsked'), { en: 'Locked in the penitent’s cell until dawn. Someone is breathing on the other side of the squint.', fr: 'Enfermée dans la cellule du pénitent jusqu’à l’aube. Quelqu’un respire de l’autre côté de l’hagioscope.' }],
+    [(g) => !flag(g, 'hildAsked'), { en: 'Locked in the penitent’s cell until dawn. Someone is breathing on the other side of the squint.', fr: 'Enfermée en cellule de pénitence jusqu’à l’aube. Quelqu’un respire de l’autre côté de l’hagioscope.' }],
     [(g) => !flag(g, 'hildJoined'), { en: 'This wall was a doorway once; the candle shows the arch. The anchoress says she can open it.', fr: 'Ce mur était une porte autrefois ; la bougie en montre l’arche. La recluse dit qu’elle peut l’ouvrir.' }],
     [() => true, { en: 'Out, before the Brothers come back with the key.', fr: 'Dehors, avant que les Frères ne reviennent avec la clé.' }],
   ],
@@ -37,7 +37,7 @@ const BY_MAP: Record<string, Rule[]> = {
   seaGate: [[() => true, { en: 'Down the causeway, before the tide closes it.', fr: 'Descendre la chaussée, avant que la marée ne la ferme.' }]],
   lane: [
     [(g) => !won(g, 'f3'), { en: 'Lychford Lane. At the end of it is the village where no one has died in ten years.', fr: 'Le chemin de Lychford. Au bout, le village où personne n’est mort depuis dix ans.' }],
-    [() => true, { en: 'On into Lychford. A field track climbs north through the gap in the hedge, towards a mill on the fen.', fr: 'Continuer jusqu’à Lychford. Un chemin de champ monte vers le nord par la trouée de la haie, vers un moulin sur le marais.' }],
+    [() => true, { en: 'On into Lychford. A field track climbs north through the gap in the hedge, towards a mill on the fen.', fr: 'Continuer jusqu’à Lychford. Un sentier monte vers le nord par la trouée de la haie, vers un moulin sur le marais.' }],
   ],
   mill: [
     [(g) => !won(g, 's1'), { en: 'The Fen Mill. Lights move over the frozen pond, and someone is working on the roof in the dark.', fr: 'Le moulin du marais. Des lumières bougent sur la mare gelée, et quelqu’un travaille sur le toit dans le noir.' }],
@@ -48,7 +48,7 @@ const BY_MAP: Record<string, Rule[]> = {
   village: [
     [(g) => flag(g, 'raidDone'), { en: 'Gaudry’s torches are coming across the snow for the bell. Make for the mere.', fr: 'Les torches de Gaudry traversent la neige pour la cloche. Gagner l’étang gelé.' }],
     [(g) => won(g, 'b2'), { en: 'The play has ended. Something is wrong on the road from the Abbey.', fr: 'La pièce est finie. Quelque chose ne va pas sur la route de l’Abbaye.' }],
-    [(g) => flag(g, 'bellRung'), { en: 'The mummers are on the green, and the play still has no ending.', fr: 'Les mimes sont sur la place, et la pièce n’a toujours pas de fin.' }],
+    [(g) => flag(g, 'bellRung'), { en: 'The mummers are on the green, and the play still has no ending.', fr: 'Les comédiens sont sur la place, et la pièce n’a toujours pas de fin.' }],
     [() => true, { en: 'The passing bell in the tower has not rung in ten years, and Whit keeps looking up at it. The way is through the churchyard.', fr: 'Le glas de la tour n’a pas sonné depuis dix ans, et Whit ne cesse de lever les yeux vers lui. On y passe par le cimetière.' }],
   ],
   churchyard: [
@@ -81,7 +81,7 @@ const BY_MAP: Record<string, Rule[]> = {
   ],
   flight: [[() => true, { en: 'Run. The blank is coming through the trees.', fr: 'Courir. Le blanc arrive à travers les arbres.' }]],
   chapel: [
-    [(g) => !flag(g, 'muralRestored'), { en: 'On the chapel wall every living figure is led by a Death, and the order is wrong. Put the dance right.', fr: 'Sur le mur de la chapelle, chaque vivant est mené par une Mort, et l’ordre est faux. Remettre la danse en ordre.' }],
+    [(g) => !flag(g, 'muralRestored'), { en: 'On the chapel wall every living figure is led by a Death, and the order is wrong. Put the dance right.', fr: 'Sur le mur de la chapelle, chaque vivant est mené par une Mort, et l’ordre n’est pas le bon. Remettre la danse en ordre.' }],
     [() => true, { en: 'The ossuary stair is open. Down.', fr: 'L’escalier de l’ossuaire est ouvert. Descendre.' }],
   ],
   ossuary: [[() => true, { en: 'The dancers are waiting for the one who should lead them.', fr: 'Les danseurs attendent celui qui devrait les mener.' }]],
@@ -93,12 +93,12 @@ const BY_MAP: Record<string, Rule[]> = {
   fair: [
     [(g) => flag(g, 'amabelScraped') && !flag(g, 'amabelFound'), { en: 'The Drollery Fair. There is a little brown hen here who keeps looking at me.', fr: 'La foire aux drôleries. Il y a ici une petite poule brune qui ne cesse de me regarder.' }],
     [(g) => g.lostNames.includes('cutha') && !flag(g, 'returned.cutha'), { en: 'Old Cutha told his bees everything. There is a skep in the lanes behind the Fair; somebody should tell them.', fr: 'Le vieux Cutha racontait tout à ses abeilles. Il y a une ruche dans les ruelles derrière la foire ; il faudrait le leur dire.' }],
-    [() => true, { en: 'The Abbot of Unreason says the old ape on the vine knows the way down. Between two stalls at the bottom of the Fair, a way leads round the back.', fr: 'L’Abbé de Déraison dit que le vieux singe de la vigne connaît le chemin du fond. Entre deux étals, au bas de la foire, un passage mène derrière.' }],
+    [() => true, { en: 'The Abbot of Unreason says the old ape on the vine knows the way down. Between two stalls at the bottom of the Fair, a way leads round the back.', fr: 'L’Abbé de Déraison dit que le vieux singe de la vigne connaît le chemin pour descendre. Entre deux étals, au bas de la foire, un passage mène derrière.' }],
   ],
   lanes: [
     [(g) => !won(g, 's3'), { en: 'Behind the Fair: a copying stall, and copyists who copy whatever is done to them.', fr: 'Derrière la foire : un étal de copistes, qui recopient tout ce qu’on leur fait.' }],
     [(g) => !flag(g, 'returned.cutha') && !g.lostNames.includes('cutha'), { en: 'The bees in the skep have had nobody to tell them anything. The Court of Unreason keeps a name in its alcove.', fr: 'Les abeilles de la ruche n’ont eu personne pour leur dire quoi que ce soit. La Cour de Déraison garde un nom dans son alcôve.' }],
-    [(g) => !flag(g, 'returned.cutha'), { en: 'Tell the bees about Old Cutha.', fr: 'Annoncer le vieux Cutha aux abeilles.' }],
+    [(g) => !flag(g, 'returned.cutha'), { en: 'Tell the bees about Old Cutha.', fr: 'Annoncer aux abeilles la mort du vieux Cutha.' }],
     [() => true, { en: 'The bees are busy again. Back to the Fair, and on to the vine.', fr: 'Les abeilles se sont remises au travail. Retour à la foire, et en route pour la vigne.' }],
   ],
   vine: [[() => true, { en: 'Wystan is on the vine.', fr: 'Wystan est sur la vigne.' }]],
@@ -108,8 +108,8 @@ const BY_MAP: Record<string, Rule[]> = {
     [() => true, { en: 'MERCY has tolled once. The lectern is bare: he has taken the Book into the church. His lodging is off the cloister.', fr: 'MISÉRICORDE a sonné une fois. Le lutrin est vide : il a porté le Livre dans l’église. Son logis donne sur le cloître.' }],
   ],
   undercroft: [
-    [(g) => !won(g, 's4'), { en: 'A Brother sweeps the vault with three hounds at his feet. He is scraped clean: write him back, a letter at a time.', fr: 'Un Frère balaie la crypte, trois chiens à ses pieds. Il est gratté net : le réécrire, une lettre à la fois.' }],
-    [(g) => !won(g, 's5'), { en: 'Two knights written over something older keep the inner bays.', fr: 'Deux chevaliers écrits par-dessus quelque chose de plus ancien gardent les baies du fond.' }],
+    [(g) => !won(g, 's4'), { en: 'A Brother sweeps the vault with three hounds at his feet. He is scraped clean: write him back, a letter at a time.', fr: 'Un Frère balaie la crypte, trois chiens à ses pieds. Il est gratté à blanc : le réécrire, lettre à lettre.' }],
+    [(g) => !won(g, 's5'), { en: 'Two knights written over something older keep the inner bays.', fr: 'Deux chevaliers écrits par-dessus quelque chose de plus ancien gardent les travées du fond.' }],
     [(g) => !won(g, 'b6'), { en: 'At the far end, the Heap is trying to say a word. Let it finish, and read it.', fr: 'Au fond, le Tas essaie de dire un mot. Le laisser finir, et le lire.' }],
     [() => true, { en: 'They have all answered. Back up to the scriptorium, and on to the church.', fr: 'Ils ont tous répondu. Remonter au scriptorium, et en route pour l’église.' }],
   ],

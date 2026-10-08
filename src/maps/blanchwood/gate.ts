@@ -33,7 +33,7 @@ const HEIGHTS = relief(W, H, [
 
 export const GATEHOUSE: MapDef = {
   id: 'gate',
-  card: { title: { en: 'Ninefold Gate', fr: 'La porte de Ninefold' }, line: { en: 'Half of it already forgotten', fr: 'À moitié oubliée déjà' } },
+  card: { title: { en: 'Ninefold Gate', fr: 'La porte de Ninefold' }, line: { en: 'Half of it already forgotten', fr: 'Déjà à moitié oubliée' } },
   walkable: 'vd',
   ground: GROUND,
   heights: HEIGHTS,
@@ -79,7 +79,7 @@ async function theMeeting(c: MapContext): Promise<void> {
   c.letterbox(true);
   await c.pan(tiles(17), ROAD_Y, 1.2);
   await c.say('gaudry', { en: 'Sister Hild. You’ve grown thin on the road.', fr: 'Sœur Hild. Tu as maigri sur la route.' });
-  await c.say('gaudry', { en: 'The Abbot bids his sister come home. And bids the knight be put back where he was.', fr: 'L’abbé prie sa sœur de rentrer. Et prie qu’on remette le chevalier là où il était.' });
+  await c.say('gaudry', { en: 'The Abbot bids his sister come home. And bids the knight be put back where he was.', fr: 'L’abbé prie sa sœur de rentrer. Et demande qu’on remette le chevalier là où il était.' });
   await c.say('isot', { en: 'His… sister?', fr: 'Sa… sœur ?' }, 'alarmed');
   await c.say('ermeline', { en: '…Agnes, Cole, Wenna, Osgar… I’m sorry. I’m sorry. Hold still and it won’t take long.', fr: '…Agnès, Cole, Wenna, Osgar… Pardon. Pardon. Ne bougez pas, et ce ne sera pas long.' });
   const hild = c.party.find((a) => a.id === 'hild');

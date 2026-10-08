@@ -93,7 +93,7 @@ export const BELLTOWER: MapDef = {
       hidden: true,
       pennies: 10,
       satchel: { holyWater: 1 },
-      note: { en: '“Thirty-nine bells came down the Abbey road in carts. We wrote down every one, and where it had hung.”', fr: '« Trente-neuf cloches sont descendues sur la route de l’abbaye, en charrettes. Nous les avons toutes notées, et l’endroit où elles pendaient. »' },
+      note: { en: '“Thirty-nine bells came down the Abbey road in carts. We wrote down every one, and where it had hung.”', fr: '« Trente-neuf cloches sont descendues sur la route de l’Abbaye, en charrettes. Nous les avons toutes notées, et l’endroit où elles pendaient. »' },
     },
   ],
   card: { title: { en: 'Lychford', fr: 'Lychford' }, line: { en: 'The Ringing Chamber', fr: 'La chambre des cloches' } },
@@ -144,7 +144,7 @@ export const BELLTOWER: MapDef = {
     rung = [];
     if (!c.flag('towerSeen')) {
       c.set('towerSeen');
-      await c.say('isot', { en: 'Four ropes. Four bells overhead. The names on the plaques have rusted away.', fr: 'Quatre cordes. Quatre cloches au-dessus. Les noms des plaques ont rouillé.' });
+      await c.say('isot', { en: 'Four ropes. Four bells overhead. The names on the plaques have rusted away.', fr: 'Quatre cordes. Quatre cloches au-dessus. La rouille a mangé les noms des plaques.' });
       await c.say('isot', { en: 'Rust is only scraping done slowly. The candle should read it.', fr: 'La rouille n’est qu’un grattage très lent. La bougie devrait la lire.' }, 'wry');
     }
   },
