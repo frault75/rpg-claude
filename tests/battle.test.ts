@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { CHAPTER_ONE_ABILITIES, type EncounterDef } from '../src/battle/data';
-import { aimOf } from '../src/battle/aim';
+import { aimNames, aimOf } from '../src/battle/aim';
 import { Battle, type BattleSetup } from '../src/battle/engine';
 import type { AbilityId } from '../src/battle/types';
 import type { CharId } from '../src/story/state';
@@ -28,6 +28,27 @@ describe('the Omen', () => {
       ['e1', 2, 2],
     ]);
     expect(aimOf(b, b.intents[0]!)!.fr).toBe('Avant');
+  });
+
+  it('names whoever stands where a blow falls, and a Step changes the name at once', () => {
+    const b = fight('f1', ['whit', 'isot']);
+    const blow = b.intents[0]!;
+    const front = b.party.find((u) => u.place === 0)!;
+    const middle = b.party.find((u) => u.place === 1)!;
+    expect(aimNames(b, blow)).toEqual(front.name);
+    expect(b.aims(blow).map((u) => u.id)).toEqual([front.id]);
+    expect(b.step(0, 1)).toBe(true);
+    expect(aimNames(b, blow)).toEqual(middle.name);
+    expect(b.aims(blow).map((u) => u.id)).toEqual([middle.id]);
+  });
+
+  it('a blow from too far back still names whom it is meant for, but strikes no one yet', () => {
+    // The Ninefold gate: the second Brother of the Pumice scours from behind Gaudry.
+    const b = fight('f6', ['whit', 'hild', 'isot']);
+    const back = b.intents.find((i) => b.tooFarBack(i))!;
+    expect(back).toBeTruthy();
+    expect(b.aims(back)).toEqual([]);
+    expect(aimNames(b, back)!.en).toBe('Whit');
   });
 
   it('is the same puzzle every time', () => {
@@ -374,6 +395,7 @@ describe('Boss II: the Mummers’ Play', () => {
     expect(b.intents.map((i) => aimOf(b, i)?.en)).toEqual(['Front', 'Middle', 'Saint George']);
     expect(b.intents.map((i) => i.damage)).toEqual([4, 3, 0]);
     expect(b.intents[2]!.rule?.en).toBe('Heals 4');
+    expect(aimNames(b, b.intents[2]!)?.en).toBe('Saint George');
   });
 
   it('Saint George guards the Doctor every other round', () => {

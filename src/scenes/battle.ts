@@ -26,7 +26,7 @@ import {
   whoosh,
 } from '../audio/battleSfx';
 import { footstep, pageTurn, uiTick } from '../audio/sfx';
-import { aimOf } from '../battle/aim';
+import { aimNames } from '../battle/aim';
 import { ABILITIES, ENCOUNTERS, ENEMIES, PARTY_STATS } from '../battle/data';
 import { bell, midiToHz } from '../audio/instruments';
 import { Battle, type Refusal } from '../battle/engine';
@@ -238,6 +238,22 @@ const ENV_ID = 'env';
 const keyHints = () => (Input.current?.prompts ?? 'keys') === 'keys';
 /** The enemy's name plate, between its head and its banderoles. */
 const PLATE_H = 30;
+
+
+/** A deed's order in a red roundel with a gold rim, as on its banderole. */
+function roundel(c: CanvasRenderingContext2D, x: number, y: number, n: number): void {
+  c.beginPath();
+  c.arc(x, y, 10, 0, Math.PI * 2);
+  c.fillStyle = RED_INK;
+  c.fill();
+  c.strokeStyle = INK.gold;
+  c.lineWidth = 1.5;
+  c.stroke();
+  c.fillStyle = '#FFF4D8';
+  c.font = `700 13px ${SERIF}`;
+  c.textAlign = 'center';
+  c.fillText(String(n), x, y + 1);
+}
 
 export class BattleScene implements Scene {
   readonly name = 'battle';
@@ -1599,9 +1615,10 @@ export class BattleScene implements Scene {
 
   private intentText(it: Intent): string {
     if (!this.battle.shows(it)) return t('battle.hidden');
-    const aim = aimOf(this.battle, it);
-    const at = [aim ? tr(aim) : '', it.damage > 0 ? String(it.damage) : ''].filter(Boolean).join(' ');
-    return [tr(it.label), at, it.rule ? tr(it.rule) : ''].filter(Boolean).join(' — ');
+    const aim = aimNames(this.battle, it);
+    const at = [aim ? tr(aim) : '', it.damage > 0 ? `${it.damage} ${t(it.damage === 1 ? 'battle.damage1' : 'battle.damage')}` : ''].filter(Boolean).join(', ');
+    const far = this.battle.tooFarBack(it) ? t('battle.tooFarBack') : '';
+    return [tr(it.label), at, far, it.rule ? tr(it.rule) : ''].filter(Boolean).join(' — ');
   }
 
   private chips(u: Unit): { text: string; color: string }[] {
@@ -1738,6 +1755,19 @@ export class BattleScene implements Scene {
     return { x: 18, y: top, w: COMMAND_W * this.zw, h: VIEW_H - top };
   }
 
+  /** The enemies a shown intent tends to (a heal, a guard, a raising), with those intents' orders. */
+  private tended(): Map<string, number[]> {
+    const b = this.battle;
+    const out = new Map<string, number[]>();
+    if (this.mode !== 'command') return out;
+    for (const it of b.intents) {
+      if (it.cancelled || it.waiting || it.countdown > 0 || !b.shows(it) || !('unit' in it.target)) continue;
+      const kin = b.unit(it.target.unit);
+      if (kin?.side === 'enemy' && kin.id !== it.actor) out.set(kin.id, [...(out.get(kin.id) ?? []), it.order]);
+    }
+    return out;
+  }
+
   /** The enemy name plates: where each one sits on screen. */
   private plates(): { id: string; x: number; y: number; w: number }[] {
     const out: { id: string; x: number; y: number; w: number }[] = [];
@@ -1746,12 +1776,13 @@ export class BattleScene implements Scene {
     const z = this.z;
     const ph = PLATE_H * z;
     c.font = `600 ${12 * z}px ${SERIF}`;
+    const tended = this.tended();
     for (const e of this.battle.enemies) {
       if (this.shown.fallen.get(e.id)) continue;
       const f = this.fig(e.id);
       if (!f) continue;
       const p = this.r.mapToScreen(f.hx, f.hy, f.height + 4);
-      const w = Math.max(110 * z, c.measureText(tr(e.name)).width + 52 * z);
+      const w = Math.max(110 * z, c.measureText(tr(e.name)).width + 52 * z) + (tended.get(e.id)?.length ?? 0) * 22 * z;
       out.push({ id: e.id, x: p.x - w / 2, y: p.y - ph + 2, w });
     }
     c.restore();
@@ -1778,6 +1809,19 @@ export class BattleScene implements Scene {
     const PH = PLATE_H * z;
     const placed: { x: number; y: number; w: number; h: number }[] = this.plates().map((p) => ({ x: p.x - 6 * z, y: p.y - 4 * z, w: p.w + 12 * z, h: 26 * z }));
     placed.push(this.commandZone());
+    // Nor over the marks above whoever is about to be struck.
+    const hits = new Map<string, number>();
+    for (const it of this.battle.intents) {
+      if (it.cancelled || it.waiting || it.countdown > 0) continue;
+      for (const u of this.battle.aims(it)) hits.set(u.id, (hits.get(u.id) ?? 0) + 1);
+    }
+    for (const [id, n] of hits) {
+      const f = this.fig(id);
+      if (!f) continue;
+      const p = this.r.mapToScreen(f.hx, f.hy, f.height + 6);
+      const w = (n * 24 + 56) * z;
+      placed.push({ x: p.x - w / 2, y: p.y - 30 * z, w, h: 32 * z });
+    }
     /** How much a banderole at (x, y) would cover what is already placed. */
     const overlap = (x: number, y: number, BW: number) =>
       placed.reduce((sum, p) => sum + Math.max(0, Math.min(x + BW, p.x + p.w) - Math.max(x, p.x)) * Math.max(0, Math.min(y + BH - 6, p.y + p.h) - Math.max(y, p.y)), 0);
@@ -1829,13 +1873,12 @@ export class BattleScene implements Scene {
   private lookOf(it: Intent, b: BanderoleState): BanderoleLook {
     const timing = it.waiting ? t('battle.waits') : it.countdown > 0 ? t('battle.in', { n: it.countdown }) : '';
     const rule = it.rule && this.battle.shows(it) ? tr(it.rule) : '';
-    const aim = aimOf(this.battle, it);
+    const far = this.battle.shows(it) && this.battle.tooFarBack(it) ? t('battle.tooFarBack') : '';
     return {
       order: it.order,
       text: this.battle.shows(it) ? tr(it.label) : t('battle.hidden'),
-      aim: aim ? tr(aim) : '',
       damage: it.damage,
-      note: [rule, timing].filter(Boolean).join(' · '),
+      note: [far, rule, timing].filter(Boolean).join(' · '),
       hidden: !this.battle.shows(it),
       struck: b.struck,
       active: b.active || this.selectedIntent() === it.id || this.hoverIntent === it.id,
@@ -1893,9 +1936,17 @@ export class BattleScene implements Scene {
     const sel = this.selectedIntent() ?? this.hoverIntent;
     const lines: { from: [number, number]; to: [number, number] }[] = [];
     const incoming = new Map<string, { order: number; dmg: number }[]>();
+    const tended = this.tended();
     if (this.mode === 'command') {
       for (const it of b.intents) {
         if (it.cancelled || it.waiting || it.countdown > 0) continue;
+        const kin = 'unit' in it.target ? b.unit(it.target.unit) : undefined;
+        const ban = this.banderoles.get(it.id);
+        const kf = kin && tended.has(kin.id) ? this.fig(kin.id) : undefined;
+        if (sel === it.id && ban && kf) {
+          const p = this.r.mapToScreen(kf.hx, kf.hy, kf.height * 0.6);
+          lines.push({ from: [ban.x + (ban.w * this.z) / 2, ban.y + (BANDEROLE_H - 8) * this.z], to: [p.x, p.y] });
+        }
         for (const u of b.aims(it)) {
           const list = incoming.get(u.id) ?? [];
           list.push({ order: it.order, dmg: it.damage });
@@ -1913,8 +1964,16 @@ export class BattleScene implements Scene {
     }
     const enemyInfo = this.plates().map((pl) => {
       const e = b.unit(pl.id)!;
-      return { pl, hp: this.shown.hp.get(e.id) ?? e.hp, max: e.maxHp, chips: this.chips(e), name: tr(e.name) };
+      return { pl, hp: this.shown.hp.get(e.id) ?? e.hp, max: e.maxHp, chips: this.chips(e), name: tr(e.name), tended: tended.get(e.id) ?? [] };
     });
+    // One that has fallen has no plate: its marks go where it lies.
+    const plated = new Set(enemyInfo.map((e) => e.pl.id));
+    const lying = [...tended]
+      .filter(([id]) => !plated.has(id) && this.fig(id))
+      .map(([id, list]) => {
+        const f = this.fig(id)!;
+        return { p: this.r.mapToScreen(f.hx, f.hy, 10), list };
+      });
     const allyTags = [...incoming].map(([id, list]) => {
       const f = this.fig(id)!;
       return { p: this.r.mapToScreen(f.hx, f.hy, f.height + 6), list };
@@ -1947,14 +2006,18 @@ export class BattleScene implements Scene {
         c.beginPath();
         c.roundRect(x - 6, y - 4, w + 12, 26, 7);
         c.fill();
+        const bx = x + e.tended.length * 22;
         c.fillStyle = 'rgba(0,0,0,0.5)';
-        c.fillRect(x, y + 12, w, 5);
+        c.fillRect(bx, y + 12, w - (bx - x), 5);
         c.fillStyle = '#E86A50';
-        c.fillRect(x, y + 12, w * Math.max(0, e.hp / e.max), 5);
+        c.fillRect(bx, y + 12, (w - (bx - x)) * Math.max(0, e.hp / e.max), 5);
+        // The orders of the deeds that tend to it, before its name.
+        e.tended.forEach((n, k) => roundel(c, x + 6 + k * 22, y + 8, n));
+        const nx = x + e.tended.length * 22;
         c.font = `600 12px ${SERIF}`;
         c.textAlign = 'left';
         c.fillStyle = INK.text;
-        c.fillText(e.name, x, y + 4);
+        c.fillText(e.name, nx, y + 4);
         c.textAlign = 'right';
         c.fillText(`${Math.max(0, e.hp)}/${e.max}`, x + w, y + 4);
         // Statuses ride on the plate's right edge.
@@ -1987,17 +2050,7 @@ export class BattleScene implements Scene {
         c.roundRect(x - 6, y - 14, w + 12, 28, 14);
         c.fill();
         for (const it of a.list) {
-          c.beginPath();
-          c.arc(x + 11, y, 10, 0, Math.PI * 2);
-          c.fillStyle = RED_INK;
-          c.fill();
-          c.strokeStyle = INK.gold;
-          c.lineWidth = 1.5;
-          c.stroke();
-          c.fillStyle = '#FFF4D8';
-          c.font = `700 13px ${SERIF}`;
-          c.textAlign = 'center';
-          c.fillText(String(it.order), x + 11, y + 1);
+          roundel(c, x + 11, y, it.order);
           x += 24;
         }
         if (total) {
@@ -2006,6 +2059,13 @@ export class BattleScene implements Scene {
           c.fillStyle = '#FFB8A0';
           c.fillText(`−${total}`, x + 4, y + 1);
         }
+        c.restore();
+      }
+      for (const l of lying) {
+        c.save();
+        c.translate(l.p.x, l.p.y);
+        c.scale(z, z);
+        l.list.forEach((n, k) => roundel(c, (k - (l.list.length - 1) / 2) * 22, 0, n));
         c.restore();
       }
     });
