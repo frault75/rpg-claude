@@ -340,12 +340,15 @@ describe('equipment', () => {
     expect(b.unit('isot')!.hp).toBe(12 - 1 - 2);
   });
 
-  it('Gentle Hand: more HP, Ink refills by 2', () => {
-    const b = fight('f1', ['isot'], { gentle: true });
+  it('Story: more HP, Ink refills by 2, and every blow a point softer', () => {
+    const b = fight('f1', ['isot'], { difficulty: 'story' });
     expect(b.unit('isot')!.maxHp).toBe(18);
+    expect(b.intents[0]!.damage).toBe(1);
+    expect(b.intents[0]!.label.en).toBe('Butts the Front · 1');
     b.act('isot', 'strike', { intent: b.intents[0]!.id });
     b.endTurn();
     expect(b.ink).toBe(2);
+    expect(b.unit('isot')!.hp).toBe(18 - 1);
   });
 });
 

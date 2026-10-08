@@ -55,6 +55,10 @@ export interface GameState {
   inventory: string[];
   /** Encounters already won. */
   cleared: string[];
+  /** Experience, which sets the party's shared level (DESIGN.md §5.16). */
+  xp: number;
+  /** Silver pennies in the purse (§6.1). */
+  pennies: number;
   lostNames: string[];
   /** Seconds played. */
   playTime: number;
@@ -77,6 +81,8 @@ export function newGame(): GameState {
     equipment: { isot: { relic: null, charm: null }, hild: { relic: null, charm: null }, whit: { relic: null, charm: null } },
     inventory: [],
     cleared: [],
+    xp: 0,
+    pennies: 0,
     lostNames: [],
     playTime: 0,
   };

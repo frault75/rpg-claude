@@ -372,6 +372,104 @@ export function drawBanner(c: CanvasRenderingContext2D, w: number, h: number, ti
   shadowText(c, line, w / 2, h / 2 + 42, '#E8DCC0');
 }
 
+// ---------------------------------------------------------------------------------------
+// The spoils: what a won fight gave, and the level it brought (DESIGN.md §5.16)
+
+export const SPOILS_W = 540;
+
+export interface SpoilsLook {
+  title: string;
+  xp: { label: string; amount: number };
+  pennies: { label: string; amount: number; purse: string };
+  /** The level bar: its label, and how full (0..1). */
+  bar: { label: string; fill: number };
+  /** The level gained, once the bar has filled; `rise` is how far it has appeared (0..1). */
+  levelUp?: { title: string; line: string; hp: string; ranks: { name: string; rule: string }[] };
+  rise: number;
+}
+
+export function spoilsHeight(s: Pick<SpoilsLook, 'levelUp'>): number {
+  return 156 + (s.levelUp ? 104 + s.levelUp.ranks.length * 30 : 0);
+}
+
+export function drawSpoils(c: CanvasRenderingContext2D, w: number, h: number, s: SpoilsLook): void {
+  drawWindow(c, 0, 0, w, h, 0.94);
+  c.textBaseline = 'middle';
+  c.textAlign = 'center';
+  c.font = `600 15px ${SERIF}`;
+  c.fillStyle = INK.gold;
+  c.fillText(s.title.toUpperCase().split('').join(' '), w / 2, 28);
+  c.fillStyle = 'rgba(232,199,106,0.5)';
+  c.fillRect(30, 44, w - 60, 1);
+  const line = (y: number, label: string, amount: number, aside = '') => {
+    c.textAlign = 'left';
+    c.font = `${prefs.largeText ? 21 : 19}px ${SERIF}`;
+    shadowText(c, label, 36, y);
+    c.textAlign = 'right';
+    c.font = `700 21px ${SERIF}`;
+    const n = `+${amount}`;
+    shadowText(c, n, w - 36, y, INK.gold);
+    if (aside) {
+      c.font = `italic 15px ${SERIF}`;
+      shadowText(c, aside, w - 50 - c.measureText(n).width * 1.15, y + 1, INK.dim);
+    }
+  };
+  line(70, s.xp.label, s.xp.amount);
+  line(100, s.pennies.label, s.pennies.amount, s.pennies.purse);
+  // The level bar.
+  c.textAlign = 'left';
+  c.font = `600 16px ${SERIF}`;
+  shadowText(c, s.bar.label, 36, 132, INK.gold);
+  const bx = 150;
+  const bw = w - 36 - bx;
+  c.fillStyle = 'rgba(0,0,0,0.45)';
+  c.fillRect(bx, 127, bw, 10);
+  const g = c.createLinearGradient(bx, 0, bx + bw, 0);
+  g.addColorStop(0, '#9A7428');
+  g.addColorStop(1, '#F6DC8A');
+  c.fillStyle = g;
+  c.fillRect(bx, 127, bw * Math.max(0, Math.min(1, s.bar.fill)), 10);
+  c.strokeStyle = 'rgba(232,199,106,0.6)';
+  c.lineWidth = 1;
+  c.strokeRect(bx + 0.5, 126.5, bw - 1, 11);
+  const up = s.levelUp;
+  if (!up || s.rise <= 0) return;
+  c.save();
+  c.globalAlpha = Math.min(1, s.rise);
+  const y0 = 156;
+  c.fillStyle = 'rgba(232,199,106,0.35)';
+  c.fillRect(30, y0, w - 60, 1);
+  c.textAlign = 'center';
+  c.font = `500 30px ${SERIF}`;
+  const caps = up.title.toUpperCase().split('').join(' ');
+  const tg = c.createLinearGradient(0, y0 + 14, 0, y0 + 46);
+  tg.addColorStop(0, '#FFF1C4');
+  tg.addColorStop(1, '#D9A848');
+  c.fillStyle = 'rgba(0,0,0,0.65)';
+  c.fillText(caps, w / 2 + 1.5, y0 + 31.5);
+  c.fillStyle = tg;
+  c.fillText(caps, w / 2, y0 + 30);
+  c.font = `italic 17px ${SERIF}`;
+  shadowText(c, up.line, w / 2, y0 + 60, '#E8DCC0');
+  c.font = `16px ${SERIF}`;
+  shadowText(c, up.hp, w / 2, y0 + 86, INK.text);
+  up.ranks.forEach((r, i) => {
+    const y = y0 + 116 + i * 30;
+    c.font = `600 17px ${SERIF}`;
+    const nw = c.measureText(r.name).width;
+    c.font = `16px ${SERIF}`;
+    const rest = ` — ${r.rule}`;
+    const x = w / 2 - (nw + c.measureText(rest).width) / 2;
+    c.textAlign = 'left';
+    c.font = `600 17px ${SERIF}`;
+    shadowText(c, r.name, x, y, INK.gold);
+    c.font = `16px ${SERIF}`;
+    shadowText(c, rest, x + nw, y, INK.text);
+    c.textAlign = 'center';
+  });
+  c.restore();
+}
+
 export type NumberKind = 'damage' | 'heal' | 'ward' | 'big' | 'penance' | 'word';
 
 export function drawNumber(c: CanvasRenderingContext2D, w: number, h: number, text: string, kind: NumberKind): void {

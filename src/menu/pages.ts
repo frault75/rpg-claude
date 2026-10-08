@@ -4,6 +4,7 @@
  */
 
 import { ABILITIES, PARTY_STATS } from '../battle/data';
+import { abilityText, DIFFICULTIES, hpAt, progress } from '../battle/growth';
 import { canWear, ITEMS, type Slot } from '../data/equipment';
 import { BINDABLE, type Bindable, DEFAULT_KEYS, type Input, keyLabel, padLabel } from '../engine/input';
 import type { SettingsStore } from '../engine/settings';
@@ -67,19 +68,27 @@ export function partyPage(d: MenuDeps): Page {
         rows.push(r);
       }
       rows.push(sepRow());
+      // The party's shared level, and the purse.
+      const lv = progress(g.xp);
+      const next = lv.need ? t('party.next', { n: lv.need - lv.into }) : t('party.top');
+      const fill = lv.need ? Math.round((lv.into / lv.need) * 100) : 100;
+      rows.push(infoRow(`<span class="label">${t('party.level', { n: lv.level })}</span><span class="value">${next}<span class="hpbar xpbar"><i style="width:${fill}%"></i></span></span>`, 'static'));
+      rows.push(infoRow(`<span class="label">${t('party.purse')}</span><span class="value">${t('party.pennies', { n: g.pennies })}</span>`, 'static'));
+      rows.push(sepRow());
+      const story = d.settings.value.gameplay.difficulty === 'story' ? 1.5 : 1;
       for (const id of g.party) {
         const box = el('div', 'member');
         box.append(portrait(id));
         const info = el('div');
         const st = PARTY_STATS[id];
         info.append(el('div', 'name', tr(st.name)));
-        info.append(el('div', 'meta', `${t('role.' + id)} · ${t('party.hp')} ${st.hp}<span class="hpbar"><i style="width:100%"></i></span>`));
+        info.append(el('div', 'meta', `${t('role.' + id)} · ${t('party.hp')} ${Math.round(hpAt(id, lv.level) * story)}<span class="hpbar"><i style="width:100%"></i></span>`));
         const ab = el('div', 'abil');
         for (const a of g.abilities[id] ?? []) {
           const def = ABILITIES[a as keyof typeof ABILITIES];
           if (!def) continue;
           const cost = def.ink ? ` · ${def.ink} ${tr({ en: 'Ink', fr: 'Encre' })}` : def.hp ? ` · ${def.hp} ${t('party.hp')}` : '';
-          ab.append(el('div', '', `<b>${tr(def.name)}</b>${cost} — <span>${tr(def.text)}</span>`));
+          ab.append(el('div', '', `<b>${tr(def.name)}</b>${cost} — <span>${tr(abilityText(def.id, lv.level))}</span>`));
         }
         info.append(ab);
         box.append(info);
@@ -87,6 +96,24 @@ export function partyPage(d: MenuDeps): Page {
       }
       return rows;
     },
+  };
+}
+
+/** New Game: how hard the Book fights back (DESIGN.md §5.17). The cursor starts on the mode last chosen. */
+export function newGamePage(d: MenuDeps, start: () => void): Page {
+  return {
+    title: () => t('newgame.title'),
+    help: () => t('newgame.help'),
+    focus: DIFFICULTIES.indexOf(d.settings.value.gameplay.difficulty),
+    rows: () =>
+      DIFFICULTIES.map((v) => {
+        const r = buttonRow(t(`difficulty.${v}`), () => {
+          d.settings.update((x) => (x.gameplay.difficulty = v));
+          start();
+        });
+        r.el.querySelector('.label')!.insertAdjacentHTML('beforeend', `<span class="item-text">${t(`difficulty.${v}.text`)}</span>`);
+        return r;
+      }),
   };
 }
 
@@ -241,7 +268,14 @@ export function settingsPage(d: MenuDeps): Page {
                 (v) => s.update((x) => (x.gameplay.battleSpeed = v)),
                 refresh,
               ),
-              toggleRow(t('settings.gentle'), () => s.value.gameplay.gentle, (v) => s.update((x) => (x.gameplay.gentle = v)), refresh),
+              selectRow(
+                t('settings.difficulty'),
+                DIFFICULTIES.map((v) => ({ value: v, label: t(`difficulty.${v}`) })),
+                () => s.value.gameplay.difficulty,
+                (v) => s.update((x) => (x.gameplay.difficulty = v)),
+                refresh,
+              ),
+              infoRow(`<span class="item-text">${t(`difficulty.${s.value.gameplay.difficulty}.text`)}</span>`, 'dim'),
             ],
           ),
         ),

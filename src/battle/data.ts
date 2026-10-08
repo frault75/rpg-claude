@@ -22,10 +22,11 @@ export const ABILITIES: Record<AbilityId, AbilityDef> = {
   inscribe: { id: 'inscribe', name: { en: 'Inscribe', fr: 'Inscrire' }, owner: 'isot', target: 'none', text: { en: 'At the lectern in the Rear: write the next letter of FINIS.', fr: 'Au lutrin, à l’Arrière : écrire la lettre suivante de FINIS.' } },
 };
 
-export const PARTY_STATS: Record<CharId, { name: LocalText; hp: number }> = {
-  isot: { name: { en: 'Isot', fr: 'Isot' }, hp: 12 },
-  hild: { name: { en: 'Hild', fr: 'Hild' }, hp: 22 },
-  whit: { name: { en: 'Whit', fr: 'Whit' }, hp: 18 },
+/** The party's names; their HP grows with the level (growth.ts). */
+export const PARTY_STATS: Record<CharId, { name: LocalText }> = {
+  isot: { name: { en: 'Isot', fr: 'Isot' } },
+  hild: { name: { en: 'Hild', fr: 'Hild' } },
+  whit: { name: { en: 'Whit', fr: 'Whit' } },
 };
 
 /** What an enemy means to do; the engine adds ids and order. */
@@ -38,6 +39,8 @@ export interface IntentSpec {
   effects?: IntentEffect[];
   /** A wind-up: it strikes after this many more rounds (shown "in n"). */
   countdown?: number;
+  /** The label warns of a blow to come next round, of this much (kept true to the difficulty). */
+  foretells?: number;
 }
 
 export interface BehaviourCtx {
@@ -369,7 +372,7 @@ export const ENEMIES: Record<string, EnemyDef> = {
         return [
           // It licks its wounds in there: chipping at the shell barely keeps up; Strike Through the withdrawal instead.
           { label: { en: 'Withdraws into its shell', fr: 'Rentre dans sa coquille' }, rule: { en: 'Licks its wounds: heals 4', fr: 'Lèche ses plaies : se soigne de 4' }, target: { self: true }, effects: [{ kind: 'shell' }, { kind: 'heal', amount: 4 }], reach: 'any' },
-          { label: { en: 'Gathers the tide… (next: everyone · 3)', fr: 'Appelle la marée… (ensuite : tous · 3)' }, target: { self: true }, reach: 'any' },
+          { label: { en: 'Gathers the tide… (next: everyone · 3)', fr: 'Appelle la marée… (ensuite : tous · 3)' }, target: { self: true }, reach: 'any', foretells: 3 },
         ];
       return [{ label: { en: 'Slime tide: drenches everyone · 3', fr: 'Marée de bave : trempe tout le monde · 3' }, target: { all: true }, damage: 3, reach: 'any' }];
     },
@@ -434,6 +437,29 @@ export const ENCOUNTERS: Record<string, EncounterDef> = {
       return round % 3 === 0 ? { label: { en: 'The tide: a wave breaks over the Front · 2', fr: 'La marée : une vague brise sur l’Avant · 2' }, target: { place: 0 }, damage: 2, reach: 'any' } : null;
     },
   },
+};
+
+/**
+ * What each fight gives the first time it is won, in the order the story meets them
+ * (DESIGN.md §5.16, §6.1). Nothing is fought twice, so this is all the main path gives.
+ */
+export const REWARDS: Record<string, { xp: number; pennies: number; optional?: true }> = {
+  f1: { xp: 10, pennies: 4 },
+  f2: { xp: 15, pennies: 6 },
+  b1: { xp: 20, pennies: 15 },
+  f3: { xp: 12, pennies: 6 },
+  f4: { xp: 13, pennies: 7 },
+  b2: { xp: 25, pennies: 20 },
+  f5: { xp: 15, pennies: 8 },
+  f6: { xp: 18, pennies: 10 },
+  b3: { xp: 30, pennies: 25 },
+  f7: { xp: 18, pennies: 10 },
+  // The Court of Unreason can be left in peace.
+  f8: { xp: 20, pennies: 12, optional: true },
+  b4: { xp: 34, pennies: 30 },
+  f9: { xp: 22, pennies: 12 },
+  // The last fight is the end of the Book: nothing comes after it to spend on.
+  b5: { xp: 0, pennies: 0 },
 };
 
 /** Abilities known at the start of chapter I (more unlock with the story). */

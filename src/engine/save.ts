@@ -3,9 +3,10 @@
  * manual slot. A corrupt or unknown save is ignored, never a crash.
  */
 
+import { spoilsOf } from '../battle/growth';
 import { type GameState, newGame } from '../story/state';
 
-export const SAVE_VERSION = 2;
+export const SAVE_VERSION = 3;
 const KEY = 'palimpsest:save:v1';
 
 export type Slot = 'auto' | 'manual';
@@ -29,6 +30,8 @@ function isObject(v: unknown): v is Record<string, unknown> {
 }
 
 const has = (v: unknown, x: string) => Array.isArray(v) && v.includes(x);
+/** A whole number of something, never below zero. */
+const count = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? Math.max(0, Math.floor(v)) : 0);
 
 /** Version 1 saves predate the items found at story beats (DESIGN.md §6): give back those already passed. */
 const PASSED: [item: string, passed: (st: Record<string, unknown>, flags: Record<string, unknown>) => boolean][] = [
@@ -55,6 +58,13 @@ const MIGRATIONS: Record<number, (data: Record<string, unknown>) => Record<strin
       equipment.whit = { ...equipment.whit, relic: 'blankPennon' };
     }
     return { ...d, state: { ...st, inventory, equipment } };
+  },
+  // Version 2 saves predate experience and pennies: the fights already won give theirs.
+  2: (d) => {
+    const st = d.state;
+    if (!isObject(st)) return d;
+    const cleared = Array.isArray(st.cleared) ? (st.cleared as unknown[]).filter((c): c is string => typeof c === 'string') : [];
+    return { ...d, state: { ...st, ...spoilsOf(cleared) } };
   },
 };
 
@@ -86,6 +96,8 @@ export function parseSave(raw: string | null): SaveData | null {
     equipment: { ...base.equipment, ...(isObject(st.equipment) ? (st.equipment as GameState['equipment']) : {}) },
     inventory: Array.isArray(st.inventory) ? (st.inventory as unknown[]).filter((i): i is string => typeof i === 'string') : base.inventory,
     formation: Array.isArray(st.formation) && st.formation.length === 3 ? (st.formation as GameState['formation']) : base.formation,
+    xp: count(st.xp),
+    pennies: count(st.pennies),
   };
   return {
     version: SAVE_VERSION,

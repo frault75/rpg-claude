@@ -26,7 +26,7 @@ import {
   whoosh,
 } from '../audio/battleSfx';
 import { footstep, pageTurn, uiTick } from '../audio/sfx';
-import { ABILITIES, ENCOUNTERS, ENEMIES } from '../battle/data';
+import { ABILITIES, ENCOUNTERS, ENEMIES, PARTY_STATS } from '../battle/data';
 import { bell, midiToHz } from '../audio/instruments';
 import { Battle, type Refusal } from '../battle/engine';
 import {
@@ -44,13 +44,18 @@ import {
   drawHelp,
   drawNumber,
   drawParty,
+  drawSpoils,
   drawTargetHand,
   type NumberKind,
   PARTY_W,
   type PartyRow,
   partyHeight,
   RED_INK,
+  SPOILS_W,
+  type SpoilsLook,
+  spoilsHeight,
 } from '../battle/hud';
+import { abilityText, claim, type Difficulty, hpAt, LEVEL_XP, levelFor, MAX_LEVEL, progress, type Spoils } from '../battle/growth';
 import { type AbilityId, type BattleEvent, type Intent, PLACE_NAMES, type Unit } from '../battle/types';
 import type { DebugInfo } from '../debug/overlay';
 import type { WorldRenderer } from '../engine/diorama/renderer';
@@ -280,7 +285,12 @@ export class BattleScene implements Scene {
   private hold = false;
   private lastPointer = { x: -1, y: -1 };
   private defeats = 0;
-  private gentle = prefs.gentle;
+  private difficulty: Difficulty = prefs.difficulty;
+  /** What this fight gave the first time it was won, for the victory scroll. */
+  private spoils: Spoils | null = null;
+  private spoilsWin: UiPanel | null = null;
+  private spoilsT = -1;
+  private chimed = false;
   private readonly partyIds: CharId[];
 
   constructor(
@@ -364,7 +374,8 @@ export class BattleScene implements Scene {
       party: this.partyIds,
       abilities: Object.fromEntries(this.partyIds.map((c) => [c, (g.abilities[c] ?? []).filter((a): a is AbilityId => a in ABILITIES)])) as Record<CharId, AbilityId[]>,
       equipment: g.equipment,
-      gentle: this.gentle,
+      level: levelFor(g.xp),
+      difficulty: this.difficulty,
       emendAnywhere: !!g.flags.emendUpgraded,
       seed: 7,
     });
@@ -825,6 +836,7 @@ export class BattleScene implements Scene {
           start: () => {
             this.mode = 'result';
             this.defeats = 0;
+            this.spoils = claim(session.game, this.encounter);
             this.music.stop();
             phrase(a, 'victory');
             this.showBanner(t('battle.victory'), t('battle.victoryLine'), false);
@@ -1044,7 +1056,7 @@ export class BattleScene implements Scene {
             label: tr(def.name),
             right: this.costLabel(u, a),
             disabled: !!blocking,
-            help: blocking ? `${tr(def.text)} — ${this.refusalText(blocking, u)}` : tr(def.text),
+            help: blocking ? `${tr(abilityText(a, b.level))} — ${this.refusalText(blocking, u)}` : tr(abilityText(a, b.level)),
             warn: !!blocking,
             run: () => {
               if (blocking) return this.buzz(this.refusalText(blocking, u));
@@ -1195,6 +1207,9 @@ export class BattleScene implements Scene {
   }
 
   private openResult(won: boolean): void {
+    // After two defeats, the fight can be tried a step easier.
+    const easier: Difficulty | null = this.difficulty === 'illuminated' ? 'normal' : this.difficulty === 'normal' ? 'story' : null;
+    if (won && this.spoils && (this.spoils.xp || this.spoils.pennies)) this.openSpoils(this.spoils);
     const entries: Opt[] = won
       ? [{ label: t('battle.continue'), help: '', run: () => this.onEnd('victory') }]
       : [
@@ -1206,14 +1221,14 @@ export class BattleScene implements Scene {
               this.begin(false);
             },
           },
-          ...(this.defeats >= 2 && !this.gentle
+          ...(this.defeats >= 2 && easier
             ? [
                 {
-                  label: `${t('battle.retry')} · ${t('battle.gentle')}`,
-                  help: t('settings.gentle'),
+                  label: `${t('battle.retry')} · ${t(`difficulty.${easier}`)}`,
+                  help: t(`difficulty.${easier}.text`),
                   run: () => {
-                    this.gentle = true;
-                    session.settings.update((s) => (s.gameplay.gentle = true));
+                    this.difficulty = easier;
+                    session.settings.update((s) => (s.gameplay.difficulty = easier));
                     this.banner.visible = false;
                     this.begin(false);
                   },
@@ -1225,6 +1240,51 @@ export class BattleScene implements Scene {
     this.menus = [{ kind: 'result', title: won ? t('battle.victory') : t('battle.defeat'), cursor: 0, options: () => entries }];
     this.cmdDirty = true;
   }
+
+  /** The victory scroll: experience and pennies, then the level they brought. */
+  private openSpoils(sp: Spoils): void {
+    const story = this.difficulty === 'story' ? 1.5 : 1;
+    const levelUp =
+      sp.to > sp.from
+        ? {
+            title: t('battle.levelUp', { n: sp.to }),
+            line: t(sp.to >= MAX_LEVEL ? 'battle.maxLevel' : 'battle.levelLine'),
+            hp: `${t('party.hp')} · ${this.partyIds.map((c) => `${tr(PARTY_STATS[c].name)} ${Math.round(hpAt(c, sp.to) * story)}`).join(' · ')}`,
+            ranks: sp.ranks.map((r) => ({ name: tr(r.name), rule: tr(r.text) })),
+          }
+        : undefined;
+    const h = spoilsHeight({ levelUp });
+    const p = this.ui.panel(SPOILS_W, h, 8);
+    p.zoom = this.zw;
+    p.anchor = [0.5, 0];
+    p.x = (VIEW_W - SPOILS_W) / 2;
+    // Above the party window, high enough to clear it at any text size.
+    const bottom = VIEW_H - 18 - partyHeight(this.partyIds.length) * this.zw - 14;
+    p.y = Math.max(76, Math.min(150, bottom - h * this.zw));
+    p.opacity = 0;
+    this.spoilsWin = p;
+    this.spoilsT = 0;
+    this.chimed = false;
+    const purse = session.game.pennies;
+    this.drawSpoilsAt = (time) => {
+      // The bar fills from the old experience to the new, passing through every level gained.
+      const k = Math.max(0, Math.min(1, (time - 0.5) / 0.9));
+      const xp = sp.before + sp.xp * (k * (2 - k));
+      const lv = progress(Math.floor(xp + 1e-6));
+      const look: SpoilsLook = {
+        title: t('battle.spoils'),
+        xp: { label: t('battle.xp'), amount: sp.xp },
+        pennies: { label: t('battle.pennies'), amount: sp.pennies, purse: t('battle.purse', { n: purse }) },
+        bar: { label: t('battle.level', { n: lv.level }), fill: lv.need ? (xp - LEVEL_XP[lv.level]!) / lv.need : 1 },
+        levelUp,
+        rise: (time - 1.5) * 2.5,
+      };
+      p.draw((c, w, hh) => drawSpoils(c, w, hh, look));
+    };
+    this.drawSpoilsAt(0);
+  }
+
+  private drawSpoilsAt: ((time: number) => void) | null = null;
 
   // ---- input ----
 
@@ -1945,6 +2005,25 @@ export class BattleScene implements Scene {
     if (this.bannerT >= 0) {
       this.bannerT += dt;
       this.banner.opacity = Math.min(1, this.bannerT * 2);
+    }
+    // The victory scroll takes the banner's place, fills its bar, and rings in a new level.
+    if (this.spoilsWin && this.spoilsT >= 0) {
+      const was = this.spoilsT;
+      this.spoilsT += dt;
+      this.spoilsWin.opacity = Math.min(1, this.spoilsT * 3);
+      this.banner.opacity = Math.max(0, 1 - this.spoilsT * 3);
+      if (this.banner.opacity <= 0) this.banner.visible = false;
+      if (was < 2.2) this.drawSpoilsAt?.(this.spoilsT);
+      const sp = this.spoils;
+      if (!this.chimed && sp && sp.to > sp.from && this.spoilsT >= 1.5) {
+        this.chimed = true;
+        const ctx = this.audio.ctx;
+        if (ctx)
+          [67, 71, 74, 79].forEach((m, i) => {
+            bell(ctx, this.audio.bus('sfx'), midiToHz(m), ctx.currentTime + i * 0.11, 0.22, 5);
+            bell(ctx, this.audio.reverbIn, midiToHz(m), ctx.currentTime + i * 0.11, 0.14, 5);
+          });
+      }
     }
     // Windows.
     if (this.overlayDirty) {
