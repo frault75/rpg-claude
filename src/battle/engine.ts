@@ -183,6 +183,11 @@ export class Battle {
     return it.reach === 'close' ? ts.filter((t) => t.place <= 1) : ts;
   }
 
+  /** The abilities an ally knows in this battle. */
+  abilitiesOf(id: string): AbilityId[] {
+    return this.abilities[id as CharId] ?? [];
+  }
+
   /** Allies who can still act this phase. */
   ready(): Unit[] {
     return this.party.filter((u) => !u.fallen && !u.acted && !u.status.immured);

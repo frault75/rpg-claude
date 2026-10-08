@@ -18,6 +18,7 @@ import { TouchControls } from './engine/touch';
 import { detectLanguage, setLang, t } from './i18n/i18n';
 import { Menu } from './menu/menu';
 import { equipmentPage, type MenuDeps, partyPage, settingsPage } from './menu/pages';
+import { BattleScene } from './scenes/battle';
 import { PrologueScene } from './scenes/prologue';
 import { SeaGateScene } from './scenes/seaGate';
 import { TitleScene } from './scenes/title';
@@ -84,7 +85,22 @@ function boot(): void {
   const transition = (next: () => Scene, dur = 1.1) => {
     if (!fadeOut) fadeOut = { t: 0, dur, next };
   };
-  const prologue = (): Scene => new PrologueScene(renderer, input, audio, () => transition(() => new SeaGateScene(renderer, input, audio), 0.6));
+  /** A fight, then back to wherever `after` leads. */
+  const battle = (id: string, after: (won: boolean) => Scene): Scene => new BattleScene(renderer, input, audio, id, (end) => transition(() => after(end === 'victory'), 1.2));
+  /** The Sea Gate, with its fight on the causeway. */
+  const seaGate = (): Scene =>
+    new SeaGateScene(renderer, input, audio, {
+      battle: (id) =>
+        transition(
+          () =>
+            battle(id, (won) => {
+              if (won && !session.game.cleared.includes(id)) session.game.cleared.push(id);
+              return seaGate();
+            }),
+          0.9,
+        ),
+    });
+  const prologue = (): Scene => new PrologueScene(renderer, input, audio, () => transition(seaGate, 0.6));
   const toTitle = (): Scene => {
     const title: TitleScene = new TitleScene(renderer, input, audio, {
       choices: () => [
@@ -107,7 +123,7 @@ function boot(): void {
             title.hideMenu();
             transition(() => {
               session.game = save.state;
-              return new SeaGateScene(renderer, input, audio);
+              return seaGate();
             });
           },
         },
@@ -135,9 +151,15 @@ function boot(): void {
   };
   const deps: MenuDeps = { menu, settings, game: () => session.game, input, autoTier: () => detected.tier };
   const params = new URLSearchParams(location.search);
-  if (params.get('scene') === 'seagate') {
+  if (params.get('scene') === 'battle') {
     startGame();
-    scene = new SeaGateScene(renderer, input, audio);
+    session.game.party = ['isot', 'hild', 'whit'];
+    const id = params.get('fight') ?? 'b1';
+    const again = (): Scene => battle(id, again);
+    scene = again();
+  } else if (params.get('scene') === 'seagate') {
+    startGame();
+    scene = seaGate();
   } else if (params.get('scene') === 'prologue') {
     startGame();
     scene = prologue();

@@ -39,7 +39,8 @@ export class UiPanel {
     readonly w: number,
     readonly h: number,
   ) {
-    this.ctx = this.canvas.getContext('2d')!;
+    // Kept on the CPU: panels are small, redrawn rarely, and uploaded as textures.
+    this.ctx = this.canvas.getContext('2d', { willReadFrequently: true })!;
     this.texture = new THREE.CanvasTexture(this.canvas);
     this.texture.colorSpace = THREE.NoColorSpace;
     this.texture.minFilter = THREE.LinearFilter;
@@ -64,6 +65,9 @@ export class UiPanel {
     c.clearRect(0, 0, this.canvas.width, this.canvas.height);
     c.setTransform(this.scale, 0, 0, this.scale, 0, 0);
     this.drawFn(c, this.w, this.h);
+    // Make the browser carry the drawing out now. Some defer it, and a panel redrawn
+    // while hidden can then show a ghost of its old drawing under the new one.
+    c.getImageData(0, 0, 1, 1);
     this.texture.needsUpdate = true;
   }
 

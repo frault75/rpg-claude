@@ -312,3 +312,11 @@ describe('equipment', () => {
     expect(b.ink).toBe(2);
   });
 });
+
+describe('the battle music', () => {
+  it('fills every bar of the estampie exactly', async () => {
+    const { barLengths, OSTINATO } = await import('../src/audio/battleMusic');
+    expect(barLengths().every((n) => n === 6)).toBe(true);
+    expect(OSTINATO).toHaveLength(12);
+  });
+});

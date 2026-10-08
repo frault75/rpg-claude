@@ -20,8 +20,19 @@ import { LocationCard, Letterbox } from '../ui/card';
 import { Dialogue } from '../ui/dialogue';
 import { UiLayer } from '../ui/ui';
 import { Director } from '../world/director';
+import { greatSnailArt } from '../pixel/enemies';
 import { Actor } from '../world3d/actor';
+import { Billboard, pixelTexture } from '../world3d/billboard';
 import { Stage, tiles } from '../world3d/stage';
+
+/** What the Sea Gate asks of the game around it. */
+export interface SeaGateHooks {
+  /** Start a fight; the game comes back here when it is over. */
+  battle?: (id: string) => void;
+}
+
+/** Where on the causeway the Great Snail heaves itself out of the sea. */
+const SNAIL_Y = tiles(25.4);
 
 export class SeaGateScene implements Scene {
   readonly name = 'sea-gate';
@@ -46,10 +57,14 @@ export class SeaGateScene implements Scene {
   /** Where a click or tap asked the player to walk. */
   private goal: [number, number] | null = null;
 
+  private snail: Billboard | null = null;
+  private snailRise = -1;
+
   constructor(
     private readonly r: WorldRenderer,
     private readonly input: Input,
     private readonly audio: AudioEngine,
+    private readonly hooks: SeaGateHooks = {},
   ) {
     const st = (this.stage = new Stage(r));
     const set = dressSeaGate(r, st);
@@ -97,7 +112,73 @@ export class SeaGateScene implements Scene {
       }),
     );
     this.input.onGesture(() => this.ambience.start(this.audio));
-    void this.opening();
+    const g = session.game;
+    if (g.party.includes('whit')) void this.resume(g.cleared.includes('b1'));
+    else void this.opening();
+  }
+
+  /** Back on the causeway after the knight has joined: before the snail, or after it. */
+  private async resume(won: boolean): Promise<void> {
+    const p = this.player;
+    const hild = this.party[0]!;
+    const w = this.whit;
+    this.met = true;
+    this.party.push(w);
+    p.x = tiles(14.5);
+    p.y = won ? SNAIL_Y + 6 : tiles(23.6);
+    p.dir = 'down';
+    this.trail.length = 0;
+    for (let i = 0; i < 80; i++) this.trail.push([p.x, p.y - Math.min(i, 40) * 0.5]);
+    hild.x = w.x = p.x;
+    hild.y = p.y - 8;
+    w.y = p.y - 16;
+    w.h = 0;
+    this.director.take(p.x, p.y - 10, 0);
+    if (!won) {
+      this.director.release();
+      return;
+    }
+    this.cutscene = true;
+    await this.director.wait(1.2);
+    await this.dialogue.say('knight', { en: 'It has gone back into the border. They always do.', fr: 'Il est retourné dans la bordure. Ils y retournent toujours.' });
+    p.dir = 'up';
+    await this.dialogue.say('isot', { en: 'Into the border? Like a drawing?', fr: 'Dans la bordure ? Comme un dessin ?' }, 'wry');
+    await this.dialogue.say('hild', { en: 'Nothing in Hollin dies any more, child. Not even the jokes. Come: Lychford is a day’s walk, and the tide is turning.', fr: 'Plus rien ne meurt en Hollin, petite. Pas même les plaisanteries. Viens : Lychford est à une journée de marche, et la marée tourne.' }, 'grave');
+    this.dialogue.close();
+    session.saves.save('auto', session.game);
+    this.director.release();
+    this.cutscene = false;
+  }
+
+  /** The causeway heaves: the Great Snail of the Causeway, the oldest joke in the margin. */
+  private async snailRises(): Promise<void> {
+    const d = this.director;
+    const p = this.player;
+    this.cutscene = true;
+    this.goal = null;
+    const art = greatSnailArt();
+    const b = new Billboard(pixelTexture(art.a), art.w, art.h, { cols: art.a.w / art.w, rows: 1, anchor: art.anchor, emissive: pixelTexture(art.e) });
+    b.flip = true;
+    b.x = tiles(14.5);
+    b.y = SNAIL_Y + 66;
+    b.h = -70;
+    this.r.scene.add(b.mesh);
+    this.snail = b;
+    this.letterbox.target = 1;
+    d.take(this.r.view.x, this.r.view.y, this.r.view.h);
+    d.shake(5, 1.6);
+    p.emote('alarm');
+    for (const a of this.party) a.dir = 'down';
+    await d.panTo(...d.clamp(p.x, SNAIL_Y + 26), 1.4, 0);
+    this.snailRise = 0;
+    await d.wait(1.8);
+    await this.dialogue.narrate({ en: 'The causeway heaves. Something the size of a cart hauls itself out of the shallows, streaming, its horns up like lances.', fr: 'La chaussée se soulève. Une chose grande comme une charrette se hisse hors des hauts-fonds, ruisselante, les cornes dressées comme des lances.' });
+    await this.dialogue.say('isot', { en: 'That is a snail.', fr: 'C’est un escargot.' }, 'alarmed');
+    await this.dialogue.say('knight', { en: 'In the margins, knights fight snails. It is the oldest joke there is.', fr: 'Dans les marges, les chevaliers combattent des escargots. C’est la plus vieille plaisanterie qui soit.' });
+    await this.dialogue.say('hild', { en: 'And who wins, in the joke?', fr: 'Et qui gagne, dans la plaisanterie ?' }, 'stern');
+    await this.dialogue.say('knight', { en: 'The snail.', fr: 'L’escargot.' });
+    this.dialogue.close();
+    this.hooks.battle?.('b1');
   }
 
   private heightAt(x: number, y: number): number {
@@ -255,6 +336,14 @@ export class SeaGateScene implements Scene {
     this.candle.h = p.h + 12;
 
     if (free && !this.met && p.y > tiles(22.2)) void this.knight();
+    if (free && !this.snail && this.met && this.party.includes(this.whit) && !session.game.cleared.includes('b1') && p.y > SNAIL_Y && this.hooks.battle) void this.snailRises();
+    if (this.snail) {
+      if (this.snailRise >= 0) this.snailRise = Math.min(1, this.snailRise + dt / 1.6);
+      const k = 1 - Math.pow(1 - Math.max(0, this.snailRise), 3);
+      this.snail.h = -70 + 66 * k;
+      this.snail.setFrame(Math.floor(this.time / 0.32) % 4, 0);
+      this.snail.sync();
+    }
 
     this.director.update(dt);
     const [cx, cy] = this.director.active ? this.director.cam : this.director.clamp(p.x, p.y - 10);
@@ -314,6 +403,7 @@ export class SeaGateScene implements Scene {
     this.ui.dispose();
     this.ambience.stop();
     this.stage.dispose();
+    this.snail?.dispose();
     this.player.dispose();
     for (const a of this.party) a.dispose();
     if (!this.party.includes(this.whit)) this.whit.dispose();

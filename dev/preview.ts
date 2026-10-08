@@ -2,6 +2,7 @@
 import { CHARACTERS, characterSheet, drawCharacter, FRAMES } from '../src/pixel/characters';
 import type { PixelImage } from '../src/pixel/pixel';
 import { drawPortrait, type Mood } from '../src/pixel/portraits';
+import { greatSnailArt, gryllusArt } from '../src/pixel/enemies';
 
 const params = new URLSearchParams(location.search);
 const scale = Number(params.get('scale') ?? 5);
@@ -49,5 +50,15 @@ if (what === 'characters') {
     Object.values(CHARACTERS).map((c) => ({ img: characterSheet(c), label: c.id })),
     1,
   );
+}
+if (what === 'enemies') {
+  const imgs = [];
+  for (const [label, art] of [
+    ['gryllus', gryllusArt()],
+    ['great snail', greatSnailArt()],
+  ] as const) {
+    imgs.push({ img: art.a, label });
+  }
+  show(imgs, 1);
 }
 (window as unknown as { ready: boolean }).ready = true;
