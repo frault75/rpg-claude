@@ -324,11 +324,12 @@ export class BattleScene implements Scene {
         if (p) this.onClick(p.x, p.y);
       }),
     );
+    this.begin(true);
+    // After begin(): with sound already allowed, this runs at once.
     input.onGesture(() => {
       this.ambience.start(audio);
       if (this.battle.result === 'ongoing') this.music.start(audio);
     });
-    this.begin(true);
   }
 
   // ---- setting up a fight ----

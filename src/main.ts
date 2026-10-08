@@ -18,7 +18,9 @@ import { TouchControls } from './engine/touch';
 import { detectLanguage, setLang, t } from './i18n/i18n';
 import { Menu } from './menu/menu';
 import { equipmentPage, type MenuDeps, partyPage, settingsPage } from './menu/pages';
+import { MAPS } from './maps/index';
 import { BattleScene } from './scenes/battle';
+import { type Arrival, MapScene } from './scenes/map';
 import { PrologueScene } from './scenes/prologue';
 import { SeaGateScene } from './scenes/seaGate';
 import { TitleScene } from './scenes/title';
@@ -66,11 +68,11 @@ function boot(): void {
   apply(settings.value);
   settings.onChange(apply);
 
-  /** A new game, as far as the story is built: chapter I at the sea gate. */
+  /** A new game: chapter I, in the scriptorium. */
   const startGame = () => {
     const game = newGame();
-    game.map = 'seaGate';
-    game.party = ['isot', 'hild'];
+    game.map = 'scriptorium';
+    game.party = ['isot'];
     game.abilities = { ...CHAPTER_ONE_ABILITIES };
     game.inventory = ['wystansPumice', 'psalterChain', 'ebbShell'];
     game.equipment.isot.charm = 'wystansPumice';
@@ -88,8 +90,12 @@ function boot(): void {
   /** A fight, then back to wherever `after` leads. */
   const battle = (id: string, after: (won: boolean) => Scene): Scene => new BattleScene(renderer, input, audio, id, (end) => transition(() => after(end === 'victory'), 1.2));
   /** The Sea Gate, with its fight on the causeway. */
-  const seaGate = (): Scene =>
-    new SeaGateScene(renderer, input, audio, {
+  const seaGate = (): Scene => {
+    // A checkpoint: arriving at the Sea Gate saves the game.
+    session.game.map = 'seaGate';
+    session.saves.save('auto', session.game);
+    return new SeaGateScene(renderer, input, audio, {
+      end: () => transition(toTitle, 2.4),
       battle: (id) =>
         transition(
           () =>
@@ -100,7 +106,26 @@ function boot(): void {
           0.9,
         ),
     });
-  const prologue = (): Scene => new PrologueScene(renderer, input, audio, () => transition(seaGate, 0.6));
+  };
+  /** Any map by id; the Sea Gate keeps its own scene for now. */
+  const mapScene = (id: string, arrival: Arrival): Scene => {
+    if (id === 'seaGate') return seaGate();
+    const def = MAPS[id];
+    if (!def) throw new Error(`unknown map ${id}`);
+    return new MapScene(renderer, input, audio, def, arrival, {
+      goto: (map, spawn) => transition(() => mapScene(map, { spawn }), 0.8),
+      battle: (fight, back) =>
+        transition(
+          () =>
+            battle(fight, (won) => {
+              if (won && !session.game.cleared.includes(fight)) session.game.cleared.push(fight);
+              return mapScene(back.map, { x: back.x, y: back.y, dir: back.dir, from: `${won ? 'battle' : 'retreat'}:${fight}` });
+            }),
+          0.9,
+        ),
+    });
+  };
+  const prologue = (): Scene => new PrologueScene(renderer, input, audio, () => transition(() => mapScene('scriptorium', { spawn: 'start' }), 0.6));
   const toTitle = (): Scene => {
     const title: TitleScene = new TitleScene(renderer, input, audio, {
       choices: () => [
@@ -123,7 +148,7 @@ function boot(): void {
             title.hideMenu();
             transition(() => {
               session.game = save.state;
-              return seaGate();
+              return mapScene(save.state.map, { spawn: save.state.spawn || 'start' });
             });
           },
         },
@@ -151,7 +176,11 @@ function boot(): void {
   };
   const deps: MenuDeps = { menu, settings, game: () => session.game, input, autoTier: () => detected.tier };
   const params = new URLSearchParams(location.search);
-  if (params.get('scene') === 'battle') {
+  const mapParam = params.get('map');
+  if (mapParam && MAPS[mapParam]) {
+    startGame();
+    scene = mapScene(mapParam, { spawn: params.get('spawn') ?? 'start' });
+  } else if (params.get('scene') === 'battle') {
     startGame();
     session.game.party = ['isot', 'hild', 'whit'];
     const id = params.get('fight') ?? 'b1';
@@ -159,6 +188,7 @@ function boot(): void {
     scene = again();
   } else if (params.get('scene') === 'seagate') {
     startGame();
+    session.game.party = ['isot', 'hild'];
     scene = seaGate();
   } else if (params.get('scene') === 'prologue') {
     startGame();
@@ -216,7 +246,24 @@ function boot(): void {
         get: () => renderer.enabled[k],
         set: (on: boolean) => (renderer.enabled[k] = on),
       })),
-    buttons: () => scene.debugButtons(),
+    buttons: () => [
+      ...scene.debugButtons(),
+      // Jump anywhere the story reaches.
+      { label: '→ title', run: () => transition(toTitle, 0.3) },
+      { label: '→ prologue', run: () => transition(() => (startGame(), prologue()), 0.3) },
+      { label: '→ scriptorium', run: () => transition(() => (startGame(), mapScene('scriptorium', { spawn: 'start' })), 0.3) },
+      { label: '→ sea gate', run: () => transition(() => (startGame(), (session.game.party = ['isot', 'hild']), seaGate()), 0.3) },
+      ...['f1', 'f2', 'b1'].map((id) => ({
+        label: `→ fight ${id}`,
+        run: () =>
+          transition(() => {
+            startGame();
+            session.game.party = ['isot', 'hild', 'whit'];
+            const again = (): Scene => battle(id, again);
+            return again();
+          }, 0.3),
+      })),
+    ],
   });
   input.onAction((a) => {
     if (a === 'debug' || a === 'debugMenu') debug.toggle();

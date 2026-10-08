@@ -220,11 +220,15 @@ registerStrings('en', {
   'prologue.skip': 'Skip: Esc / B',
   'chapter.1': 'Chapter I',
   'chapter.1.name': 'The Scraping',
+  'chapter.2': 'Chapter II',
+  'chapter.2.name': 'The Village Without Graves',
 });
 registerStrings('fr', {
   'prologue.skip': 'Passer : Échap / B',
   'chapter.1': 'Chapitre I',
   'chapter.1.name': 'Le Grattage',
+  'chapter.2': 'Chapitre II',
+  'chapter.2.name': 'Le village sans tombes',
 });
 
 registerStrings('en', {
@@ -352,4 +356,13 @@ registerStrings('fr', {
   'status.rubricated': 'Rubrique',
   'status.doomed': 'Condamné',
   'status.readOnly': 'Doit être Lu',
+});
+
+registerStrings('en', {
+  'page.help': 'Hold R (or the right button) to tilt the candle · Enter to close',
+  'map.look': 'Look',
+});
+registerStrings('fr', {
+  'page.help': 'Maintenez R (ou le bouton droit) pour incliner la bougie · Entrée pour fermer',
+  'map.look': 'Regarder',
 });
