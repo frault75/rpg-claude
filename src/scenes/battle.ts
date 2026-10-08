@@ -1051,7 +1051,7 @@ export class BattleScene implements Scene {
             disabled: !ready,
             done: u.acted && !u.fallen && !b.kneeling(u.id),
             unit: u.id,
-            help: ready ? this.unitHelp(u) : u.fallen ? t('refuse.fallen') : b.kneeling(u.id) ? `${tr(u.name)} ${t('battle.kneels')}.` : u.status.immured ? t('refuse.immured') : t('refuse.acted'),
+            help: ready ? this.statusHelp(u) : u.fallen ? t('refuse.fallen') : b.kneeling(u.id) ? `${tr(u.name)} ${t('battle.kneels')}.` : u.status.immured ? t('refuse.immured') : t('refuse.acted'),
             warn: !ready,
             run: () => this.openAbilities(u.id),
           });
@@ -1080,9 +1080,11 @@ export class BattleScene implements Scene {
     };
   }
 
-  private unitHelp(u: Unit): string {
-    const chips = this.chips(u).map((c) => c.text);
-    return `${tr(u.name)} — ${t('battle.hp')} ${u.hp}/${u.maxHp}${chips.length ? ' · ' + chips.join(' · ') : ''}`;
+  /** What its statuses mean, in a line each ("Ward 3: absorbs the next 3 damage"); empty if it has none. */
+  private statusHelp(u: Unit): string {
+    return this.chips(u)
+      .map((c) => c.help)
+      .join('  ·  ');
   }
 
   private refusalText(r: Refusal, user: Unit): string {
@@ -1226,7 +1228,6 @@ export class BattleScene implements Scene {
   private openItemTargets(u: Unit, id: SatchelId): void {
     const def = SATCHEL[id];
     uiTick(this.audio, true);
-    const prompt = t('battle.chooseTarget');
     this.menus.push({
       kind: 'target',
       title: tr(def.name),
@@ -1237,7 +1238,7 @@ export class BattleScene implements Scene {
           return {
             label: this.nameOf(tu.id),
             unit: tu.id,
-            help: x.refusal ? `${this.unitHelp(tu)} — ${this.refusalText(x.refusal, u)}` : `${prompt} ${this.unitHelp(tu)}`,
+            help: x.refusal ? this.refusalText(x.refusal, u) : this.statusHelp(tu) || tr(def.text),
             warn: !!x.refusal,
             disabled: !!x.refusal,
             run: () => (x.refusal ? this.buzz(this.refusalText(x.refusal, u)) : this.doUse(u.id, id, { unit: tu.id })),
@@ -1259,7 +1260,6 @@ export class BattleScene implements Scene {
   private openTargets(u: Unit, a: AbilityId): void {
     const def = ABILITIES[a];
     uiTick(this.audio, true);
-    const prompt = def.target === 'intent' ? t('battle.chooseIntent') : t('battle.chooseTarget');
     this.menus.push({
       kind: 'target',
       title: tr(def.name),
@@ -1268,12 +1268,13 @@ export class BattleScene implements Scene {
         this.targetsFor(u, a).map((x) => {
           const label = x.unit ? this.nameOf(x.unit) : x.intent ? this.intentText(this.battle.intents.find((i) => i.id === x.intent)!) : '';
           const tu = x.unit ? this.battle.unit(x.unit) : undefined;
-          const detail = tu ? (tu.side === 'enemy' ? this.unitHelp(tu) : this.unitHelp(tu)) : label;
+          // A unit: what its statuses mean, or what the ability will do to it; an intent: the intent in words.
+          const detail = tu ? this.statusHelp(tu) || tr(abilityText(a, this.battle.level)) : label;
           return {
             label,
             unit: x.unit,
             intent: x.intent,
-            help: x.refusal ? `${detail} — ${this.refusalText(x.refusal, u)}` : `${prompt} ${detail}`,
+            help: x.refusal ? this.refusalText(x.refusal, u) : detail,
             warn: !!x.refusal,
             disabled: !!x.refusal,
             run: () => {
@@ -1310,7 +1311,7 @@ export class BattleScene implements Scene {
             return {
               label: tr(x.name),
               unit: x.id,
-              help: refusal ? this.refusalText(refusal, u) : `${choose} ${this.unitHelp(x)}`,
+              help: refusal ? this.refusalText(refusal, u) : [choose, this.statusHelp(x)].filter(Boolean).join('  '),
               warn: !!refusal,
               disabled: !!refusal,
               run: () => (refusal ? this.buzz(this.refusalText(refusal, u)) : this.doAct(u.id, 'emend', { intent, to: x.id })),
@@ -1621,25 +1622,27 @@ export class BattleScene implements Scene {
     return [tr(it.label), at, far, it.rule ? tr(it.rule) : ''].filter(Boolean).join(' — ');
   }
 
-  private chips(u: Unit): { text: string; color: string }[] {
+  private chips(u: Unit): { text: string; color: string; help: string }[] {
     const s = u.status;
-    const out: { text: string; color: string }[] = [];
-    if (s.ward > 0) out.push({ text: t('status.ward', { n: s.ward }), color: '#A8C4FF' });
-    if (s.tally !== null) out.push({ text: t('status.tally', { n: s.tally }), color: '#F0D070' });
-    if (s.glossed) out.push({ text: t('status.glossed'), color: '#F4E2A8' });
-    if (s.shelled) out.push({ text: t('status.shelled'), color: '#D8B888' });
-    if (s.immured) out.push({ text: t('status.immured'), color: '#C8C0B0' });
-    if (s.smudged) out.push({ text: t('status.smudged'), color: '#9A9AB8' });
-    if (s.rubricated) out.push({ text: t('status.rubricated'), color: '#F08070' });
-    if (s.doomed) out.push({ text: t('status.doomed'), color: '#E07070' });
-    if (s.guarded) out.push({ text: t('status.guarded'), color: '#E8D8A0' });
-    if (s.readOnly) out.push({ text: t('status.readOnly'), color: '#C8A8E8' });
-    if (s.forgotten > 0) out.push({ text: t('status.forgotten'), color: '#E8E4DA' });
+    const out: { text: string; color: string; help: string }[] = [];
+    const add = (key: string, color: string, vars: Record<string, string | number> = {}) =>
+      out.push({ text: t(`status.${key}`, vars), color, help: t(`statusHelp.${key}`, vars) });
+    if (s.ward > 0) add('ward', '#A8C4FF', { n: s.ward });
+    if (s.tally !== null) add('tally', '#F0D070', { n: s.tally });
+    if (s.glossed) add('glossed', '#F4E2A8');
+    if (s.shelled) add('shelled', '#D8B888');
+    if (s.immured) add('immured', '#C8C0B0');
+    if (s.smudged) add('smudged', '#9A9AB8');
+    if (s.rubricated) add('rubricated', '#F08070');
+    if (s.doomed) add('doomed', '#E07070');
+    if (s.guarded) add('guarded', '#E8D8A0');
+    if (s.readOnly) add('readOnly', '#C8A8E8');
+    if (s.forgotten > 0) add('forgotten', '#E8E4DA');
     const named = u.side === 'enemy' ? ENEMIES[u.kind]?.named : undefined;
-    if (named && s.named > 0) out.push({ text: t('status.named', { n: s.named, m: named }), color: '#F4E2A8' });
+    if (named && s.named > 0) add('named', '#F4E2A8', { n: s.named, m: named });
     // The dance keeps its secret until it is Glossed or Squinted.
-    if (s.revealed && s.hollow) out.push({ text: t('status.hollow'), color: '#D8D0C0' });
-    if (s.revealed && u.side === 'enemy' && ENEMIES[u.kind]?.leads) out.push({ text: t('status.leads'), color: '#F0C060' });
+    if (s.revealed && s.hollow) add('hollow', '#D8D0C0');
+    if (s.revealed && u.side === 'enemy' && ENEMIES[u.kind]?.leads) add('leads', '#F0C060');
     return out;
   }
 
