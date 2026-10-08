@@ -29,7 +29,7 @@ export function forgotten(n: number, depth: number): boolean {
 }
 
 /** A recorder: a soft sine with a breathy onset and a slow vibrato. */
-function recorder(ctx: AudioContext, out: AudioNode, midi: number, t: number, dur: number, level: number): void {
+export function recorder(ctx: AudioContext, out: AudioNode, midi: number, t: number, dur: number, level: number): void {
   const hz = midiToHz(midi);
   const o = ctx.createOscillator();
   o.type = 'sine';
@@ -61,7 +61,7 @@ function recorder(ctx: AudioContext, out: AudioNode, midi: number, t: number, du
 }
 
 /** A psaltery: a plucked string, bright and quickly gone. */
-function psaltery(ctx: AudioContext, out: AudioNode, midi: number, t: number, level: number): void {
+export function psaltery(ctx: AudioContext, out: AudioNode, midi: number, t: number, level: number): void {
   const hz = midiToHz(midi);
   for (const [mul, lv] of [
     [1, 1],
@@ -83,7 +83,7 @@ function psaltery(ctx: AudioContext, out: AudioNode, midi: number, t: number, le
 }
 
 /** A frame drum: a low thump with a skin's slap. */
-function drum(ctx: AudioContext, out: AudioNode, t: number, level: number): void {
+export function drum(ctx: AudioContext, out: AudioNode, t: number, level: number): void {
   const o = ctx.createOscillator();
   o.type = 'sine';
   o.frequency.setValueAtTime(110, t);

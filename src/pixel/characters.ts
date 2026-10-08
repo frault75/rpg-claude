@@ -45,6 +45,8 @@ export interface CharSpec {
   rags?: boolean;
   /** Shaggy hair all over, long locks and a beard (the wodewose). */
   fur?: boolean;
+  /** A drollery's face: a fox's snout and ears, or an ape's muzzle (the Margin). */
+  muzzle?: 'fox' | 'ape';
 }
 
 export const CHARACTERS: Record<string, CharSpec> = {
@@ -72,6 +74,10 @@ export const CHARACTERS: Record<string, CharSpec> = {
   king: { id: 'king', skin: '#E9DDC2', hair: '#D8CCB0', eyes: '#141010', headwear: 'crown', headwearColor: '#D8A838', robe: '#6B3C70', cape: '#2E4A8A', held: 'none', skull: true, rags: true },
   ploughman: { id: 'ploughman', skin: '#E9DDC2', hair: '#D8CCB0', eyes: '#141010', headwear: 'cap', headwearColor: '#6C4B2D', robe: '#7A6A42', belt: '#4A3A20', held: 'spade', skull: true, rags: true },
   childDancer: { id: 'childDancer', skin: '#E9DDC2', hair: '#E2D6BC', eyes: '#141010', headwear: 'none', headwearColor: '#000000', robe: '#A89878', belt: '#6C4B2D', held: 'none', skull: true, rags: true, scale: 0.74 },
+  // The Margin.
+  wystan: { id: 'wystan', skin: '#6A4A30', hair: '#4A3020', eyes: '#1A1008', headwear: 'hood', headwearColor: '#5E4632', veil: '#2E2018', robe: '#5E4632', belt: '#C8B890', held: 'quill', muzzle: 'ape', scale: 0.74 },
+  abbotUnreason: { id: 'abbotUnreason', skin: '#D8702A', hair: '#C8601A', eyes: '#1A1008', headwear: 'mitre', headwearColor: '#F2EDE2', robe: '#F2EDE2', cape: '#C63D2A', held: 'crozier', muzzle: 'fox', scale: 0.86 },
+  hunter: { id: 'hunter', skin: '#E0BA96', hair: '#5A3A22', eyes: '#2A1E16', headwear: 'cap', headwearColor: '#2E6A3A', robe: '#4A6A3A', belt: '#4A3A20', held: 'bow' },
   eadgyth: { id: 'eadgyth', skin: '#E8C6A8', hair: '#A8462A', eyes: '#2A4A3A', headwear: 'none', headwearColor: '#000000', robe: '#2E5A3A', cape: '#4A3A2A', belt: '#6A4A2A', held: 'bow' },
 };
 
@@ -451,6 +457,21 @@ function drawFront(img: PixelImage, s: CharSpec, front: boolean, p: Pose): void 
     }
   }
 
+  if (front && s.muzzle === 'fox') {
+    // A white muzzle and a black nose under the eyes.
+    img.ellipse(hx, hy + 3, 3, 2.4, hex('#F4EEE6'));
+    img.set(hx, hy + 2, hex('#1A1210'));
+    img.set(hx - 1, hy + 2, hex('#1A1210'));
+  } else if (front && s.muzzle === 'ape') {
+    // A pale face in the dark fur, deep-set eyes under a brow, two nostrils.
+    img.ellipse(hx, hy + 1.5, 3.4, 3.6, hex('#C8A080'));
+    img.hline(13, 19, hy - 1, skin[0]!);
+    img.set(14, hy, hex('#1A1008'));
+    img.set(18, hy, hex('#1A1008'));
+    img.set(15, hy + 2, skin[0]!);
+    img.set(17, hy + 2, skin[0]!);
+    img.hline(14, 18, hy + 4, skin[1]!);
+  }
   if (s.fur) {
     // Long locks to the shoulders and a beard to the chest.
     for (let y = hy - 3; y < sh + 4; y++) {
@@ -618,6 +639,23 @@ function drawFront(img: PixelImage, s: CharSpec, front: boolean, p: Pose): void 
       img.ellipse(hx, hy - 3, 5.2, 3.6, (x, y) => (y < hy - 1 ? hair[Math.min(4, lit(x, 10, 22))]! : null));
       break;
   }
+  if (s.muzzle === 'fox') {
+    // Pointed ears either side of the mitre, dark at the tips.
+    for (const [ex, dir] of [
+      [11, -1],
+      [21, 1],
+    ] as const) {
+      img.poly(
+        [
+          [ex - 1.5, hy - 3],
+          [ex + 1.5, hy - 3],
+          [ex + dir * 1.5, hy - 8],
+        ],
+        skin[2]!,
+      );
+      img.set(Math.round(ex + dir * 1.5), hy - 8, hex('#2A1A10'));
+    }
+  }
 }
 
 function drawSide(img: PixelImage, s: CharSpec, p: Pose): void {
@@ -770,7 +808,24 @@ function drawSide(img: PixelImage, s: CharSpec, p: Pose): void {
   const hx = 15;
   const hy = 10 + by - p.breath;
   img.ellipse(hx, hy, 4.6, 5.6, (x) => skin[x < 13 ? 4 : x < 16 ? 3 : 2]!);
-  if (s.skull) {
+  if (s.muzzle === 'fox') {
+    // The snout, long and pale, with its black nose at the tip.
+    img.rect(7, hy + 1, 5, 3, hex('#F4EEE6'));
+    img.set(6, hy + 1, hex('#1A1210'));
+    img.set(12, hy - 1, hex(s.eyes));
+    img.poly(
+      [
+        [15, hy - 3],
+        [18, hy - 3],
+        [16, hy - 9],
+      ],
+      skin[2]!,
+    );
+  } else if (s.muzzle === 'ape') {
+    img.ellipse(11, hy + 1.5, 3, 3, hex('#C8A080'));
+    img.set(11, hy - 1, hex('#1A1008'));
+    img.set(9, hy + 2, skin[0]!);
+  } else if (s.skull) {
     const dark = hex('#1A1410');
     img.rect(11, hy - 1, 2, 2, dark);
     img.set(10, hy + 1, dark);

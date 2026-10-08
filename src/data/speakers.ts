@@ -31,5 +31,8 @@ export const SPEAKERS: Readonly<Record<string, Speaker>> = {
   gaudry: { name: { en: 'Prior Gaudry', fr: 'Le prieur Gaudry' }, portrait: 'gaudry', voice: 210 },
   ermeline: { name: { en: 'Sister Ermeline', fr: 'Sœur Ermeline' }, portrait: 'ermeline', voice: 420 },
   dancer: { name: { en: 'The Child', fr: 'L’Enfant' }, portrait: 'childDancer', voice: 640 },
+  wystan: { name: { en: 'Brother Wystan', fr: 'Frère Wystan' }, portrait: 'wystan', voice: 240 },
+  abbotUnreason: { name: { en: 'The Abbot of Unreason', fr: 'L’Abbé de Déraison' }, portrait: 'abbotUnreason', voice: 330 },
+  bishop: { name: { en: 'The Bishop-fish', fr: 'Le Poisson-évêque' }, voice: 280 },
   eadgyth: { name: { en: 'Eadgyth the Uncrowned', fr: 'Eadgyth la Sans-Couronne' }, portrait: 'eadgyth', voice: 380 },
 };

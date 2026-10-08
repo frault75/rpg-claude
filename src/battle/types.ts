@@ -139,7 +139,9 @@ export type IntentEffect =
   /** Every dancer acts twice next round (the Danse Macabre's Leader). */
   | { kind: 'tune' }
   /** The dance turns: every enemy moves one place back, the last to the front. */
-  | { kind: 'turn' };
+  | { kind: 'turn' }
+  /** Ermeline scrapes Isot's inkhorn: −1 Ink (the Blot's Rasure). */
+  | { kind: 'drain' };
 
 export type AbilityId =
   | 'penknife'

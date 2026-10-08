@@ -201,7 +201,5 @@ async function finis(c: MapContext): Promise<void> {
   c.card({ en: 'Chapter IV', fr: 'Chapitre IV' }, { en: 'The Margin', fr: 'La Marge' });
   await c.wait(4);
   session.game.chapter = 4;
-  c.save();
-  await c.narrate({ en: 'Chapter IV is still being written. Thank you for reading this far.', fr: 'Le chapitre IV est encore en cours d’écriture. Merci d’avoir lu jusqu’ici.' });
-  c.goto('title', 'start');
+  c.goto('edge', 'start');
 }

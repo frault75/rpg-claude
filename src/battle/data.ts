@@ -45,8 +45,12 @@ export interface BehaviourCtx {
   phase: number;
   hp: number;
   maxHp: number;
-  /** Standing allies of the enemy (other than itself), with their HP. */
-  allies: { id: string; kind: string; name: LocalText; hp: number; maxHp: number }[];
+  /** Its own place in the enemy line. */
+  place: number;
+  /** Standing allies of the enemy (other than itself), with their HP and places. */
+  allies: { id: string; kind: string; name: LocalText; hp: number; maxHp: number; place: number }[];
+  /** The party as it stands. */
+  party: { id: string; name: LocalText; hp: number; maxHp: number; place: number }[];
   /** Fallen allies, nearest first. */
   fallen: { id: string; kind: string; name: LocalText }[];
   rng: () => number;
@@ -60,8 +64,16 @@ export interface EnemyDef {
   readOnly?: boolean;
   /** Blows from the party pass through it (the Danse Macabre's followers). */
   hollow?: boolean;
-  /** When it falls, every hollow enemy falls with it (the dance ends). */
+  /** When it falls, every enemy bound to it falls too (the dance ends; the ink drains). */
   leads?: boolean;
+  /** Falls with whoever leads. */
+  bound?: boolean;
+  /** A single hit of this much or more splits off one of these into an empty place (the Blot). */
+  splits?: { at: number; into: string };
+  /** Isot's Penknife fills her pen when it hits one: +1 Ink (Blotlets). */
+  inkwell?: boolean;
+  /** At this HP or below, a phase change (announced once). */
+  phaseAt?: { hp: number; id: string; title: LocalText; line: LocalText };
   behave(ctx: BehaviourCtx): IntentSpec[];
 }
 
@@ -83,7 +95,7 @@ const TUNE: IntentSpec = {
   reach: 'any',
   effects: [{ kind: 'tune' }],
 };
-const dancer = (name: LocalText, offset: number): EnemyDef => ({ name, hp: 8, hidden: true, hollow: true, behave: (c) => [[HAND], [WHIRL], [BOW]][(c.phase + offset) % 3]! });
+const dancer = (name: LocalText, offset: number): EnemyDef => ({ name, hp: 8, hidden: true, hollow: true, bound: true, behave: (c) => [[HAND], [WHIRL], [BOW]][(c.phase + offset) % 3]! });
 
 export const ENEMIES: Record<string, EnemyDef> = {
   gryllus: {
@@ -225,7 +237,78 @@ export const ENEMIES: Record<string, EnemyDef> = {
   pope: dancer({ en: 'The Pope', fr: 'Le Pape' }, 0),
   king: dancer({ en: 'The King', fr: 'Le Roi' }, 1),
   ploughman: dancer({ en: 'The Ploughman', fr: 'Le Laboureur' }, 2),
-  childDancer: { name: { en: 'The Child', fr: 'L’Enfant' }, hp: 24, hidden: true, leads: true, behave: (c) => [[BOW], [TUNE], [HAND]][c.phase % 3]! },
+  childDancer: {
+    name: { en: 'The Child', fr: 'L’Enfant' },
+    hp: 24,
+    hidden: true,
+    leads: true,
+    phaseAt: {
+      hp: 12,
+      id: 'emptyPlace',
+      title: { en: 'The Empty Place', fr: 'La place vide' },
+      line: { en: 'The ring turns toward Whit: the followers’ blows pass through him.', fr: 'La ronde se tourne vers Whit : les coups des suivants le traversent.' },
+    },
+    behave: (c) => [[BOW], [TUNE], [HAND]][c.phase % 3]! },
+  caladrius: {
+    name: { en: 'Caladrius', fr: 'Caladrius' },
+    hp: 6,
+    // The bird of the bestiary looks away from those about to die.
+    behave: (c) => {
+      const weakest = [...c.party].sort((a, b) => a.hp - b.hp || a.place - b.place)[0];
+      if (c.phase % 2 === 0 && weakest)
+        return [
+          {
+            label: { en: `Looks away from ${weakest.name.en}`, fr: `Détourne les yeux de ${weakest.name.fr}` },
+            rule: { en: 'That ally takes double damage this round', fr: 'Cet allié subit le double ce tour-ci' },
+            target: { unit: weakest.id },
+            reach: 'any',
+            effects: [{ kind: 'doom' }],
+          },
+        ];
+      return [{ label: { en: 'Flutters: Ward 2', fr: 'Voltige : Garde 2' }, target: { self: true }, reach: 'any', effects: [{ kind: 'wardAlly', amount: 2 }] }];
+    },
+  },
+  bishopFish: {
+    name: { en: 'Bishop-fish', fr: 'Poisson-évêque' },
+    hp: 8,
+    behave: (c) => {
+      const hurt = c.allies.filter((a) => a.hp < a.maxHp).sort((a, b) => a.hp - b.hp)[0];
+      if (hurt)
+        return [{ label: { en: `Blesses ${hurt.name.en}: heals 4, Ward 2`, fr: `Bénit ${hurt.name.fr} : soigne 4, Garde 2` }, target: { unit: hurt.id }, reach: 'any', effects: [{ kind: 'heal', amount: 4 }, { kind: 'wardAlly', amount: 2 }] }];
+      return [{ label: { en: 'Sprinkles the Front with brine · 2', fr: 'Asperge l’Avant de saumure · 2' }, target: { place: 0 }, damage: 2, reach: 'far' }];
+    },
+  },
+  blot: {
+    name: { en: 'The Blot', fr: 'La Tache' },
+    hp: 30,
+    readOnly: true,
+    leads: true,
+    splits: { at: 4, into: 'blotlet' },
+    phaseAt: {
+      hp: 15,
+      id: 'rasure',
+      title: { en: 'The Rasure', fr: 'La Rature' },
+      line: { en: 'Ermeline’s outline surfaces in the ink and scrapes at Isot’s inkhorn every round. Emend her stroke to free her.', fr: 'Le contour d’Ermeline remonte dans l’encre et gratte la corne d’Isot à chaque tour. Amendez son geste pour la libérer.' },
+    },
+    behave: (c) => {
+      const k = c.phase % 3;
+      if (k === 0) return [{ label: { en: 'Engulfs the Front · 5, and Smudges', fr: 'Engloutit l’Avant · 5, et Bave' }, rule: { en: 'Only Isot can be Smudged', fr: 'Seule Isot peut être Bavée' }, target: { place: 0 }, damage: 5, reach: 'any', effects: [{ kind: 'smudge' }] }];
+      if (k === 1) return [{ label: { en: 'Wells up: a Blotlet rises', fr: 'Déborde : une Tachelette surgit' }, target: { self: true }, reach: 'any', effects: [{ kind: 'spawn', enemy: 'blotlet' }] }];
+      return [{ label: { en: 'Swallows a name: heals 6', fr: 'Avale un nom : soigne 6' }, target: { self: true }, reach: 'any', effects: [{ kind: 'heal', amount: 6 }] }];
+    },
+  },
+  blotlet: {
+    name: { en: 'Blotlet', fr: 'Tachelette' },
+    hp: 4,
+    bound: true,
+    inkwell: true,
+    behave: (c) => {
+      const blot = c.allies.find((a) => a.kind === 'blot');
+      if (blot && Math.abs(blot.place - c.place) === 1)
+        return [{ label: { en: 'Seeps back into the Blot: heals it 5', fr: 'Retourne dans la Tache : la soigne de 5' }, target: { unit: blot.id }, reach: 'any', effects: [{ kind: 'heal', amount: 5 }] }];
+      return [{ label: { en: 'Spatters the Rear · 2', fr: 'Éclabousse l’Arrière · 2' }, target: { place: 2 }, damage: 2, reach: 'far' }];
+    },
+  },
   greatSnail: {
     name: { en: 'The Great Snail', fr: 'Le Grand Escargot' },
     hp: 24,
@@ -249,8 +332,8 @@ export interface EncounterDef {
   name: LocalText;
   party: CharId[];
   enemies: string[];
-  /** An environment intent for a round, if any (the tide). */
-  env?: (round: number) => IntentSpec | null;
+  /** An environment intent for a round, if any (the tide); `phases` holds the phase changes so far. */
+  env?: (round: number, phases: ReadonlySet<string>) => IntentSpec | null;
   /** Where the fight is drawn. */
   stage: string;
 }
@@ -269,6 +352,19 @@ export const ENCOUNTERS: Record<string, EncounterDef> = {
     enemies: ['pope', 'king', 'childDancer', 'ploughman'],
     stage: 'ossuary',
     env: () => ({ label: { en: 'The dance turns: every dancer one place back', fr: 'La danse tourne : chaque danseur recule d’une place' }, target: { self: true }, reach: 'any', effects: [{ kind: 'turn' }] }),
+  },
+  f7: { id: 'f7', name: { en: 'The Ivy Gate', fr: 'La porte du Lierre' }, party: ['whit', 'hild', 'isot'], enemies: ['hare', 'caladrius', 'hare'], stage: 'ivy' },
+  f8: { id: 'f8', name: { en: 'The Court of Unreason', fr: 'La cour de Déraison' }, party: ['whit', 'hild', 'isot'], enemies: ['babewyn', 'bishopFish', 'snail'], stage: 'fair' },
+  b4: {
+    id: 'b4',
+    name: { en: 'The Blot', fr: 'La Tache' },
+    party: ['whit', 'hild', 'isot'],
+    enemies: ['blotlet', 'blot'],
+    stage: 'inkwell',
+    env: (_round, phases) =>
+      phases.has('rasure') && !phases.has('ermelineFree')
+        ? { label: { en: 'Ermeline scrapes at Isot’s inkhorn: −1 Ink', fr: 'Ermeline gratte la corne d’Isot : −1 Encre' }, rule: { en: 'Emend her stroke onto an enemy to free her', fr: 'Amendez son geste vers un ennemi pour la libérer' }, target: { unit: 'isot' }, reach: 'any', effects: [{ kind: 'drain' }] }
+        : null,
   },
   b2: { id: 'b2', name: { en: 'The Mummers’ Play', fr: 'La pièce des Mimes' }, party: ['whit', 'hild', 'isot'], enemies: ['george', 'slasher', 'doctor'], stage: 'green' },
   b1: {

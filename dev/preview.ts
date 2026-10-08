@@ -2,8 +2,9 @@
 import { CHARACTERS, characterSheet, drawCharacter, FRAMES } from '../src/pixel/characters';
 import type { PixelImage } from '../src/pixel/pixel';
 import { drawPortrait, type Mood } from '../src/pixel/portraits';
-import { babewynArt, greatSnailArt, gryllusArt, hareArt } from '../src/pixel/enemies';
+import { babewynArt, bishopFishArt, blotArt, blotletArt, caladriusArt, greatSnailArt, gryllusArt, hareArt } from '../src/pixel/enemies';
 import { blanch, ghostFacade, MURAL_ORDER, muralPanel, ninefoldGate, outlineBird, woodTree } from '../src/world3d/blanchwood';
+import { acanthus, catchwordArch, goldBar, goose, hen, ivy, pageSky } from '../src/world3d/margin';
 import { armarium, bench, candle, candleStand, coffer, lectern, psalter, stool, writingDesk } from '../src/pixel/furniture';
 
 const params = new URLSearchParams(location.search);
@@ -61,6 +62,10 @@ if (what === 'enemies') {
     ['great snail', greatSnailArt()],
     ['hare', hareArt()],
     ['babewyn', babewynArt()],
+    ['blot', blotArt()],
+    ['blotlet', blotletArt()],
+    ['caladrius', caladriusArt()],
+    ['bishop-fish', bishopFishArt()],
   ] as const) {
     imgs.push({ img: art.a, label });
   }
@@ -93,5 +98,20 @@ if (what === 'blanchwood') {
   imgs.push({ img: ninefoldGate().a, label: 'gate' });
   for (const f of MURAL_ORDER) imgs.push({ img: muralPanel(f), label: f });
   show(imgs, 6);
+  (window as unknown as { ready: boolean }).ready = true;
+}
+
+if (what === 'margin') {
+  const imgs: { img: PixelImage; label: string }[] = [];
+  imgs.push({ img: acanthus(1, 'malachite'), label: 'acanthus' });
+  imgs.push({ img: acanthus(2, 'vermilion'), label: 'acanthus 2' });
+  imgs.push({ img: acanthus(3, 'lapis', 0.8), label: 'acanthus 3' });
+  imgs.push({ img: catchwordArch('WRITTEN', 2), label: 'arch' });
+  imgs.push({ img: goldBar(80), label: 'bar' });
+  imgs.push({ img: ivy(80), label: 'ivy' });
+  imgs.push({ img: goose(1), label: 'goose' });
+  imgs.push({ img: hen(), label: 'hen' });
+  imgs.push({ img: pageSky(260, 80), label: 'page' });
+  show(imgs, 5);
   (window as unknown as { ready: boolean }).ready = true;
 }

@@ -7,6 +7,11 @@ import { NINEFOLD } from './blanchwood/ninefold';
 import { OSSUARY } from './blanchwood/ossuary';
 import { WOOD } from './blanchwood/wood';
 import { CELL } from './cell';
+import { EDGE_MAP } from './margin/edge';
+import { FAIR } from './margin/fair';
+import { INKWELL } from './margin/inkwell';
+import { IVY } from './margin/ivy';
+import { VINE } from './margin/vine';
 import { CLOISTER } from './cloister';
 import { BELLTOWER } from './lychford/belltower';
 import { CHURCHYARD } from './lychford/churchyard';
@@ -31,4 +36,9 @@ export const MAPS: Record<string, MapDef> = {
   flight: FLIGHT,
   chapel: CHAPEL,
   ossuary: OSSUARY,
+  edge: EDGE_MAP,
+  ivy: IVY,
+  fair: FAIR,
+  vine: VINE,
+  inkwell: INKWELL,
 };
