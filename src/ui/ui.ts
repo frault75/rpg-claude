@@ -145,12 +145,23 @@ export class UiLayer {
   }
 }
 
+/** The words of a line, with French spacing kept whole: no break before ! ? : ; » or after «. */
+function words(para: string): string[] {
+  const out: string[] = [];
+  for (const w of para.split(/\s+/)) {
+    const prev = out[out.length - 1];
+    if (prev && (/^[!?:;»]/.test(w) || prev.endsWith('«'))) out[out.length - 1] = `${prev} ${w}`;
+    else out.push(w);
+  }
+  return out;
+}
+
 /** Break text into lines that fit `maxWidth` with the context's current font. */
-export function wrap(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
+export function wrap(ctx: Pick<CanvasRenderingContext2D, 'measureText'>, text: string, maxWidth: number): string[] {
   const out: string[] = [];
   for (const para of text.split('\n')) {
     let line = '';
-    for (const word of para.split(/\s+/)) {
+    for (const word of words(para)) {
       const test = line ? `${line} ${word}` : word;
       if (ctx.measureText(test).width > maxWidth && line) {
         out.push(line);
