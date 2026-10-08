@@ -6,7 +6,7 @@ import type { AbilityDef, AbilityId, IntentEffect, Target } from './types';
 
 export const ABILITIES: Record<AbilityId, AbilityDef> = {
   penknife: { id: 'penknife', name: { en: 'Penknife', fr: 'Canif' }, owner: 'isot', target: 'enemy', text: { en: '2 damage to any enemy.', fr: '2 dégâts à n’importe quel ennemi.' } },
-  gloss: { id: 'gloss', name: { en: 'Gloss', fr: 'Annoter' }, owner: 'isot', target: 'enemy', text: { en: 'Note its weak spot: the next blow it takes deals 3 more. What it hides, it shows.', fr: 'Note son point faible : le prochain coup qu’il reçoit fait 3 de plus. Ce qu’il cache se lit.' } },
+  gloss: { id: 'gloss', name: { en: 'Gloss', fr: 'Déchiffrer' }, owner: 'isot', target: 'enemy', text: { en: 'Note its weak spot: the next blow it takes deals 3 more. What it hides, it shows.', fr: 'Lit l’ennemi comme un texte : ce qu’il cache se voit, et le prochain coup qu’il reçoit fait 3 de plus.' } },
   strike: { id: 'strike', name: { en: 'Strike Through', fr: 'Rayer' }, owner: 'isot', ink: 2, target: 'intent', text: { en: 'Cross out one enemy intent: it does not happen this round.', fr: 'Raye une intention ennemie : elle n’a pas lieu ce tour-ci.' } },
   emend: { id: 'emend', name: { en: 'Emend', fr: 'Corriger' }, owner: 'isot', ink: 1, target: 'intent', text: { en: 'Change whom a single blow strikes: another ally takes it.', fr: 'Corrige la cible d’un coup unique : il tombe sur un autre allié.' } },
   rubric: { id: 'rubric', name: { en: 'Rubric', fr: 'Rubrique' }, owner: 'isot', ink: 1, target: 'ally', text: { en: 'An ally’s next ability this round is doubled.', fr: 'La prochaine capacité d’un allié ce tour-ci est doublée.' } },
@@ -424,7 +424,7 @@ export const ENEMIES: Record<string, EnemyDef> = {
         return [{ label: { en: `Copies the ${n.en} back`, fr: `Recopie « ${n.fr} »` }, rule: { en: 'As hard as it was done', fr: 'Aussi fort qu’il l’a reçu' }, target: { unit: k.by }, damage: k.amount, reach: 'any' }];
       }
       if (k && k.ability === 'gloss')
-        return [{ label: { en: 'Copies the Gloss back', fr: 'Annote en retour' }, rule: { en: 'The next blow on them deals 3 more', fr: 'Le prochain coup reçu fait 3 de plus' }, target: { unit: k.by }, effects: [{ kind: 'gloss' }], reach: 'any' }];
+        return [{ label: { en: 'Copies the Gloss back', fr: 'Déchiffre en retour' }, rule: { en: 'The next blow on them deals 3 more', fr: 'Le prochain coup reçu fait 3 de plus' }, target: { unit: k.by }, effects: [{ kind: 'gloss' }], reach: 'any' }];
       return (c.phase + c.place) % 2 === 0
         ? [{ label: { en: 'Scribbles', fr: 'Griffonne' }, target: { place: 1 }, damage: 2, reach: 'any' }]
         : [{ label: { en: 'Blots the page', fr: 'Tache la page' }, rule: { en: 'Smudge', fr: 'Bavure' }, target: { place: 2 }, reach: 'far', effects: [{ kind: 'smudge' }] }];

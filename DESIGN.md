@@ -1505,9 +1505,9 @@ The game ships in **English and French**. The language is detected from the brow
 | Front / Middle / Rear | Avant / Milieu / Arrière | Ward | Garde |
 | Tally | Décompte | Reckoning | Règlement |
 | Ink | Encre | Smudge | Bavure |
-| Penknife | Canif | Gloss | Annoter |
+| Penknife | Canif | Gloss | Déchiffrer |
 | Strike Through | Rayer | Emend | Corriger |
-| Glossed | Annoté | | |
+| Glossed | Déchiffré | | |
 | Step | Changer de place | | |
 | Rubric | Rubrique | Shove | Bousculer |
 | Shrive | Absoudre | Immure | Emmurer |
