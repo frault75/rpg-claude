@@ -8,15 +8,17 @@
 import type { LocalText } from '../i18n/i18n';
 
 /** What is painted inside the initial. */
-export type InitialScene = 'causeway' | 'bell' | 'wood' | 'inkhorn';
+export type InitialScene = 'causeway' | 'bell' | 'wood' | 'inkhorn' | 'figures';
 
 export interface Interlude {
   title: LocalText;
   scene: InitialScene;
   /** A drollery that has wandered into the foot of the page (an enemy's art). */
-  drollery: string;
-  /** Paragraphs; the first letter of the first one is the initial. */
-  prose: LocalText[];
+  drollery?: string;
+  /** Paragraphs; the first letter of the first one is the initial. Red ones are rubrics. */
+  prose: (LocalText & { red?: boolean })[];
+  /** The last page of all: the Lost Names follow in red, then FINIS, and a major chord. */
+  finale?: boolean;
   /** The chapter that begins after the page turns, and where. */
   chapter: { n: number; title: LocalText; name: LocalText };
   next: { map: string; spawn: string };
@@ -68,6 +70,21 @@ export const INTERLUDES: Record<number, Interlude> = {
     chapter: { n: 5, title: { en: 'Chapter V', fr: 'Chapitre V' }, name: { en: 'The Writing', fr: 'L’Écriture' } },
     next: { map: 'dawnScriptorium', spawn: 'psalter' },
   },
+};
+
+/** The epilogue: the last page of Isot's chronicle, read at the end and again from the title. */
+INTERLUDES[5] = {
+  title: { en: 'Epilogue. Explicit.', fr: 'Épilogue. Explicit.' },
+  scene: 'figures',
+  finale: true,
+  prose: [
+    { en: 'Here ends the Book of the Mercy.', fr: 'Ici finit le Livre de la Miséricorde.' },
+    { en: 'I keep the Book of Names now. I write every name in a plain hand, and I leave room at the end of each line.', fr: 'Je tiens le Livre des Noms, à présent. J’écris chaque nom d’une main simple, et je laisse de la place au bout de chaque ligne.' },
+    { en: 'My brothers ask why I have drawn three small figures in the margin of this last page: a scribe, an anchoress, and a knight with a white shield. I tell them the margin is where we keep what matters and does not fit.', fr: 'Mes frères demandent pourquoi j’ai dessiné trois petites figures dans la marge de cette dernière page : une scribe, une recluse, et un chevalier au bouclier blanc. Je leur dis que la marge est l’endroit où l’on garde ce qui compte et ne tient pas ailleurs.' },
+    { en: 'Some evenings, when the tide is out, a white figure walks the causeway with a long road of beds before him. He waves. I wave back. He is in no hurry for mine, and I have asked him to read it slowly.', fr: 'Certains soirs, à marée basse, une silhouette blanche marche sur la chaussée, avec devant lui une longue route de lits. Il fait signe. Je réponds. Il n’est pas pressé pour le mien, et je lui ai demandé de le lire lentement.' },
+  ],
+  chapter: { n: 6, title: { en: 'Palimpsest', fr: 'Palimpsest' }, name: { en: 'Thank you for reading it to the end.', fr: 'Merci de l’avoir lu jusqu’au bout.' } },
+  next: { map: 'title', spawn: 'start' },
 };
 
 /** Split a paragraph's first letter off for the initial (keeping accents and the like). */

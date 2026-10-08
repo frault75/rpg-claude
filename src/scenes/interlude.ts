@@ -42,6 +42,7 @@ interface Row {
   text: string;
   x: number;
   y: number;
+  red: boolean;
   /** Characters before this row, for the inking. */
   from: number;
 }
@@ -67,6 +68,8 @@ export class InterludeScene implements Scene {
   private readonly total: number;
   private readonly initial: string;
   private readonly drollery: HTMLCanvasElement | null;
+  private font = FONT;
+  private lead = LEAD;
   private time = 0;
   private inked = 0;
   private painted = -1;
@@ -84,9 +87,11 @@ export class InterludeScene implements Scene {
     private readonly audio: AudioEngine,
     n: number,
     private readonly onDone: () => void,
+    /** Lines after the prose (the Lost Names on the last page), each in red. */
+    extra: string[] = [],
   ) {
     this.def = INTERLUDES[n] ?? INTERLUDES[1]!;
-    const still = enemyStill(this.def.drollery);
+    const still = this.def.drollery ? enemyStill(this.def.drollery) : null;
     this.drollery = still ? still.toCanvas() : null;
     if (this.drollery && this.def.drollery !== 'greatSnail') {
       // Drolleries face into the text, the way they look in from the margin.
@@ -158,30 +163,22 @@ export class InterludeScene implements Scene {
     this.pen = st.addLight(PAGE.x + PAGE.w / 2, PAGE.y + PAGE.h / 2, 10, 46, '#FFD890', 0, 'none');
     st.addEmitter({ kind: 'mote', area: [PAGE.x, PAGE.y - 10, PAGE.w + 30, PAGE.h], heights: [4, 60], count: 30, color: '#FFD8A0', size: 1.2, intensity: 0.5 }, 11);
 
-    // Lay out the prose: beside the initial first, then the full measure.
+    // Lay out the prose: beside the initial first, then the full measure. A long page (the
+    // last one, with its Lost Names) writes smaller until it fits the leaf.
     const c = this.pageCanvas.getContext('2d')!;
-    c.font = `${FONT}px ${SERIF}`;
-    const paras = this.def.prose.map((p) => tr(p));
-    const [first, rest] = splitInitial(paras[0] ?? '');
+    const paras = this.def.prose.map((p) => ({ text: tr(p), red: !!p.red }));
+    const [first, rest] = splitInitial(paras[0]?.text ?? '');
     this.initial = first.toUpperCase();
-    paras[0] = rest;
-    let y = INI.y + 112;
-    let from = 0;
-    paras.forEach((para, i) => {
-      if (i > 0) y += 14;
-      // `wrap` joins words with single spaces, so the text it is given must not start with one.
-      let left = para.replace(/\s+/g, ' ').trimStart();
-      while (left.length) {
-        const x = y < INI.y + INI.s + 18 ? TEXT_X : INI.x;
-        const [row] = wrap(c, left, RIGHT - x);
-        const take = row ?? left;
-        this.rows.push({ text: take, x, y, from });
-        from += take.length;
-        left = left.slice(take.length).trimStart();
-        y += LEAD;
-      }
-    });
-    this.total = from;
+    if (paras[0]) paras[0].text = rest;
+    for (const line of extra) paras.push({ text: line, red: true });
+    for (this.font = FONT; ; this.font -= 2) {
+      this.lead = Math.round(LEAD * (this.font / FONT));
+      this.rows.length = 0;
+      const end = this.layout(c, paras);
+      // The last page keeps clear of the FINIS cartouche at its foot.
+      if (end <= CH - (this.def.finale ? 88 : 64) || this.font <= 18) break;
+    }
+    this.total = this.rows.length ? this.rows[this.rows.length - 1]!.from + this.rows[this.rows.length - 1]!.text.length : 0;
 
     this.ui = new UiLayer(r);
     this.card = new LocationCard(this.ui);
@@ -217,6 +214,29 @@ export class InterludeScene implements Scene {
     );
   }
 
+  /** Lay the paragraphs out into rows; returns the baseline of the last. */
+  private layout(c: CanvasRenderingContext2D, paras: { text: string; red: boolean }[]): number {
+    c.font = `${this.font}px ${SERIF}`;
+    let y = INI.y + 112;
+    let from = 0;
+    paras.forEach((para, i) => {
+      if (i > 0 && !(para.red && paras[i - 1]!.red)) y += Math.round(14 * (this.font / FONT));
+      // `wrap` joins words with single spaces, so the text it is given must not start with one.
+      let left = para.text.replace(/\s+/g, ' ').trimStart();
+      while (left.length) {
+        // Beside the initial while any of the row's letters would reach down to its frame.
+        const x = y - this.font * 0.8 < INI.y + INI.s + 14 ? TEXT_X : INI.x;
+        const [row] = wrap(c, left, RIGHT - x);
+        const take = row ?? left;
+        this.rows.push({ text: take, x, y, from, red: para.red });
+        from += take.length;
+        left = left.slice(take.length).trimStart();
+        y += this.lead;
+      }
+    });
+    return y - this.lead;
+  }
+
   /** Solo psaltery on the Book motif, a chant an octave under it, and a drone. */
   private score(ctx: AudioContext, out: AudioNode): void {
     const t0 = ctx.currentTime + 0.6;
@@ -238,6 +258,8 @@ export class InterludeScene implements Scene {
     // A quiet voice under the psaltery, on the long notes.
     [50, 53, 55, 57, 55, 53, 52, 50].forEach((m, i) => sing(ctx, out, m, t0 + 3.2 + i * 1.6, 1.5, 0.035));
     psaltery(ctx, out, 62, at + 1, 0.06);
+    // The last page ends on the score's only major chord.
+    if (this.def.finale) for (const [i, m] of [55, 59, 62, 67, 71].entries()) psaltery(ctx, out, m, at + 2.6 + i * 0.12, 0.07);
     psaltery(ctx, out, 69, at + 1.03, 0.05);
   }
 
@@ -270,7 +292,8 @@ export class InterludeScene implements Scene {
         quill(this.audio, 2.4);
         this.quillAt = this.time + 3;
       }
-      this.inked = Math.min(this.total, this.inked + dt * INK_CPS);
+      // A long page (the last) is written faster, so that it never takes more than half a minute.
+      this.inked = Math.min(this.total, this.inked + dt * Math.max(INK_CPS, this.total / 24));
       if (this.inked >= this.total) this.state = 'wait';
     } else if (this.state === 'turn') {
       // The leaf lifts from its right edge and goes over to the left.
@@ -315,7 +338,7 @@ export class InterludeScene implements Scene {
     const row = [...this.rows].reverse().find((r) => r.from <= this.inked) ?? this.rows[0];
     if (!row) return;
     const c = this.pageCanvas.getContext('2d')!;
-    c.font = `${FONT}px ${SERIF}`;
+    c.font = `${this.font}px ${SERIF}`;
     const done = row.text.slice(0, Math.max(0, Math.floor(this.inked - row.from)));
     const x = row.x + c.measureText(done).width;
     this.pen.intensity = 0.5;
@@ -326,36 +349,36 @@ export class InterludeScene implements Scene {
   private paint(): void {
     const c = this.pageCanvas.getContext('2d')!;
     const g = this.glowCanvas.getContext('2d')!;
-    paintVellum(c);
+    paintVellum(c, this.lead);
     g.fillStyle = '#000';
     g.fillRect(0, 0, CW, CH);
     paintBorder(c, g, this.time);
     paintInitial(c, g, this.initial, this.def.scene);
     // The rubric title.
-    c.font = `italic 600 ${FONT + 2}px ${SERIF}`;
+    c.font = `italic 600 ${Math.max(FONT - 2, this.font) + 2}px ${SERIF}`;
     c.textAlign = 'left';
     c.textBaseline = 'alphabetic';
     c.fillStyle = '#A82A1E';
     c.fillText(tr(this.def.title), TEXT_X, INI.y + 46);
-    // Her hand, inked as far as the pen has gone.
-    c.font = `${FONT}px ${SERIF}`;
-    c.fillStyle = '#2A1E18';
+    // Her hand, inked as far as the pen has gone; rubrics and the Lost Names in red.
+    c.font = `${this.font}px ${SERIF}`;
     for (const row of this.rows) {
       const n = Math.floor(this.inked - row.from);
       if (n <= 0) break;
+      const ink = row.red ? '#A82A1E' : '#2A1E18';
+      c.fillStyle = ink;
       const part = row.text.slice(0, Math.min(row.text.length, n));
       c.fillText(part, row.x, row.y);
       // The newest letters are still wet: a little darker and glossy.
       if (n < row.text.length) {
         const w0 = c.measureText(part.slice(0, Math.max(0, part.length - 3))).width;
-        c.fillStyle = '#120A06';
+        c.fillStyle = row.red ? '#6A1008' : '#120A06';
         c.fillText(part.slice(Math.max(0, part.length - 3)), row.x + w0, row.y);
-        c.fillStyle = '#2A1E18';
       }
     }
     // When the last line is done, a line-filler runs it out to the margin, as scribes did.
     const last = this.rows[this.rows.length - 1];
-    if (last && this.inked >= this.total) {
+    if (last && this.inked >= this.total && !this.def.finale) {
       const x0 = last.x + c.measureText(last.text).width + 18;
       for (let x = x0, i = 0; x < RIGHT - 10; x += 16, i++) {
         c.fillStyle = i % 2 ? LAPIS : VERMILION;
@@ -367,6 +390,33 @@ export class InterludeScene implements Scene {
         c.closePath();
         c.fill();
       }
+    }
+    if (this.def.finale && this.inked >= this.total) {
+      // The last word of the book, in a cartouche set into the border at its foot.
+      const cx = (INI.x + RIGHT) / 2;
+      const cy = CH - 46;
+      // The gold bar under it must not shine through.
+      g.fillStyle = '#000';
+      g.fillRect(cx - 152, cy - 32, 304, 64);
+      c.save();
+      c.fillStyle = '#EADCB8';
+      c.strokeStyle = '#A82A1E';
+      c.lineWidth = 3;
+      c.beginPath();
+      c.roundRect(cx - 150, cy - 30, 300, 60, 10);
+      c.fill();
+      c.stroke();
+      c.font = `600 38px ${SERIF}`;
+      c.textAlign = 'center';
+      c.textBaseline = 'middle';
+      c.fillStyle = '#A82A1E';
+      c.fillText('F I N I S', cx, cy + 2);
+      c.restore();
+      gold(c, g, (ctx) => {
+        ctx.beginPath();
+        ctx.arc(cx - 170, cy, 7, 0, Math.PI * 2);
+        ctx.arc(cx + 170, cy, 7, 0, Math.PI * 2);
+      }, 0.9);
     }
     if (this.drollery) {
       c.imageSmoothingEnabled = false;
@@ -420,7 +470,7 @@ export class InterludeScene implements Scene {
 }
 
 /** Warm vellum, uneven, with its grain and the drypoint ruling. */
-function paintVellum(c: CanvasRenderingContext2D): void {
+function paintVellum(c: CanvasRenderingContext2D, lead: number): void {
   const bg = c.createRadialGradient(CW * 0.45, CH * 0.42, 40, CW / 2, CH / 2, CW * 0.72);
   bg.addColorStop(0, '#F3E9D2');
   bg.addColorStop(0.75, '#E2D2AE');
@@ -433,7 +483,7 @@ function paintVellum(c: CanvasRenderingContext2D): void {
   }
   c.strokeStyle = 'rgba(150, 110, 80, 0.14)';
   c.lineWidth = 1;
-  for (let y = INI.y + 112 + 6; y < CH - 60; y += LEAD) {
+  for (let y = INI.y + 112 + 6; y < CH - 60; y += lead) {
     c.beginPath();
     c.moveTo(INI.x, y);
     c.lineTo(RIGHT, y);
@@ -721,7 +771,7 @@ function paintScene(c: CanvasRenderingContext2D, g: CanvasRenderingContext2D, sc
     g.fillStyle = 'rgba(255, 210, 122, 0.9)';
     g.fillText('FINIS', x + s * 0.68, y + s * 0.88);
     figure(x + s * 0.3, y + s * 0.72, '#F4F2EC', '#F4F2EC', 30);
-  } else {
+  } else if (scene === 'inkhorn') {
     // Dawn over the margin: a gold bar, the Abbey's bell against the light, the inkhorn
     // with its bright word.
     sky('#E8A86A', '#F4D8A8');
@@ -754,5 +804,32 @@ function paintScene(c: CanvasRenderingContext2D, g: CanvasRenderingContext2D, sc
     g.beginPath();
     g.arc(x + s * 0.35, y + s * 0.44, 30, 0, Math.PI * 2);
     g.fill();
+  } else {
+    // The last page's margin: a scribe, an anchoress and a knight with a white shield, on
+    // the causeway at low tide, under a gold sun.
+    sky('#F0E4C4', '#E4D2A8');
+    gold(c, g, (ctx) => {
+      ctx.beginPath();
+      ctx.arc(x + s * 0.78, y + s * 0.22, 16, 0, Math.PI * 2);
+    }, 0.6);
+    c.fillStyle = '#9AB0C8';
+    c.fillRect(x, y + s * 0.62, s, s * 0.38);
+    c.fillStyle = '#C8B080';
+    c.fillRect(x, y + s * 0.74, s, s * 0.1);
+    figure(x + s * 0.24, y + s * 0.8, '#3A5AA8', '#E8C8A8');
+    figure(x + s * 0.42, y + s * 0.8, '#8A8478', '#E8D8C8');
+    figure(x + s * 0.62, y + s * 0.8, '#F4F2EC', '#F4F2EC', 30);
+    // His shield, white, with nothing on it yet.
+    c.fillStyle = '#FFFFFF';
+    c.strokeStyle = '#8A8478';
+    c.lineWidth = 1.5;
+    c.beginPath();
+    c.moveTo(x + s * 0.62 + 6, y + s * 0.8 - 24);
+    c.lineTo(x + s * 0.62 + 16, y + s * 0.8 - 24);
+    c.lineTo(x + s * 0.62 + 16, y + s * 0.8 - 14);
+    c.quadraticCurveTo(x + s * 0.62 + 11, y + s * 0.8 - 6, x + s * 0.62 + 6, y + s * 0.8 - 14);
+    c.closePath();
+    c.fill();
+    c.stroke();
   }
 }

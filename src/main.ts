@@ -16,7 +16,7 @@ import type { Scene } from './engine/scene';
 import { session } from './engine/session';
 import { type Settings, TEXT_SPEEDS } from './engine/settings';
 import { TouchControls } from './engine/touch';
-import { detectLanguage, setLang, t } from './i18n/i18n';
+import { detectLanguage, setLang, t, tr } from './i18n/i18n';
 import { Menu } from './menu/menu';
 import { equipmentPage, journalPage, type MenuDeps, partyPage, settingsPage } from './menu/pages';
 import { MAPS } from './maps/index';
@@ -27,6 +27,7 @@ import { PrologueScene } from './scenes/prologue';
 import { SeaGateScene } from './scenes/seaGate';
 import { TitleScene } from './scenes/title';
 import { INTERLUDES } from './story/interludes';
+import { lostNameText } from './story/lostNames';
 import { newGame } from './story/state';
 
 function boot(): void {
@@ -133,10 +134,18 @@ function boot(): void {
   };
   /** A page of Isot's chronicle between chapters, then the next chapter's first map. */
   const interlude = (n: number): Scene =>
-    new InterludeScene(renderer, input, audio, n, () => {
-      const next = INTERLUDES[n]!.next;
-      transition(() => mapScene(next.map, { spawn: next.spawn }), 1.2);
-    });
+    new InterludeScene(
+      renderer,
+      input,
+      audio,
+      n,
+      () => {
+        const next = INTERLUDES[n]!.next;
+        transition(() => mapScene(next.map, { spawn: next.spawn }), 1.2);
+      },
+      // The last page lists every Lost Name found, in red.
+      INTERLUDES[n]?.finale ? session.game.lostNames.map((id) => tr(lostNameText(id, session.game))) : [],
+    );
   const prologue = (): Scene => new PrologueScene(renderer, input, audio, () => transition(() => mapScene('scriptorium', { spawn: 'start' }), 0.6));
   const toTitle = (): Scene => {
     const title: TitleScene = new TitleScene(renderer, input, audio, {
@@ -152,7 +161,8 @@ function boot(): void {
           },
         },
         {
-          label: () => t('title.continue'),
+          // Once the story is finished, its save opens on the last page instead.
+          label: () => t(session.saves.latest()?.state.flags.finished ? 'title.lastPage' : 'title.continue'),
           enabled: () => !!session.saves.latest(),
           run: () => {
             const save = session.saves.latest();
@@ -160,6 +170,7 @@ function boot(): void {
             title.hideMenu();
             transition(() => {
               session.game = save.state;
+              if (save.state.flags.finished) return interlude(5);
               return mapScene(save.state.map, { spawn: save.state.spawn || 'start' });
             });
           },
@@ -352,7 +363,7 @@ function boot(): void {
       // Jump anywhere the story reaches.
       { label: '→ title', run: () => transition(toTitle, 0.3) },
       { label: '→ prologue', run: () => transition(() => (startGame(), prologue()), 0.3) },
-      ...[1, 2, 3, 4].map((n) => ({ label: `→ interlude ${['I', 'II', 'III', 'IV'][n - 1]}`, run: () => transition(() => interlude(n), 0.3) })),
+      ...[1, 2, 3, 4, 5].map((n) => ({ label: `→ interlude ${['I', 'II', 'III', 'IV', 'V (the last page)'][n - 1]}`, run: () => transition(() => interlude(n), 0.3) })),
       { label: '→ scriptorium', run: () => transition(() => (startGame(), mapScene('scriptorium', { spawn: 'start' })), 0.3) },
       { label: '→ sea gate', run: () => transition(() => (startGame(), (session.game.party = ['isot', 'hild']), seaGate()), 0.3) },
       { label: '→ lychford', run: () => transition(() => (chapterTwo(), mapScene('lane', { spawn: 'start' })), 0.3) },
