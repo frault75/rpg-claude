@@ -76,6 +76,8 @@ export class InterludeScene implements Scene {
   private appear = 0;
   private turn = 0;
   private quillAt = 0;
+  private sincePaint = 0;
+  private glowShown = 0;
   private state: 'appear' | 'ink' | 'wait' | 'turn' | 'card' | 'done' = 'appear';
   private readonly music: GainNode | null = null;
   private stopDrone: (() => void) | null = null;
@@ -310,9 +312,13 @@ export class InterludeScene implements Scene {
       }
     } else if (this.state === 'card') fade.fade = 1;
     if (this.state === 'appear' || this.state === 'ink' || this.state === 'wait') fade.fade = Math.max(0, 1 - this.appear);
+    // Repaint as the ink goes on, but no more than a dozen times a second: each repaint is
+    // a texture upload, and phones feel it.
     const key = Math.floor(this.inked);
-    if (key !== this.painted) {
+    this.sincePaint += dt;
+    if (key !== this.painted && (this.sincePaint >= 1 / 12 || key >= this.total || this.painted < 0)) {
       this.painted = key;
+      this.sincePaint = 0;
       this.paint();
     }
     this.hint.opacity += ((this.state === 'wait' ? 1 : 0) - this.hint.opacity) * Math.min(1, dt * 4);
@@ -427,7 +433,12 @@ export class InterludeScene implements Scene {
       c.globalAlpha = 1;
     }
     this.pageTex.needsUpdate = true;
-    this.glowTex.needsUpdate = true;
+    // The gold only changes when the page first shows and when FINIS is set in its cartouche.
+    const glowKey = this.def.finale && this.inked >= this.total ? 2 : 1;
+    if (glowKey !== this.glowShown) {
+      this.glowShown = glowKey;
+      this.glowTex.needsUpdate = true;
+    }
   }
 
   sync(): void {
