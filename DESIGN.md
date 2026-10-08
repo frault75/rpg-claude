@@ -933,6 +933,18 @@ Equipment never inflates stats. Every item is a sidegrade that bends one rule, s
 | **Ebb Shell** | Charm | The first blow taken in each battle deals 1 less. | *Picked up on the causeway, still wet.* |
 | **Pot of Vermilion** | Charm | The wearer's first ability that can be doubled (§5.6) is doubled, once per battle. | *Red is read first.* |
 
+Where each is found, with a line saying how and the item's card:
+
+- **Wystan's Pumice** and **the Psalter Chain** are carried from the start: Isot keeps her teacher's pumice, and Hild's chain is the one she wears.
+- **Pot of Lamp-black:** the scriptorium, at Isot's own desk (it can be passed by): she scrapes the soot from her lamp into a pot, the way Wystan showed her.
+- **Anchorhold Stone:** the penitent's cell, once Hild has broken the old doorway open; a chip of it lies at Isot's feet.
+- **The Blank Pennon:** the Sea Gate, when Whit joins; it is his, and he wears it from the start.
+- **Ebb Shell:** the Sea Gate causeway, after B1, still wet.
+- **Clapper of the Passing Bell:** the bell tower, once the passing bell has rung. It is the bell's old clapper, cracked and replaced long ago, hanging on a hook, so the bell keeps its own voice for the end.
+- **Pot of Vermilion:** Wystan's vine, given by Wystan with the Rubric.
+
+A test checks that every item is either carried from the start or found by a script.
+
 Every fight can be won with no items worn.
 
 ---
@@ -1510,6 +1522,7 @@ Each milestone is playable and arrives as its own PR, with build and tests green
 | **Done** | Fight tuning | A solver over the engine (a plain player, one who reads one idea, and a beam search) measured every fight: the ordinary fights fall to plain fighting, as they should; the Danse Macabre, the Blot and the Writing need their puzzle; the Great Snail did not, so it now licks its wounds in its shell. A test plays every fight to keep it that way |
 | **Done** | Boss phase changes on the field | High Water on the causeway (the shell cracks on a glowing spiral of writing, the tide breaks every second round over the Front and the Middle, Gaudry's torches come down from the Abbey); the Clean Page in the nave (the floor turns to ruled vellum, the wall to a page with the initial M of MERCY in gold, Aumery gilded in it) |
 | **Done** | The last page | The epilogue as the fifth illuminated page: the three small figures in its initial, the Lost Names found in red, FINIS in a cartouche set into the border, the score's only major chord, then the credits card; the title offers it again once the story is finished |
+| **Done** | Items in the story | The six items not carried from the start are found at story beats (§6), each with a line and its card; the clapper is the passing bell's old one, so the bell still rings at the end |
 
 ---
 
@@ -1540,4 +1553,3 @@ The story beats, the five bosses, raking light and the fray effect are the core 
 1. **Title.** Is *Palimpsest* fine, or would you like a plainer name?
 2. **Darkness.** The story touches on mercy-killing. Isot scrapes her suffering teacher at his request, and Amabel asks the same of her. It is handled with restraint, with no gore and with consequences. Is that tone OK?
 3. **Final battle.** Boss V is an objective fight (protect the scribe for five letters) rather than a race to empty an HP bar. Do you agree?
-4. **Where each item lies.** The eight items need their story beats. The Clapper of the Passing Bell can't come from Lychford's own bell, which is rung again in the final battle.

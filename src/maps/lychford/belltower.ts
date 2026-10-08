@@ -148,5 +148,7 @@ async function passingBell(c: MapContext): Promise<void> {
   }
   await c.narrate({ en: 'The passing bell. Its voice goes out over the snow, over the fen, for the first time in ten years.', fr: 'Le glas. Sa voix s’en va sur la neige, sur le marais, pour la première fois depuis dix ans.' });
   await c.say('whit', { en: 'I know that sound. I know it the way you know your own name.', fr: 'Je connais ce son. Je le connais comme on connaît son propre nom.' });
+  // The bell keeps its own clapper: it must ring again, at the end.
+  await c.find('bellClapper', { en: 'On a hook in the ringing chamber hangs the bell’s old clapper, cracked and replaced long ago. Whit takes it down and weighs it in his hand.', fr: 'À un crochet de la chambre des cloches pend l’ancien battant de la cloche, fêlé, remplacé il y a longtemps. Whit le décroche et le soupèse.' });
   c.goto('village', 'church');
 }

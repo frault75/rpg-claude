@@ -6,13 +6,14 @@
 
 import type { AudioEngine } from '../audio/engine';
 import { EbbNightAmbience } from '../audio/ambient';
-import { footstep } from '../audio/sfx';
+import { footstep, uiTick } from '../audio/sfx';
 import type { DebugInfo } from '../debug/overlay';
 import type { GameLight, WorldRenderer } from '../engine/diorama/renderer';
 import type { Input } from '../engine/input';
 import type { Scene } from '../engine/scene';
 import { session } from '../engine/session';
-import { tr } from '../i18n/i18n';
+import { type LocalText, t, tr } from '../i18n/i18n';
+import { ITEMS } from '../data/equipment';
 import { waveSound } from '../audio/battleSfx';
 import { CHARACTERS } from '../pixel/characters';
 import { TILE } from '../pixel/terrain';
@@ -153,8 +154,22 @@ export class SeaGateScene implements Scene {
     await this.dialogue.say('isot', { en: 'Into the border? Like a drawing?', fr: 'Dans la bordure ? Comme un dessin ?' }, 'wry');
     await this.dialogue.say('hild', { en: 'Nothing in Hollin dies any more, child. Not even the jokes. Come: Lychford is a day’s walk, and the tide is turning.', fr: 'Plus rien ne meurt en Hollin, petite. Pas même les plaisanteries. Viens : Lychford est à une journée de marche, et la marée tourne.' }, 'grave');
     this.dialogue.close();
+    await this.found('ebbShell', { en: 'Where the snail went under, Isot picks a shell up off the causeway, still wet.', fr: 'Là où l’escargot a disparu, Isot ramasse sur la chaussée une coquille encore mouillée.' });
     session.saves.save('auto', session.game);
     await this.hook();
+  }
+
+  /** An item found on the causeway (DESIGN.md §6): how, then its card. Once only. */
+  private async found(item: string, how: LocalText): Promise<void> {
+    const inv = session.game.inventory;
+    const def = ITEMS[item];
+    if (!def || inv.includes(item)) return;
+    await this.dialogue.narrate(how);
+    this.dialogue.close();
+    inv.push(item);
+    uiTick(this.audio, true);
+    this.card.show(tr(def.name), `${t('item.found')} · ${tr(def.text)}`);
+    await this.director.wait(2.6);
   }
 
   /** The hook (DESIGN.md §3.4.9): the Abbot at the gate, the tide between, a name. */
@@ -324,6 +339,10 @@ export class SeaGateScene implements Scene {
     ]);
     this.party.push(w);
     if (!session.game.party.includes('whit')) session.game.party.push('whit');
+    // His pennon comes with him: white, with nothing on it.
+    await this.found('blankPennon', { en: 'From his lance hangs a pennon with no device on it at all.', fr: 'À sa lance pend un fanion qui ne porte aucune devise.' });
+    const eq = session.game.equipment.whit;
+    if (eq && !eq.relic) eq.relic = 'blankPennon';
     this.letterbox.target = 0;
     await d.panTo(...d.clamp(p.x, p.y - 10), 1.2, p.h);
     d.release();

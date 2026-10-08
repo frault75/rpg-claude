@@ -29,6 +29,7 @@ import { Director } from '../world/director';
 import { Actor } from '../world3d/actor';
 import { Billboard, pixelTexture } from '../world3d/billboard';
 import { Stage } from '../world3d/stage';
+import { ITEMS } from '../data/equipment';
 
 /** What a map asks of the game around it. */
 export interface MapHooks {
@@ -365,6 +366,16 @@ export class MapScene implements Scene {
         const def = ABILITIES[ability];
         uiTick(this.audio, true);
         this.cardUi.show(tr(def.name), `${tr(SPEAKERS[who]?.name ?? { en: who, fr: who })} · ${tr(def.text)}`);
+        await this.director.wait(2.6);
+      },
+      find: async (item, how) => {
+        const inv = g().inventory;
+        const def = ITEMS[item];
+        if (!def || inv.includes(item)) return;
+        if (how) await ctx.narrate(how);
+        inv.push(item);
+        uiTick(this.audio, true);
+        this.cardUi.show(tr(def.name), `${t('item.found')} · ${tr(def.text)}`);
         await this.director.wait(2.6);
       },
       page: (def) => this.openPage(def),

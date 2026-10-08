@@ -200,5 +200,6 @@ async function wallComesDown(c: MapContext): Promise<void> {
   await c.say('hild', { en: 'An anchoress keeps a vow to stay. I kept it ten years, for a reason I’ve stopped believing. Through the church, child. The cloister, then the sea gate.', fr: 'Une recluse fait vœu de rester. Je l’ai tenu dix ans, pour une raison à laquelle je ne crois plus. Par l’église, petite. Le cloître, puis la porte de la mer.' }, 'grave');
   c.join('hild', hild);
   c.set('hildJoined');
+  await c.find('anchorStone', { en: 'A chip of the wall she broke down lies at Isot’s feet. She pockets it.', fr: 'Un éclat du mur qu’elle a abattu gît aux pieds d’Isot. Elle le met dans sa poche.' });
   c.letterbox(false);
 }

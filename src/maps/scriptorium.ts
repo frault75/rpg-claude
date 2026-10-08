@@ -136,6 +136,7 @@ export const SCRIPTORIUM: MapDef = {
       run: async (c) => {
         await c.say('isot', { en: 'Psalm ninety, half copied. “We bring our years to an end, as it were a tale that is told.”', fr: 'Psaume quatre-vingt-dix, à moitié copié. « Nos années s’achèvent comme un conte qu’on raconte. »' }, 'tired');
         await c.say('isot', { en: 'Nobody’s years have ended in ten winters. The psalm doesn’t know that.', fr: 'Les années de personne ne se sont achevées depuis dix hivers. Le psaume ne le sait pas.' }, 'wry');
+        await c.find('lampBlack', { en: 'She scrapes the soot from her lamp into a little pot and grinds it with gum, the way Wystan showed her.', fr: 'Elle gratte la suie de sa lampe dans un petit pot et la broie à la gomme, comme Wystan le lui a montré.' });
       },
     },
     {

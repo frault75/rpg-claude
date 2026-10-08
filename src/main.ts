@@ -79,7 +79,8 @@ function boot(): void {
     game.party = ['isot'];
     // A deep copy: abilities learned later must never touch the starting lists.
     game.abilities = Object.fromEntries(Object.entries(CHAPTER_ONE_ABILITIES).map(([k, v]) => [k, [...v]])) as typeof game.abilities;
-    game.inventory = ['wystansPumice', 'psalterChain', 'ebbShell'];
+    // Wystan's pumice is Isot's already; Hild brings her chain. The rest are found (DESIGN.md §6).
+    game.inventory = ['wystansPumice', 'psalterChain'];
     game.equipment.isot.charm = 'wystansPumice';
     game.equipment.hild.relic = 'psalterChain';
     session.game = game;
@@ -204,6 +205,8 @@ function boot(): void {
     session.game.party = ['isot', 'hild', 'whit'];
     session.game.cleared.push('f1', 'f2', 'b1');
     session.game.chapter = 2;
+    session.game.inventory.push('lampBlack', 'anchorStone', 'blankPennon', 'ebbShell');
+    session.game.equipment.whit.relic = 'blankPennon';
   };
   /** The state at the start of chapter III: Lychford behind them, its abilities learned. */
   const chapterThree = (): void => {
@@ -211,6 +214,7 @@ function boot(): void {
     const g = session.game;
     g.cleared.push('f3', 'f4', 'b2');
     g.chapter = 3;
+    g.inventory.push('bellClapper');
     g.abilities.isot.push('emend');
     g.abilities.hild.push('immure');
     g.abilities.whit.push('vigil');
@@ -263,6 +267,7 @@ function boot(): void {
     const g = session.game;
     g.cleared.push('f7', 'b4');
     g.chapter = 5;
+    g.inventory.push('vermilionPot');
     g.abilities.isot.push('rubric');
     Object.assign(g.flags, { steppedOff: true, cw4: true, f7Done: true, wystanMet: true, confessed: true, fallOfNames: true, ermelineOut: true, inkhornFilled: true });
     g.lostNames.push('fishers');
