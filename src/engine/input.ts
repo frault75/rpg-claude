@@ -16,7 +16,6 @@ export type Action =
   | 'journal'
   | 'debug'
   | 'debugMenu'
-  | 'fray'
   | 'mute'
   | 'n1'
   | 'n2'
@@ -76,7 +75,6 @@ export function actionFor(code: string, key: string, shift: boolean, keys: KeyBi
   if (fixed) return fixed;
   const k = key.toLowerCase();
   if (k === 'm') return 'mute';
-  if (k === 'f') return 'fray';
   return null;
 }
 
