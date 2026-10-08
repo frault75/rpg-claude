@@ -5,8 +5,8 @@ import type { CharId } from '../story/state';
 import type { AbilityDef, AbilityId, IntentEffect, Target } from './types';
 
 export const ABILITIES: Record<AbilityId, AbilityDef> = {
-  penknife: { id: 'penknife', name: { en: 'Penknife', fr: 'Canif' }, owner: 'isot', target: 'enemy', text: { en: '2 damage to any enemy.', fr: '2 dégâts à n’importe quel ennemi.' } },
-  gloss: { id: 'gloss', name: { en: 'Gloss', fr: 'Annoter' }, owner: 'isot', target: 'enemy', text: { en: 'Note its weak spot: the next blow it takes deals 3 more. What it hides, it shows.', fr: 'Note son point faible : le prochain coup qu’il reçoit fait 3 de plus. Ce qu’il cache se lit.' } },
+  penknife: { id: 'penknife', name: { en: 'Attack', fr: 'Attaquer' }, owner: 'isot', target: 'enemy', text: { en: 'A cut of the penknife: 2 damage to any enemy.', fr: 'Un coup de canif : 2 dégâts à n’importe quel ennemi.' } },
+  gloss: { id: 'gloss', name: { en: 'Gloss', fr: 'Déchiffrer' }, owner: 'isot', target: 'enemy', text: { en: 'Note its weak spot: the next blow it takes deals 3 more. What it hides, it shows.', fr: 'Lit l’ennemi comme un texte : ce qu’il cache se voit, et le prochain coup qu’il reçoit fait 3 de plus.' } },
   strike: { id: 'strike', name: { en: 'Strike Through', fr: 'Rayer' }, owner: 'isot', ink: 2, target: 'intent', text: { en: 'Cross out one enemy intent: it does not happen this round.', fr: 'Raye une intention ennemie : elle n’a pas lieu ce tour-ci.' } },
   emend: { id: 'emend', name: { en: 'Emend', fr: 'Corriger' }, owner: 'isot', ink: 1, target: 'intent', text: { en: 'Change whom a single blow strikes: another ally takes it.', fr: 'Corrige la cible d’un coup unique : il tombe sur un autre allié.' } },
   rubric: { id: 'rubric', name: { en: 'Rubric', fr: 'Rubrique' }, owner: 'isot', ink: 1, target: 'ally', text: { en: 'An ally’s next ability this round is doubled.', fr: 'La prochaine capacité d’un allié ce tour-ci est doublée.' } },
@@ -15,7 +15,7 @@ export const ABILITIES: Record<AbilityId, AbilityDef> = {
   immure: { id: 'immure', name: { en: 'Immure', fr: 'Emmurer' }, owner: 'hild', hp: 2, target: 'anyUnit', text: { en: 'Wall in any unit until the round ends.', fr: 'Emmure n’importe qui jusqu’à la fin du tour.' } },
   squint: { id: 'squint', name: { en: 'Squint', fr: 'Hagioscope' }, owner: 'hild', target: 'none', text: { en: 'Reveal hidden intents, and next round’s.', fr: 'Révèle les intentions cachées, et celles du tour suivant.' } },
   benison: { id: 'benison', name: { en: 'Benison', fr: 'Bénédiction' }, owner: 'hild', target: 'none', oncePerBattle: true, text: { en: 'All allies regain 5 HP and gain Ward 3.', fr: 'Tous les alliés regagnent 5 PV et gagnent Garde 3.' } },
-  lance: { id: 'lance', name: { en: 'Lance', fr: 'Lance' }, owner: 'whit', target: 'enemy', fromFront: true, reachEnemy: 2, text: { en: '4 damage to the 1st or 2nd enemy.', fr: '4 dégâts au 1er ou au 2e ennemi.' } },
+  lance: { id: 'lance', name: { en: 'Attack', fr: 'Attaquer' }, owner: 'whit', target: 'enemy', fromFront: true, reachEnemy: 2, text: { en: 'A thrust of the lance: 4 damage to the 1st or 2nd enemy.', fr: 'Un coup de lance : 4 dégâts au 1er ou au 2e ennemi.' } },
   tally: { id: 'tally', name: { en: 'Tally', fr: 'Décompte' }, owner: 'whit', target: 'enemy', text: { en: 'Set Tally 3: at 0, a Reckoning of 7.', fr: 'Pose un Décompte de 3 : à 0, le Règlement inflige 7.' } },
   vigil: { id: 'vigil', name: { en: 'Vigil', fr: 'Veille' }, owner: 'whit', target: 'none', fromFront: true, text: { en: 'The first enemy to strike an ally is struck first, for 4.', fr: 'Le premier ennemi qui frappe un allié encaisse d’abord 4 dégâts.' } },
   read: { id: 'read', name: { en: 'Read Aloud', fr: 'Lire à voix haute' }, owner: 'whit', target: 'enemy', text: { en: 'End an enemy with 6 HP or fewer.', fr: 'Achève un ennemi à 6 PV ou moins.' } },
@@ -420,11 +420,10 @@ export const ENEMIES: Record<string, EnemyDef> = {
     behave: (c) => {
       const k = c.copied;
       if (k && k.amount > 0) {
-        const n = ABILITIES[k.ability].name;
-        return [{ label: { en: `Copies the ${n.en} back`, fr: `Recopie « ${n.fr} »` }, rule: { en: 'As hard as it was done', fr: 'Aussi fort qu’il l’a reçu' }, target: { unit: k.by }, damage: k.amount, reach: 'any' }];
+        return [{ label: { en: 'Returns the blow', fr: 'Rend le coup reçu' }, rule: { en: 'As hard as it was done', fr: 'Aussi fort qu’il l’a reçu' }, target: { unit: k.by }, damage: k.amount, reach: 'any' }];
       }
       if (k && k.ability === 'gloss')
-        return [{ label: { en: 'Copies the Gloss back', fr: 'Annote en retour' }, rule: { en: 'The next blow on them deals 3 more', fr: 'Le prochain coup reçu fait 3 de plus' }, target: { unit: k.by }, effects: [{ kind: 'gloss' }], reach: 'any' }];
+        return [{ label: { en: 'Copies the Gloss back', fr: 'Déchiffre en retour' }, rule: { en: 'The next blow on them deals 3 more', fr: 'Le prochain coup reçu fait 3 de plus' }, target: { unit: k.by }, effects: [{ kind: 'gloss' }], reach: 'any' }];
       return (c.phase + c.place) % 2 === 0
         ? [{ label: { en: 'Scribbles', fr: 'Griffonne' }, target: { place: 1 }, damage: 2, reach: 'any' }]
         : [{ label: { en: 'Blots the page', fr: 'Tache la page' }, rule: { en: 'Smudge', fr: 'Bavure' }, target: { place: 2 }, reach: 'far', effects: [{ kind: 'smudge' }] }];

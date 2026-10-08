@@ -57,8 +57,8 @@ export interface Rank {
 
 export const RANKS: readonly Rank[] = [
   { id: 'shove2', level: 4, name: { en: 'Shove II', fr: 'Bousculer II' }, text: { en: 'Shove deals 3.', fr: 'Bousculer inflige 3.' } },
-  { id: 'lance2', level: 6, name: { en: 'Lance II', fr: 'Lance II' }, text: { en: 'Lance deals 5.', fr: 'Lance inflige 5.' } },
-  { id: 'penknife2', level: 8, name: { en: 'Penknife II', fr: 'Canif II' }, text: { en: 'Penknife deals 3.', fr: 'Canif inflige 3.' } },
+  { id: 'lance2', level: 6, name: { en: 'A heavier lance', fr: 'Une lance plus lourde' }, text: { en: 'Whit’s Attack deals 5.', fr: 'L’attaque de Whit inflige 5.' } },
+  { id: 'penknife2', level: 8, name: { en: 'A keener knife', fr: 'Un canif plus affûté' }, text: { en: 'Isot’s Attack deals 3.', fr: 'L’attaque d’Isot inflige 3.' } },
   { id: 'shrive2', level: 10, name: { en: 'Shrive II', fr: 'Absoudre II' }, text: { en: 'Shrive heals 8.', fr: 'Absoudre soigne 8.' } },
   { id: 'inkwell', level: 12, name: { en: 'The Ink-well', fr: 'L’encrier' }, text: { en: 'Isot’s Ink holds 4.', fr: 'L’Encre d’Isot monte à 4.' } },
 ];
@@ -143,7 +143,7 @@ export function abilityText(id: AbilityId, level: number): LocalText {
 
 const RANKED: Partial<Record<AbilityId, [RankId, LocalText]>> = {
   shove: ['shove2', { en: '3 damage to the 1st enemy, then push it to the back.', fr: '3 dégâts au 1er ennemi, puis le repousse au fond.' }],
-  lance: ['lance2', { en: '5 damage to the 1st or 2nd enemy.', fr: '5 dégâts au 1er ou au 2e ennemi.' }],
-  penknife: ['penknife2', { en: '3 damage to any enemy.', fr: '3 dégâts à n’importe quel ennemi.' }],
+  lance: ['lance2', { en: 'A thrust of the lance: 5 damage to the 1st or 2nd enemy.', fr: 'Un coup de lance : 5 dégâts au 1er ou au 2e ennemi.' }],
+  penknife: ['penknife2', { en: 'A cut of the penknife: 3 damage to any enemy.', fr: 'Un coup de canif : 3 dégâts à n’importe quel ennemi.' }],
   shrive: ['shrive2', { en: 'An ally regains 8 HP, or a fallen ally rises with 8.', fr: 'Un allié regagne 8 PV, ou un allié tombé se relève avec 8.' }],
 };

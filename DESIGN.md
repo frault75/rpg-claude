@@ -1505,14 +1505,15 @@ The game ships in **English and French**. The language is detected from the brow
 | Front / Middle / Rear | Avant / Milieu / Arrière | Ward | Garde |
 | Tally | Décompte | Reckoning | Règlement |
 | Ink | Encre | Smudge | Bavure |
-| Penknife | Canif | Gloss | Annoter |
+| Penknife (Attack) | Attaquer (un coup de canif) | Gloss | Déchiffrer |
 | Strike Through | Rayer | Emend | Corriger |
-| Glossed | Annoté | | |
+| Glossed | Déchiffré | | |
 | Step | Changer de place | | |
 | Rubric | Rubrique | Shove | Bousculer |
 | Shrive | Absoudre | Immure | Emmurer |
 | Squint | Hagioscope | Benison | Bénédiction |
 | Vigil | Veille | Read Aloud | Lire à voix haute |
+| Lance (Attack) | Attaquer (un coup de lance) | | |
 | HP | PV | Pumice Brother | Frère de la Ponce |
 | Saint Ebb's | Saint-Ebb | The Mercy | la Miséricorde |
 | The Grey Sweat | la Suette grise | The Scraping | Le Grattage |
