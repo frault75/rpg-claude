@@ -275,7 +275,7 @@ export function commandHeight(n: number): number {
   return 54 + n * COMMAND_ROW;
 }
 
-export function drawCommands(c: CanvasRenderingContext2D, w: number, h: number, title: string, entries: CommandEntry[], cursor: number, time: number): void {
+export function drawCommands(c: CanvasRenderingContext2D, w: number, h: number, title: string, entries: CommandEntry[], cursor: number, time: number, keys = false): void {
   drawWindow(c, 0, 0, w, h);
   c.textBaseline = 'middle';
   c.textAlign = 'left';
@@ -293,6 +293,14 @@ export function drawCommands(c: CanvasRenderingContext2D, w: number, h: number, 
       c.fillStyle = g;
       c.fillRect(20, y - COMMAND_ROW / 2 + 3, w - 40, COMMAND_ROW - 6);
       drawManicule(c, 36 + Math.sin(time * 7) * 2, y, 0.95);
+    }
+    if (keys && i < 5 && i !== cursor) {
+      // The key that picks it, small and quiet where the manicule would be.
+      c.font = `600 13px ${SERIF}`;
+      c.textAlign = 'center';
+      c.fillStyle = 'rgba(232,199,106,0.45)';
+      c.fillText(String(i + 1), 38, y + 1);
+      c.textAlign = 'left';
     }
     c.font = `${prefs.largeText ? 23 : 21}px ${SERIF}`;
     shadowText(c, e.label, 58, y, e.disabled ? 'rgba(185,179,166,0.55)' : INK.text);

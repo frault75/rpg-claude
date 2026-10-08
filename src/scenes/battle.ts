@@ -225,6 +225,8 @@ interface BanderoleState {
 }
 
 const ENV_ID = 'env';
+/** Show the 1–5 shortcuts beside the commands, except where fingers are the pointer. */
+const KEY_HINTS = typeof window === 'undefined' || !window.matchMedia?.('(pointer: coarse)').matches;
 /** The enemy's name plate, between its head and its banderoles. */
 const PLATE_H = 30;
 
@@ -1247,6 +1249,17 @@ export class BattleScene implements Scene {
       this.cmdDirty = true;
       this.overlayDirty = true;
     };
+    // 1–5 pick a row of the window directly: an ally, an ability, a target.
+    const digit = /^n([1-5])$/.exec(a);
+    if (digit) {
+      const i = Number(digit[1]) - 1;
+      if (i >= n) return;
+      m.cursor = i;
+      this.cmdDirty = true;
+      this.overlayDirty = true;
+      opts[i]!.run();
+      return;
+    }
     if (a === 'up') move(-1);
     else if (a === 'down') move(1);
     else if ((a === 'left' || a === 'right') && m.kind === 'target') move(a === 'left' ? -1 : 1);
@@ -1761,7 +1774,7 @@ export class BattleScene implements Scene {
     this.cmdWin.x = r.x;
     this.cmdWin.y = r.y;
     const inTarget = this.menu?.kind === 'target';
-    this.cmdWin.draw((c, w) => drawCommands(c, w, r.inner, m.title, entries, inTarget ? -1 : m.cursor, this.time));
+    this.cmdWin.draw((c, w) => drawCommands(c, w, r.inner, m.title, entries, inTarget ? -1 : m.cursor, this.time, KEY_HINTS));
     // The help bar follows the cursor.
     const cur = this.menu!.options()[this.menu!.cursor];
     this.drawHelpText(cur?.help ?? '', !!cur?.warn);
