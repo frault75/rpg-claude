@@ -11,6 +11,7 @@ import { fizzleSound } from '../../audio/battleSfx';
 import { MarginAmbience } from '../../audio/margin';
 import { uiTick } from '../../audio/sfx';
 import { session } from '../../engine/session';
+import { type LocalText, tr } from '../../i18n/i18n';
 import { enemyStill } from '../../pixel/enemies';
 import type { Billboard } from '../../world3d/billboard';
 import { catchwordArch, goldBar, ivy } from '../../world3d/margin';
@@ -24,15 +25,21 @@ const GROUND = Array.from({ length: H }, () => 'o'.repeat(W));
 const ROAD_Y = tiles(6.5);
 const GATE_X = tiles(12);
 
-/** The motto, and the words that are not it. */
-export const MOTTO = ['WHAT', 'IS', 'WRITTEN', 'IS', 'HELD'] as const;
-const OPTIONS: string[][] = [
-  ['WHO', 'WHAT', 'WHEN'],
-  ['WAS', 'SHALL', 'IS'],
-  ['WRITTEN', 'SCRAPED', 'LOST'],
-  ['NOT', 'IS', 'WAS'],
-  ['GONE', 'READ', 'HELD'],
+/**
+ * The catchwords at each wall, in the player's language: the motto's word and two that are
+ * not it. In French the motto is « Ce qui est écrit est retenu », so its first wall says CE QUI.
+ */
+const OPTIONS: LocalText[][] = [
+  [{ en: 'WHO', fr: 'QUI' }, { en: 'WHAT', fr: 'CE QUI' }, { en: 'WHEN', fr: 'QUE' }],
+  [{ en: 'WAS', fr: 'ETAIT' }, { en: 'SHALL', fr: 'SERA' }, { en: 'IS', fr: 'EST' }],
+  [{ en: 'WRITTEN', fr: 'ECRIT' }, { en: 'SCRAPED', fr: 'GRATTE' }, { en: 'LOST', fr: 'PERDU' }],
+  [{ en: 'NOT', fr: 'NE' }, { en: 'IS', fr: 'EST' }, { en: 'WAS', fr: 'ETAIT' }],
+  [{ en: 'GONE', fr: 'PARTI' }, { en: 'READ', fr: 'LU' }, { en: 'HELD', fr: 'RETENU' }],
 ];
+/** Which opening in each wall is the motto's. */
+const RIGHT = [1, 2, 0, 1, 2];
+/** The motto, as the arches spell it. */
+export const MOTTO = OPTIONS.map((o, j) => o[RIGHT[j]!]!.en);
 const JUNCTION_X = [20, 28, 36, 44, 52].map((x) => tiles(x));
 /** The three openings in each wall of acanthus (tile rows of their middles). */
 const OPENING_Y = [2.6, 6.5, 10.4];
@@ -40,21 +47,22 @@ const OPENING_Y = [2.6, 6.5, 10.4];
 function archZones(): Zone[] {
   const zones: Zone[] = [];
   JUNCTION_X.forEach((jx, j) => {
-    OPTIONS[j]!.forEach((word, k) => {
+    OPTIONS[j]!.forEach((_, k) => {
       zones.push({
         id: `arch-${j}-${k}`,
         rect: [jx - 6, tiles(OPENING_Y[k]! - 0.7), 12, tiles(1.4)],
         when: (c) => c.flag('f7Done') && !c.flag(`cw${j}`) && (j === 0 || c.flag(`cw${j - 1}`)),
-        run: (c) => throughArch(c, j, word),
+        run: (c) => throughArch(c, j, k),
       });
     });
   });
   return zones;
 }
 
-async function throughArch(c: MapContext, j: number, word: string): Promise<void> {
+async function throughArch(c: MapContext, j: number, k: number): Promise<void> {
   const jx = JUNCTION_X[j]!;
-  if (word === MOTTO[j]) {
+  const word = tr(OPTIONS[j]![k]!);
+  if (k === RIGHT[j]) {
     c.set(`cw${j}`);
     uiTick(c.audio, true);
     c.player.x = jx + 18;
@@ -123,7 +131,7 @@ export const IVY: MapDef = {
     // The walls of acanthus with their catchword arches.
     const blocked: Rect[] = [];
     JUNCTION_X.forEach((jx, j) => {
-      OPTIONS[j]!.forEach((word, k) => st.addImage(catchwordArch(word, j * 3 + k), jx, tiles(OPENING_Y[k]! + 0.9), { solid: false }));
+      OPTIONS[j]!.forEach((word, k) => st.addImage(catchwordArch(tr(word), j * 3 + k), jx, tiles(OPENING_Y[k]! + 0.9), { solid: false }));
       const solid: [number, number][] = [
         [0, 1.9],
         [3.3, 5.8],

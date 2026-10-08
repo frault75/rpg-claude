@@ -224,7 +224,7 @@ export function equipmentPage(d: MenuDeps): Page {
       }
       // The satchel: used in battle, from any ally's list.
       rows.push(sepRow());
-      rows.push(infoRow(`<span class="section">${t('equip.satchel')}</span><span class="value">${t('party.pennies', { n: g.pennies })}</span>`));
+      rows.push(infoRow(`<span class="section">${t('equip.satchel')}</span><span class="value">${t('party.purse')} : ${t('party.pennies', { n: g.pennies })}</span>`));
       const packed = SATCHEL_IDS.filter((id) => (g.satchel[id] ?? 0) > 0);
       if (!packed.length) rows.push(infoRow(t('equip.satchelEmpty'), 'dim'));
       for (const id of packed) {

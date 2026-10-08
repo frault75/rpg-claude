@@ -142,7 +142,7 @@ const WORDS: Underwriting[] = [
 const HERMIT: [number, number] = [tiles(21.6), tiles(1.6)];
 const NAMES: Underwriting[] = [
   { id: 'name-maud', x: HERMIT[0] - 10, y: HERMIT[1] + 4, h: 10, art: localTextImage([{ en: 'MAUD OF THE MILL', fr: 'MAUD DU MOULIN' }], GHOST), lostName: 'maud' },
-  { id: 'name-gervase', x: HERMIT[0] + 14, y: HERMIT[1] + 4, h: 18, art: localTextImage([{ en: 'GERVASE', fr: 'GERVASE' }, { en: 'A PEDLAR OF RIBBONS', fr: 'COLPORTEUR DE RUBANS' }], GHOST), lostName: 'gervase' },
+  { id: 'name-gervase', x: HERMIT[0] + 14, y: HERMIT[1] + 4, h: 18, art: localTextImage([{ en: 'GERVASE', fr: 'GERVAIS' }, { en: 'A PEDLAR OF RIBBONS', fr: 'COLPORTEUR DE RUBANS' }], GHOST), lostName: 'gervase' },
 ];
 
 let lastHeld: [number, number] = ROADS[0]![0]!;
