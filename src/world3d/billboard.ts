@@ -56,6 +56,8 @@ export class Billboard {
   y = 0;
   h = 0;
   flip = false;
+  /** Drawn smaller or larger about the feet (children). */
+  scale = 1;
   private readonly cols: number;
   private readonly rows: number;
   private flashV = 0;
@@ -130,6 +132,47 @@ export class Billboard {
     m.needsUpdate = true;
   }
 
+  /**
+   * Fraying (DESIGN.md §8.6): the forgotten pale and lose pixels of their outline, more
+   * the further gone they are (0..1). Compiled into the material on first use.
+   */
+  set fray(v: number) {
+    const m = this.mesh.material;
+    if (!this.frayU) {
+      if (v <= 0) return;
+      const u = { value: v };
+      const img = this.map.image as { width?: number; height?: number } | undefined;
+      const size = { value: new THREE.Vector2(img?.width ?? 64, img?.height ?? 64) };
+      this.frayU = u;
+      m.onBeforeCompile = (shader) => {
+        shader.uniforms.uFray = u;
+        shader.uniforms.uTexSize = size;
+        shader.fragmentShader = shader.fragmentShader
+          .replace('#include <common>', '#include <common>\nuniform float uFray;\nuniform vec2 uTexSize;\nfloat frayHash(vec2 p) { vec3 q = fract(vec3(p.xyx) * 0.1031); q += dot(q, q.yzx + 33.33); return fract((q.x + q.y) * q.z); }')
+          .replace(
+            '#include <map_fragment>',
+            `#include <map_fragment>
+            {
+              vec2 texel = floor(vMapUv * uTexSize);
+              // Broken outline: pixels next to the edge drop out first, the body thins with uFray.
+              float edge = 0.0;
+              for (int i = 0; i < 4; i++) {
+                vec2 o = vec2(i == 0 ? 1.0 : i == 1 ? -1.0 : 0.0, i == 2 ? 1.0 : i == 3 ? -1.0 : 0.0);
+                edge += step(texture2D(map, (texel + o + 0.5) / uTexSize).a, 0.5);
+              }
+              float h = frayHash(texel);
+              if (uFray > 0.0 && h < uFray * (edge > 0.0 ? 1.3 : 0.22)) discard;
+              diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.92, 0.94, 0.98), uFray * 0.55);
+            }`,
+          );
+      };
+      m.needsUpdate = true;
+    }
+    this.frayU.value = v;
+  }
+
+  private frayU: { value: number } | null = null;
+
   set glow(v: number) {
     const m = this.mesh.material;
     if (m instanceof THREE.MeshLambertMaterial) m.emissiveIntensity = v;
@@ -139,7 +182,7 @@ export class Billboard {
     // Whole art pixels on screen: x, y (ground depth) and h map one to one.
     const [wx, wy, wz] = world(Math.round(this.x), Math.round(this.y), Math.round(this.h));
     this.mesh.position.set(wx, wy, wz);
-    this.mesh.scale.x = this.flip ? -1 : 1;
+    this.mesh.scale.set((this.flip ? -1 : 1) * this.scale, this.scale, this.scale);
   }
 
   dispose(): void {

@@ -9,11 +9,14 @@ import { hash2 } from '../engine/noise';
 import { rock, reeds } from '../pixel/nature';
 import { hex, PixelImage, ramp } from '../pixel/pixel';
 import { armarium, candleStand, lectern, writingDesk } from '../pixel/furniture';
-import { lanternPost, mooringPost } from '../pixel/props';
+import { gravestone, lanternPost, mooringPost, stoneCross } from '../pixel/props';
 import { GROUND_DEFAULT } from '../pixel/terrain';
 import { NIGHT_SKY } from '../world3d/sky';
 import { type Stage, tiles } from '../world3d/stage';
 import { arcade } from './cloister';
+import { SNOW_GROUND, WINTER_NIGHT_SKY, WINTER_SKY, winterDay, winterNight } from './lychford/winter';
+import { bareTree, cottage3D, lychGate, snowHedge } from '../world3d/lychford';
+import { CHARACTERS, drawCharacter, FRAMES } from '../pixel/characters';
 import { backWall, FLOOR, moonThrough, nightInterior, sideWall } from './interior';
 import { bush, yewTree } from '../pixel/nature';
 import { wellHead } from '../pixel/furniture';
@@ -298,6 +301,60 @@ function cloisterGarth(r: WorldRenderer, st: Stage): BattleSet {
   };
 }
 
+const SNOWFIELD = Array.from({ length: 11 }, (_, y) => ' '.repeat(0) + (y >= 5 && y <= 7 ? 'd' : 'n').repeat(34));
+
+/** Lychford by day or night: the lane, the lych-gate, or the green ringed with lanterns. */
+function lychford(kind: 'lane' | 'lychgate' | 'green', r: WorldRenderer, st: Stage): BattleSet {
+  const night = kind === 'green';
+  if (night) winterNight(r);
+  else winterDay(r);
+  r.grade = { ...r.grade, focusBand: 60, focusRange: 220 };
+  st.ground({ ground: SNOWFIELD, heights: SNOWFIELD.map((row) => '0'.repeat(row.length)), seed: 41, palette: SNOW_GROUND });
+  st.addSky(night ? { ...WINTER_NIGHT_SKY, moon: [180, 130] } : { ...WINTER_SKY }, 220);
+  if (kind === 'lane') {
+    for (let x = 0; x < tiles(34); x += 44) st.addImage(snowHedge(44, x), x + 22, tiles(3.4));
+    for (let i = 0; i < 9; i++) st.addImage(bareTree(i + 30, 0.9), tiles(2 + i * 3.8), tiles(1.8) + (i % 2) * 8);
+    st.addArt(stoneCross(5), tiles(25), tiles(3.6));
+  } else if (kind === 'lychgate') {
+    st.addArt(lychGate(), tiles(17), tiles(3.6));
+    for (let i = 0; i < 6; i++) st.addArt(gravestone(i + 2), tiles(3 + i * 5.4), tiles(2.8) + (i % 2) * 10);
+    st.addImage(yewTree(6), tiles(4), tiles(3));
+    st.addImage(yewTree(8), tiles(30), tiles(3.2));
+  } else {
+    for (const x of [tiles(4), tiles(13), tiles(22), tiles(30)]) st.addBuilding(cottage3D(x - 28, tiles(0.6), 56, 30, { seed: Math.floor(x), lit: true }));
+    // Lanterns ring the green, kept low so the snow does not burn white under them.
+    const lit = st.lights.length;
+    for (let i = 0; i < 4; i++) {
+      st.addArt(lanternPost(), tiles(4 + i * 8.6), tiles(3.2));
+      if (i % 3 === 0) st.addArt(lanternPost(), tiles(6 + i * 7.4), tiles(10.4));
+    }
+    for (const l of st.lights.slice(lit)) l.intensity *= 0.5;
+    // The audience of the play, frayed villagers in the snow, at the edges of the ring.
+    for (const [i, x] of [tiles(3), tiles(6.4), tiles(9.6), tiles(25.2), tiles(28.4), tiles(31.6)].entries()) {
+      const b = st.addImage(drawCharacter(CHARACTERS[i % 2 ? 'goodwife' : 'villager']!, i < 3 ? 'right' : 'left', FRAMES[0]!), x, tiles(3.8) + (i % 2) * 5);
+      b.fray = 0.2 + (i % 3) * 0.15;
+    }
+  }
+  if (!night) st.addEmitter({ kind: 'snow', area: [0, 0, tiles(34), tiles(11)], heights: [0, 120], count: 60, color: '#F4F8FF', size: 1.6, intensity: 0.6 }, 13);
+  st.addLight(tiles(17), tiles(9.5), 40, 160, night ? '#FFD2A0' : '#FFF4E0', night ? 0.6 : 0.25);
+  return {
+    camera: { x: tiles(17), y: tiles(5.8), h: 36 },
+    // Three abreast here, so the line is drawn tighter and clear of the command window.
+    enemies: [
+      [tiles(15.6), tiles(7.0)],
+      [tiles(14.0), tiles(6.1)],
+      [tiles(12.5), tiles(7.3)],
+      [tiles(11.1), tiles(6.2)],
+    ],
+    party: [
+      [tiles(19.4), tiles(6.5)],
+      [tiles(21.2), tiles(7.2)],
+      [tiles(23), tiles(7.9)],
+    ],
+    seaward: [tiles(17), tiles(9)],
+  };
+}
+
 /** Build the set for a battle's stage. */
 export function dressBattle(stage: string, r: WorldRenderer, st: Stage): BattleSet {
   switch (stage) {
@@ -305,6 +362,10 @@ export function dressBattle(stage: string, r: WorldRenderer, st: Stage): BattleS
       return scriptorium(r, st);
     case 'cloister':
       return cloisterGarth(r, st);
+    case 'lane':
+    case 'lychgate':
+    case 'green':
+      return lychford(stage, r, st);
     default:
       return causeway(r, st);
   }

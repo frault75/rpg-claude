@@ -320,3 +320,80 @@ describe('the battle music', () => {
     expect(OSTINATO).toHaveLength(12);
   });
 });
+
+describe('Boss II: the Mummers’ Play', () => {
+  const party: CharId[] = ['whit', 'hild', 'isot'];
+  const kill = (b: Battle, id: string) => {
+    b.unit(id)!.hp = 1;
+    b.act('isot', 'penknife', { unit: id });
+  };
+
+  it('speaks in couplets with the rule underneath', () => {
+    const b = fight('b2', party);
+    expect(b.intents.map((i) => i.rule?.en)).toEqual(['Front · 4', 'Slashes the Middle · 3', 'Doses Saint George: heals 4']);
+  });
+
+  it('Saint George guards the Doctor every other round', () => {
+    const b = fight('b2', party);
+    b.endTurn();
+    const doctor = b.enemies.find((e) => e.kind === 'doctor')!;
+    expect(doctor.status.guarded).toBe(true);
+    expect(b.check('whit', 'lance', { unit: doctor.id })).toBe('guarded');
+    expect(b.check('isot', 'penknife', { unit: doctor.id })).toBe('guarded');
+    // Struck through, the guard drops at once.
+    const guard = b.intents.find((i) => i.effects.some((e) => e.kind === 'guard'))!;
+    b.act('isot', 'strike', { intent: guard.id });
+    expect(doctor.status.guarded).toBe(false);
+  });
+
+  it('the Doctor raises the fallen at full HP, at the back of the line', () => {
+    const b = fight('b2', party);
+    const slasher = b.enemies.find((e) => e.kind === 'slasher')!;
+    kill(b, slasher.id);
+    expect(slasher.fallen).toBe(true);
+    b.endTurn();
+    expect(b.intents.some((i) => i.rule?.en.startsWith('Raises Bold Slasher'))).toBe(true);
+    b.endTurn();
+    expect(slasher.fallen).toBe(false);
+    expect(slasher.hp).toBe(10);
+    expect(b.rank(slasher)).toBe(2);
+  });
+
+  it('after two revivals the masks crack, and every revival costs the Doctor 3 HP', () => {
+    const b = fight('b2', party);
+    const slasher = b.enemies.find((e) => e.kind === 'slasher')!;
+    const doctor = b.enemies.find((e) => e.kind === 'doctor')!;
+    for (let k = 0; k < 3; k++) {
+      kill(b, slasher.id);
+      b.endTurn();
+      b.endTurn();
+    }
+    expect(b.events.filter((e) => e.type === 'phase')).toHaveLength(1);
+    expect(doctor.hp).toBe(8 - 3);
+  });
+
+  it('only one of two fallen comes back: fell George and the Slasher in the same round', () => {
+    const b = fight('b2', party);
+    const george = b.enemies.find((e) => e.kind === 'george')!;
+    const slasher = b.enemies.find((e) => e.kind === 'slasher')!;
+    george.hp = 1;
+    slasher.hp = 1;
+    b.act('isot', 'penknife', { unit: george.id });
+    b.act('whit', 'lance', { unit: slasher.id });
+    b.endTurn();
+    b.endTurn();
+    expect([george, slasher].filter((u) => u.fallen)).toHaveLength(1);
+  });
+
+  it('a Tally on the Doctor counts down through the guard', () => {
+    const b = fight('b2', party);
+    const doctor = b.enemies.find((e) => e.kind === 'doctor')!;
+    b.act('whit', 'tally', { unit: doctor.id });
+    b.endTurn();
+    expect(doctor.status.guarded).toBe(true);
+    b.endTurn();
+    b.endTurn();
+    expect(b.events.some((e) => e.type === 'reckoning' && e.unit === doctor.id)).toBe(true);
+    expect(doctor.hp).toBe(8 - 7);
+  });
+});

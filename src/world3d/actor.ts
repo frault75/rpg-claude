@@ -89,6 +89,7 @@ export class Actor {
     private readonly scene: THREE.Scene,
   ) {
     this.sprite = new Billboard(sheet(spec), FRAME_W, FRAME_H, { cols: FRAMES.length, rows: DIRS.length, anchor: [FRAME_W / 2, FRAME_H - 1] });
+    this.sprite.scale = spec.scale ?? 1;
     scene.add(this.sprite.mesh);
   }
 

@@ -108,7 +108,7 @@ class Figure {
       scene.add(this.bb.mesh);
       this.height = art.h - 6;
     } else {
-      const spec = CHARACTERS[side === 'party' ? kind : 'brother']!;
+      const spec = CHARACTERS[kind] ?? CHARACTERS.brother!;
       this.actor = new Actor(id, spec, scene);
       this.actor.dir = side === 'party' ? 'left' : 'right';
       this.height = FRAME_H;
@@ -806,6 +806,19 @@ export class BattleScene implements Scene {
           end: () => this.openResult(false),
         });
         break;
+      case 'phase':
+        this.queue({
+          dur: 2.4,
+          start: () => {
+            this.showBanner(tr(e.title), tr(e.line), false);
+            reckoningSound(a);
+          },
+          end: () => {
+            this.banner.visible = false;
+            this.bannerT = -1;
+          },
+        });
+        break;
       case 'spawn':
         break;
     }
@@ -1244,7 +1257,8 @@ export class BattleScene implements Scene {
   // ---- drawing ----
 
   private intentText(it: Intent): string {
-    return this.battle.shows(it) ? tr(it.label) : t('battle.hidden');
+    if (!this.battle.shows(it)) return t('battle.hidden');
+    return tr(it.label) + (it.rule ? ` — ${tr(it.rule)}` : '');
   }
 
   private chips(u: Unit): { text: string; color: string }[] {
@@ -1258,6 +1272,7 @@ export class BattleScene implements Scene {
     if (s.smudged) out.push({ text: t('status.smudged'), color: '#9A9AB8' });
     if (s.rubricated) out.push({ text: t('status.rubricated'), color: '#F08070' });
     if (s.doomed) out.push({ text: t('status.doomed'), color: '#E07070' });
+    if (s.guarded) out.push({ text: t('status.guarded'), color: '#E8D8A0' });
     if (s.readOnly) out.push({ text: t('status.readOnly'), color: '#C8A8E8' });
     return out;
   }
@@ -1390,11 +1405,13 @@ export class BattleScene implements Scene {
     for (const it of this.shown.intents) {
       const b = this.banderoles.get(it.id);
       if (!b) continue;
-      const note = it.waiting ? t('battle.waits') : it.countdown > 0 ? t('battle.in', { n: it.countdown }) : '';
+      const timing = it.waiting ? t('battle.waits') : it.countdown > 0 ? t('battle.in', { n: it.countdown }) : '';
+      const rule = it.rule && this.battle.shows(it) ? tr(it.rule) : '';
+      const note = [rule, timing].filter(Boolean).join(' · ');
       const selected = this.selectedIntent() === it.id;
       const look: BanderoleLook = {
         order: it.order,
-        text: (it.actor === ENV_ID ? `${t('battle.tide')}: ` : '') + this.intentText(it).replace(/^The tide: |^La marée : /, ''),
+        text: (it.actor === ENV_ID ? `${t('battle.tide')}: ` : '') + (this.battle.shows(it) ? tr(it.label) : t('battle.hidden')).replace(/^The tide: |^La marée : /, ''),
         note,
         hidden: !this.battle.shows(it),
         struck: b.struck,

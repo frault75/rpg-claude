@@ -95,7 +95,7 @@ function boot(): void {
     session.game.map = 'seaGate';
     session.saves.save('auto', session.game);
     return new SeaGateScene(renderer, input, audio, {
-      end: () => transition(toTitle, 2.4),
+      end: () => transition(() => mapScene('lane', { spawn: 'start' }), 2.4),
       battle: (id) =>
         transition(
           () =>
@@ -110,6 +110,7 @@ function boot(): void {
   /** Any map by id; the Sea Gate keeps its own scene for now. */
   const mapScene = (id: string, arrival: Arrival): Scene => {
     if (id === 'seaGate') return seaGate();
+    if (id === 'title') return toTitle();
     const def = MAPS[id];
     if (!def) throw new Error(`unknown map ${id}`);
     return new MapScene(renderer, input, audio, def, arrival, {
@@ -175,10 +176,19 @@ function boot(): void {
     return title;
   };
   const deps: MenuDeps = { menu, settings, game: () => session.game, input, autoTier: () => detected.tier };
+  /** The state at the start of chapter II: the whole party, chapter I behind them. */
+  const chapterTwo = (): void => {
+    startGame();
+    session.game.party = ['isot', 'hild', 'whit'];
+    session.game.cleared.push('f1', 'f2', 'b1');
+    session.game.chapter = 2;
+  };
   const params = new URLSearchParams(location.search);
   const mapParam = params.get('map');
   if (mapParam && MAPS[mapParam]) {
-    startGame();
+    // ?chapter=2 starts with the whole party, as after the Sea Gate.
+    if (Number(params.get('chapter') ?? 1) >= 2) chapterTwo();
+    else startGame();
     scene = mapScene(mapParam, { spawn: params.get('spawn') ?? 'start' });
   } else if (params.get('scene') === 'battle') {
     startGame();
@@ -253,7 +263,20 @@ function boot(): void {
       { label: '→ prologue', run: () => transition(() => (startGame(), prologue()), 0.3) },
       { label: '→ scriptorium', run: () => transition(() => (startGame(), mapScene('scriptorium', { spawn: 'start' })), 0.3) },
       { label: '→ sea gate', run: () => transition(() => (startGame(), (session.game.party = ['isot', 'hild']), seaGate()), 0.3) },
-      ...['f1', 'f2', 'b1'].map((id) => ({
+      { label: '→ lychford', run: () => transition(() => (chapterTwo(), mapScene('lane', { spawn: 'start' })), 0.3) },
+      {
+        label: '→ bell tower',
+        run: () =>
+          transition(() => {
+            chapterTwo();
+            session.game.cleared.push('f3', 'f4');
+            Object.assign(session.game.flags, { learnedEmend: true, pilgrimsPassed: true, rhyme: true, learnedImmure: true });
+            session.game.abilities.isot.push('emend');
+            session.game.abilities.hild.push('immure');
+            return mapScene('belltower', { spawn: 'door' });
+          }, 0.3),
+      },
+      ...['f1', 'f2', 'b1', 'f3', 'f4', 'b2'].map((id) => ({
         label: `→ fight ${id}`,
         run: () =>
           transition(() => {

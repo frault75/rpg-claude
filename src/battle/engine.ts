@@ -45,7 +45,8 @@ export type Refusal =
   | 'immured-target'
   | 'reach'
   | 'too-strong'
-  | 'not-single';
+  | 'not-single'
+  | 'guarded';
 
 /** Abilities a Rubric (or Vermilion) can double. */
 const DOUBLES: ReadonlySet<AbilityId> = new Set(['penknife', 'shove', 'shrive', 'immure', 'squint', 'benison', 'lance', 'tally', 'vigil', 'read']);
@@ -61,6 +62,7 @@ interface Snapshot {
   firstAbility: string[];
   squinted: number;
   preview: Intent[] | null;
+  revivals: number;
   eventsLen: number;
 }
 
@@ -263,6 +265,12 @@ export class Battle {
       } else if (e.kind === 'doom' && 'unit' in it.target) {
         const t = this.unit(it.target.unit);
         if (t) t.status.doomed = true;
+      } else if (e.kind === 'guard' && 'unit' in it.target) {
+        const t = this.unit(it.target.unit);
+        if (t && !t.fallen) {
+          t.status.guarded = true;
+          this.emit({ type: 'status', unit: t.id, status: 'guarded', on: true });
+        }
       }
     }
   }
@@ -271,8 +279,9 @@ export class Battle {
     const def = ENEMIES[e.kind]!;
     const allies = this.standingEnemies()
       .filter((o) => o !== e)
-      .map((o) => ({ id: o.id, name: o.name, hp: o.hp, maxHp: o.maxHp }));
-    return def.behave({ round, phase: e.phase, hp: e.hp, maxHp: e.maxHp, allies, rng });
+      .map((o) => ({ id: o.id, kind: o.kind, name: o.name, hp: o.hp, maxHp: o.maxHp }));
+    const fallen = this.enemies.filter((o) => o !== e && o.fallen).map((o) => ({ id: o.id, kind: o.kind, name: o.name }));
+    return def.behave({ round, phase: e.phase, hp: e.hp, maxHp: e.maxHp, allies, fallen, rng });
   }
 
   private makeIntent(actor: string, s: IntentSpec): Intent {
@@ -281,6 +290,7 @@ export class Battle {
       actor,
       order: 0,
       label: s.label,
+      rule: s.rule,
       target: s.target,
       damage: s.damage ?? 0,
       reach: s.reach ?? 'any',
@@ -321,6 +331,7 @@ export class Battle {
       firstAbility: [...this.firstAbility],
       squinted: this.squinted,
       preview: this.preview,
+      revivals: this.revivals,
       eventsLen: this.events.length,
     });
   }
@@ -343,6 +354,7 @@ export class Battle {
     this.firstAbility = new Set(s.firstAbility);
     this.squinted = s.squinted;
     this.preview = s.preview;
+    this.revivals = s.revivals;
     this.events.length = s.eventsLen;
     this.result = 'ongoing';
     return true;
@@ -402,6 +414,7 @@ export class Battle {
       case 'enemy':
         if (!t || t.side !== 'enemy' || t.fallen) return 'target';
         if (t.status.immured) return 'immured-target';
+        if (t.status.guarded) return 'guarded';
         if (def.reachEnemy && this.rank(t) >= def.reachEnemy) return 'reach';
         if (ability === 'read' && t.hp > this.readThreshold(u)) return 'too-strong';
         break;
@@ -415,6 +428,7 @@ export class Battle {
       case 'anyUnit':
         if (!t || t.fallen) return 'target';
         if (t.status.immured) return 'immured-target';
+        if (t.status.guarded) return 'guarded';
         break;
       case 'intent': {
         const it = this.intents.find((i) => i.id === target.intent);
@@ -431,6 +445,7 @@ export class Battle {
           const first = this.standingEnemies()[0];
           if (!first) return 'target';
           if (first.status.immured) return 'immured-target';
+          if (first.status.guarded) return 'guarded';
         }
         break;
     }
@@ -564,9 +579,12 @@ export class Battle {
     const actor = this.unit(it.actor);
     for (const e of it.effects) {
       if (e.kind === 'shell' && actor) actor.status.shelled = false;
-      if (e.kind === 'doom' && 'unit' in it.target) {
+      if ((e.kind === 'doom' || e.kind === 'guard') && 'unit' in it.target) {
         const t = this.unit(it.target.unit);
-        if (t) t.status.doomed = false;
+        if (t) {
+          if (e.kind === 'doom') t.status.doomed = false;
+          else t.status.guarded = false;
+        }
       }
     }
   }
@@ -632,9 +650,12 @@ export class Battle {
       return;
     }
     if ('unit' in it.target && this.unit(it.target.unit)?.side === 'enemy') {
-      // Helping an ally: "Holds the line".
+      // Helping an ally: "Holds the line", a dose, a revival.
       const ally = this.unit(it.target.unit)!;
-      if (!ally.fallen) this.applyEffects(it, actor, ally);
+      if (it.effects.some((e) => e.kind === 'raise')) {
+        if (ally.fallen) this.raise(ally, actor);
+        else this.emit({ type: 'fizzle', intent: it.id, reason: 'no-target' });
+      } else if (!ally.fallen) this.applyEffects(it, actor, ally);
       return;
     }
     if (actor && it.reach === 'close' && this.rank(actor) > 1) {
@@ -707,6 +728,7 @@ export class Battle {
         case 'shell':
         case 'unshell':
         case 'doom':
+        case 'guard':
         case 'raise':
         case 'spawn':
           // Declared at the Omen, or handled by the boss scripts that use them.
@@ -775,6 +797,31 @@ export class Battle {
     this.checkEnd();
   }
 
+  /** Revivals so far: after the second, the masks crack and each costs the reviver 3 HP. */
+  private revivals = 0;
+
+  private raise(u: Unit, by: Unit | null): void {
+    u.fallen = false;
+    u.hp = u.maxHp;
+    u.status = { ...freshStatuses(), readOnly: u.status.readOnly };
+    // Back into the line, at the back.
+    const line = this.standingEnemies().filter((o) => o !== u);
+    const back = line.reduce((p, o) => Math.max(p, o.place + o.size), 0);
+    const from = u.place;
+    u.place = back;
+    this.emit({ type: 'rise', unit: u.id });
+    this.emit({ type: 'heal', unit: u.id, amount: u.hp });
+    if (from !== back) this.emit({ type: 'move', unit: u.id, from, to: back });
+    this.revivals++;
+    if (this.revivals === 2)
+      this.emit({
+        type: 'phase',
+        title: { en: 'The Masks Crack', fr: 'Les masques se fendent' },
+        line: { en: 'The play wants to end: each revival now costs the Doctor 3 HP.', fr: 'La pièce veut finir : chaque résurrection coûte désormais 3 PV au Docteur.' },
+      });
+    else if (this.revivals > 2 && by) this.hurt(by, 3, 'masks');
+  }
+
   private toBack(e: Unit): void {
     const from = e.place;
     let place = 0;
@@ -811,6 +858,7 @@ export class Battle {
       }
       u.status.rubricated = false;
       u.status.doomed = false;
+      u.status.guarded = false;
     }
     const gain = Math.min(this.maxInk - this.ink, this.gentle ? 2 : 1);
     if (gain > 0) {

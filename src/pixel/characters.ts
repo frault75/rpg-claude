@@ -11,8 +11,8 @@ export const FRAME_W = 32;
 export const FRAME_H = 48;
 
 export type Dir = 'down' | 'up' | 'left' | 'right';
-export type Headwear = 'kerchief' | 'wimple' | 'helm' | 'mitre' | 'hood' | 'none';
-export type Held = 'quill' | 'book' | 'lance' | 'crozier' | 'stone' | 'none';
+export type Headwear = 'kerchief' | 'wimple' | 'helm' | 'mitre' | 'hood' | 'cap' | 'tallhat' | 'none';
+export type Held = 'quill' | 'book' | 'lance' | 'crozier' | 'stone' | 'sword' | 'bottle' | 'spade' | 'broom' | 'bow' | 'none';
 
 export interface CharSpec {
   id: string;
@@ -33,6 +33,12 @@ export interface CharSpec {
   shield?: string;
   /** Grey marks of the plague on the cheek. */
   marks?: boolean;
+  /** A mummer's paper mask over the face (its colour). */
+  mask?: string;
+  /** A cross on the chest (Saint George's red cross). */
+  cross?: string;
+  /** Drawn smaller (children). */
+  scale?: number;
 }
 
 export const CHARACTERS: Record<string, CharSpec> = {
@@ -42,6 +48,17 @@ export const CHARACTERS: Record<string, CharSpec> = {
   aumery: { id: 'aumery', skin: '#EFCDB2', hair: '#A89A8A', eyes: '#3A2A22', headwear: 'mitre', headwearColor: '#F6F1E6', robe: '#F2EDE2', cape: '#B8322A', held: 'crozier' },
   brother: { id: 'brother', skin: '#D9B497', hair: '#4A3B2E', eyes: '#1A1410', headwear: 'hood', headwearColor: '#6C6E78', veil: '#33343C', robe: '#6C6E78', belt: '#2E2A26', held: 'stone' },
   scribe: { id: 'scribe', skin: '#E2BFA2', hair: '#5A4030', eyes: '#2A1E16', headwear: 'hood', headwearColor: '#6A4A36', veil: '#2E2018', robe: '#6A4A36', belt: '#3A2A20', held: 'none' },
+  // Lychford.
+  george: { id: 'george', skin: '#E8C2A0', hair: '#6A4A2A', eyes: '#2A1E16', headwear: 'helm', headwearColor: '#C8CCD4', robe: '#F2EDE2', belt: '#7A4A2A', armour: true, held: 'sword', cross: '#C83A2E', mask: '#F4ECD8' },
+  slasher: { id: 'slasher', skin: '#E2BC98', hair: '#3A2A1E', eyes: '#2A1E16', headwear: 'cap', headwearColor: '#5A3A6A', robe: '#7A3A2E', belt: '#3A2A20', held: 'sword', mask: '#E8D8B8' },
+  doctor: { id: 'doctor', skin: '#E8C8AA', hair: '#8A8A8A', eyes: '#2A1E16', headwear: 'tallhat', headwearColor: '#2A2A34', robe: '#3A3A4A', cape: '#2A2A34', belt: '#6A4A2A', held: 'bottle', mask: '#F4ECD8' },
+  dunstan: { id: 'dunstan', skin: '#D8B090', hair: '#BCB4A8', eyes: '#2A2018', headwear: 'cap', headwearColor: '#5A4A3A', robe: '#6A5A42', belt: '#3A2A20', held: 'spade' },
+  amabel: { id: 'amabel', skin: '#E4CDBE', hair: '#D8D0C8', eyes: '#4A4A50', headwear: 'kerchief', headwearColor: '#C8B8A8', robe: '#8A6A6A', belt: '#4A3A30', held: 'none', marks: true },
+  villager: { id: 'villager', skin: '#E0BA96', hair: '#5A3A22', eyes: '#2A1E16', headwear: 'cap', headwearColor: '#6A4A2A', robe: '#7A6A3A', belt: '#4A3A20', held: 'none' },
+  goodwife: { id: 'goodwife', skin: '#EAC8AA', hair: '#7A4A2A', eyes: '#2A3A4A', headwear: 'kerchief', headwearColor: '#E8DCC8', robe: '#A63A4C', belt: '#5A3A2A', held: 'none' },
+  child: { id: 'child', skin: '#F0CCAC', hair: '#B87A3A', eyes: '#2A3A5A', headwear: 'none', headwearColor: '#000000', robe: '#DA6A32', belt: '#6C4B2D', held: 'none', scale: 0.78 },
+  child2: { id: 'child2', skin: '#E8C0A0', hair: '#3A2A1E', eyes: '#2A1E16', headwear: 'cap', headwearColor: '#2E8B74', robe: '#BC8D42', belt: '#6C4B2D', held: 'broom', scale: 0.78 },
+  eadgyth: { id: 'eadgyth', skin: '#E8C6A8', hair: '#A8462A', eyes: '#2A4A3A', headwear: 'none', headwearColor: '#000000', robe: '#2E5A3A', cape: '#4A3A2A', belt: '#6A4A2A', held: 'bow' },
 };
 
 export interface Pose {
@@ -304,6 +321,39 @@ function drawFront(img: PixelImage, s: CharSpec, front: boolean, p: Pose): void 
       img.rect(21, armR - 9, 5, 4, hex('#BDB8AE'));
       img.hline(21, 25, armR - 9, hex('#DCD8D0'));
       img.set(24, armR - 7, hex('#8C877E'));
+    } else if (s.held === 'sword') {
+      img.vline(24, armR - 15, armR - 2, SILVER[4]!);
+      img.vline(25, armR - 15, armR - 2, SILVER[1]!);
+      img.set(24, armR - 16, SILVER[5]!);
+      img.hline(22, 27, armR - 1, GOLD[1]!);
+      img.rect(24, armR, 2, 2, WOOD[1]!);
+    } else if (s.held === 'bottle') {
+      const glass = ramp('#3E8A5A', 4);
+      img.rect(22, armR - 5, 4, 5, glass[1]!);
+      img.vline(22, armR - 5, armR - 1, glass[3]!);
+      img.rect(23, armR - 7, 2, 2, glass[2]!);
+      img.set(23, armR - 8, hex('#8A6A4A'));
+    } else if (s.held === 'spade') {
+      // The sexton's spade, polished like a mirror.
+      img.vline(24, 6 + by, 40, WOOD[2]!);
+      img.hline(22, 26, 6 + by, WOOD[3]!);
+      img.rect(22, 40, 5, 6, SILVER[3]!);
+      img.vline(22, 40, 45, SILVER[5]!);
+      img.set(24, 42, hex('#FFFFFF'));
+    } else if (s.held === 'broom') {
+      img.vline(24, 8 + by, 40, WOOD[2]!);
+      for (let x = 21; x < 28; x++) img.vline(x, 40, 46 - (x % 2), hex(x % 3 ? '#B89A5A' : '#8A7040'));
+    } else if (s.held === 'bow') {
+      for (let y = armR - 14; y <= armR + 8; y++) {
+        const k = (y - (armR - 3)) / 11;
+        img.set(Math.round(26 - (1 - k * k) * 3), y, WOOD[2]!);
+      }
+      img.vline(26, armR - 14, armR + 8, hex('#D8D0C0', 180));
+    }
+    if (s.cross) {
+      const c = hex(s.cross);
+      img.rect(15, sh + 3, 2, 9, c);
+      img.rect(12, sh + 6, 8, 2, c);
     }
     if (s.shield) {
       const shd = ramp(s.shield, 5);
@@ -329,7 +379,19 @@ function drawFront(img: PixelImage, s: CharSpec, front: boolean, p: Pose): void 
   const hx = 16;
   const hy = 10 + by - p.breath;
   img.ellipse(hx, hy, 4.7, 5.6, (x) => skin[Math.min(4, lit(x, 11, 21) + 0)]!);
-  if (front && s.headwear !== 'helm') {
+  if (front && s.mask) {
+    // A paper mask, its face drawn on in a few strokes: round eyes, rosy cheeks, a grin.
+    const paper = ramp(s.mask, 4);
+    img.ellipse(hx, hy + 0.5, 4.6, 5.4, (x) => paper[x < 14 ? 3 : x < 18 ? 2 : 1]!);
+    for (const ex of [14, 18]) {
+      img.set(ex, hy - 1, hex('#1A1210'));
+      img.set(ex, hy, hex('#1A1210'));
+    }
+    img.set(13, hy + 2, hex('#E06A6A'));
+    img.set(19, hy + 2, hex('#E06A6A'));
+    img.hline(14, 18, hy + 3, hex('#A82A2A'));
+    img.set(13, hy + 2, hex('#A82A2A'));
+  } else if (front && s.headwear !== 'helm') {
     // A small face: eyes of two pixels, a hint of nose and mouth.
     const eye = hex(s.eyes);
     img.set(14, hy, eye);
@@ -479,6 +541,25 @@ function drawFront(img: PixelImage, s: CharSpec, front: boolean, p: Pose): void 
         );
       }
       break;
+    case 'cap':
+      img.ellipse(hx, hy - 3, 5.2, 3.6, (x, y) => (y < hy - 1 ? hair[Math.min(4, lit(x, 10, 22))]! : null));
+      img.ellipse(hx, hy - 4.5, 5.8, 3, (x, y) => (y < hy - 3 ? hw[Math.min(4, lit(x, 10, 22) + 1)]! : null));
+      img.hline(10, 22, hy - 3, hw[1]!);
+      break;
+    case 'tallhat':
+      img.ellipse(hx, hy - 3, 5.2, 3.6, (x, y) => (y < hy - 1 ? hair[Math.min(4, lit(x, 10, 22))]! : null));
+      img.poly(
+        [
+          [11, hy - 3],
+          [21, hy - 3],
+          [19.5, hy - 15],
+          [12.5, hy - 15],
+        ],
+        (x) => hw[Math.min(4, lit(x, 10, 22))]!,
+      );
+      img.hline(9, 23, hy - 3, hw[0]!);
+      img.hline(12, 20, hy - 6, GOLD[2]!);
+      break;
     case 'none':
       img.ellipse(hx, hy - 3, 5.2, 3.6, (x, y) => (y < hy - 1 ? hair[Math.min(4, lit(x, 10, 22))]! : null));
       break;
@@ -597,6 +678,29 @@ function drawSide(img: PixelImage, s: CharSpec, p: Pose): void {
   } else if (s.held === 'stone') {
     img.vline(hand + 1, 24 + by, 32 + by, WOOD[1]!);
     img.rect(hand - 1, 21 + by, 5, 4, hex('#BDB8AE'));
+  } else if (s.held === 'sword') {
+    img.line(hand, 30 + by, hand - 9, 17 + by, SILVER[4]!);
+    img.line(hand + 1, 30 + by, hand - 8, 17 + by, SILVER[1]!);
+    img.line(hand - 2, 32 + by, hand + 2, 28 + by, GOLD[1]!);
+  } else if (s.held === 'bottle') {
+    img.rect(hand - 1, 26 + by, 3, 4, hex('#3E8A5A'));
+    img.set(hand, 25 + by, hex('#8A6A4A'));
+  } else if (s.held === 'spade') {
+    img.vline(hand + 1, 8 + by, 40, WOOD[2]!);
+    img.rect(hand - 1, 40, 5, 6, SILVER[3]!);
+    img.set(hand, 42, hex('#FFFFFF'));
+  } else if (s.held === 'broom') {
+    img.line(hand + 1, 10 + by, hand - 4, 40, WOOD[2]!);
+    for (let x = hand - 8; x < hand; x++) img.vline(x, 40, 46 - (x % 2), hex('#B89A5A'));
+  } else if (s.held === 'bow') {
+    for (let y = 16 + by; y <= 38 + by; y++) {
+      const k = (y - (27 + by)) / 11;
+      img.set(Math.round(hand - 2 - (1 - k * k) * 3), y, WOOD[2]!);
+    }
+  }
+  if (s.mask) {
+    const paper = ramp(s.mask, 4);
+    img.ellipse(13, 10 + by - p.breath + 0.5, 3.4, 5, (x) => paper[x < 12 ? 3 : 2]!);
   }
 
   // Neck and head, looking left.
@@ -659,6 +763,24 @@ function drawSide(img: PixelImage, s: CharSpec, p: Pose): void {
     case 'hood':
       img.ellipse(hx + 1.5, hy, 5.8, 6.8, (x, y) => (x > 12 || y < hy - 3 ? hw[x < 16 ? 3 : 2]! : null));
       for (let y = hy - 2; y <= hy + 2; y++) for (let x = 10; x <= 13; x++) img.tint(x, y, [34, 26, 32, 110]);
+      break;
+    case 'cap':
+      img.ellipse(hx + 1, hy - 3, 5, 3.6, (x, y) => (y < hy - 1 || x > 16 ? hair[2]! : null));
+      img.ellipse(hx + 0.5, hy - 4.5, 5.6, 3, (x, y) => (y < hy - 3 ? hw[x < 15 ? 4 : 3]! : null));
+      img.hline(8, 15, hy - 3, hw[1]!);
+      break;
+    case 'tallhat':
+      img.ellipse(hx + 1, hy - 3, 5, 3.6, (x, y) => (y < hy - 1 || x > 16 ? hair[2]! : null));
+      img.poly(
+        [
+          [11, hy - 3],
+          [21, hy - 3],
+          [19.5, hy - 15],
+          [12.5, hy - 15],
+        ],
+        (x) => hw[x < 15 ? 4 : 3]!,
+      );
+      img.hline(8, 22, hy - 3, hw[0]!);
       break;
     case 'none':
       img.ellipse(hx + 1, hy - 3, 5, 3.6, (x, y) => (y < hy - 1 || x > 16 ? hair[2]! : null));

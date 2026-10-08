@@ -102,18 +102,24 @@ export function drawBanderole(c: CanvasRenderingContext2D, w: number, h: number,
   const tw = w - tx - 22;
   const text = b.hidden ? '? ? ?' : b.text;
   let lines = wrap(c, text, tw);
-  if (lines.length > 2) {
+  let lh = size + 2;
+  if (b.note && lines.length > 1) {
+    // Two lines and a note: everything a size smaller, so it stays on the band.
+    c.font = `italic 600 ${size - 3}px ${SERIF}`;
+    lines = wrap(c, text, tw).slice(0, 2);
+    lh = size - 2;
+  } else if (lines.length > 2) {
     c.font = `italic 600 ${size - 2}px ${SERIF}`;
     lines = wrap(c, text, tw).slice(0, 3);
+    lh = 14;
   }
-  const lh = lines.length > 2 ? 14 : size + 2;
-  const ty = ry - ((lines.length - 1) * lh) / 2 - (b.note ? 6 : 0);
+  const ty = ry - ((lines.length - 1) * lh) / 2 - (b.note ? (lines.length > 1 ? 7 : 6) : 0);
   c.fillStyle = b.env ? '#1E3466' : RED_INK;
   lines.forEach((l, i) => c.fillText(l, tx, ty + i * lh));
   if (b.note) {
-    c.font = `600 13px ${SERIF}`;
+    c.font = `600 ${lines.length > 1 ? 12 : 13}px ${SERIF}`;
     c.fillStyle = '#5A3C1C';
-    c.fillText(b.note, tx, ty + lines.length * lh + 1);
+    c.fillText(b.note, tx, ty + lines.length * lh + (lines.length > 1 ? 0 : 1));
   }
   // Struck through.
   if (b.struck > 0) {

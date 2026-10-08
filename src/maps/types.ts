@@ -40,6 +40,8 @@ export interface NpcDef {
   dir: Dir;
   /** Present only while this holds. */
   when?: (c: MapContext) => boolean;
+  /** Fraying: the forgotten pale and lose their outline (0..1). */
+  fray?: number;
 }
 
 export interface Thing {
@@ -113,6 +115,8 @@ export interface MapDef {
   enter?: (c: MapContext, from: string) => Promise<void>;
   /** Save the game whenever the map is entered. */
   checkpoint?: boolean;
+  /** Looked at every frame while the player is free: return a scene to play, or null. */
+  watch?: (c: MapContext) => ((c: MapContext) => Promise<void>) | null;
 }
 
 export interface MapContext {
@@ -151,6 +155,8 @@ export interface MapContext {
   battle(id: string): void;
   goto(map: string, spawn: string): void;
   save(): void;
+  /** A character learns an ability at a story beat (DESIGN.md §5.6). */
+  learn(who: CharId, ability: import('../battle/types').AbilityId): Promise<void>;
   /** Show a close-up page that the raking light can read (resolves when closed). */
   page(def: PageDef): Promise<void>;
 }
