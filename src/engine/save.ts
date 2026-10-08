@@ -5,7 +5,7 @@
 
 import { type GameState, newGame } from '../story/state';
 
-export const SAVE_VERSION = 1;
+export const SAVE_VERSION = 2;
 const KEY = 'palimpsest:save:v1';
 
 export type Slot = 'auto' | 'manual';
@@ -24,12 +24,39 @@ export interface KeyValueStore {
   removeItem(key: string): void;
 }
 
-/** Upgrade older save formats here, one version at a time. */
-const MIGRATIONS: Record<number, (data: Record<string, unknown>) => Record<string, unknown>> = {};
-
 function isObject(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null && !Array.isArray(v);
 }
+
+const has = (v: unknown, x: string) => Array.isArray(v) && v.includes(x);
+
+/** Version 1 saves predate the items found at story beats (DESIGN.md §6): give back those already passed. */
+const PASSED: [item: string, passed: (st: Record<string, unknown>, flags: Record<string, unknown>) => boolean][] = [
+  ['lampBlack', (st) => has(st.cleared, 'f1')],
+  ['anchorStone', (_, f) => !!f.hildJoined],
+  ['blankPennon', (st) => has(st.party, 'whit')],
+  ['ebbShell', (st) => has(st.cleared, 'b1')],
+  ['bellClapper', (_, f) => !!f.bellRung],
+  ['vermilionPot', (st) => isObject(st.abilities) && has(st.abilities.isot, 'rubric')],
+];
+
+/** Upgrade older save formats here, one version at a time. */
+const MIGRATIONS: Record<number, (data: Record<string, unknown>) => Record<string, unknown>> = {
+  1: (d) => {
+    const st = d.state;
+    if (!isObject(st) || !isObject(st.flags) || !Array.isArray(st.inventory)) return d;
+    const flags = st.flags;
+    const inventory = [...(st.inventory as unknown[])];
+    const added = PASSED.filter(([item, passed]) => passed(st, flags) && !inventory.includes(item)).map(([item]) => item);
+    inventory.push(...added);
+    const equipment = isObject(st.equipment) ? { ...st.equipment } : st.equipment;
+    // Whit has worn his pennon since he was found, unless he wears something else.
+    if (added.includes('blankPennon') && isObject(equipment) && isObject(equipment.whit) && !equipment.whit.relic) {
+      equipment.whit = { ...equipment.whit, relic: 'blankPennon' };
+    }
+    return { ...d, state: { ...st, inventory, equipment } };
+  },
+};
 
 /** Parse and validate a save. Missing optional fields are filled from a new game. */
 export function parseSave(raw: string | null): SaveData | null {

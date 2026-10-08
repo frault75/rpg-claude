@@ -56,6 +56,17 @@ describe('saving', () => {
     expect(back?.state.abilities.isot.length).toBeGreaterThan(0);
   });
 
+  it('gives a version 1 save the items whose story beats it has already passed', () => {
+    const st = { ...newGame(), map: 'village', chapter: 2, party: ['isot', 'hild', 'whit'], cleared: ['f1', 'f2', 'b1', 'f3'], flags: { hildJoined: true }, inventory: ['wystansPumice', 'psalterChain'] };
+    const back = parseSave(JSON.stringify({ version: 1, slot: 'auto', savedAt: 1, state: st }));
+    expect(back?.version).toBe(SAVE_VERSION);
+    expect(back?.state.inventory).toEqual(['wystansPumice', 'psalterChain', 'lampBlack', 'anchorStone', 'blankPennon', 'ebbShell']);
+    expect(back?.state.equipment.whit.relic).toBe('blankPennon');
+    // A current save is left as it is: an item passed by stays passed by.
+    const now = parseSave(JSON.stringify({ version: SAVE_VERSION, slot: 'auto', savedAt: 1, state: st }));
+    expect(now?.state.inventory).toEqual(['wystansPumice', 'psalterChain']);
+  });
+
   it('survives storage that throws', () => {
     const broken: KeyValueStore = {
       getItem: () => {
