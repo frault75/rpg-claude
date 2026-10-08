@@ -15,6 +15,7 @@ import { CHARACTERS } from '../pixel/characters';
 import { drawPortrait } from '../pixel/portraits';
 import { chapterTitle, objective } from '../story/journal';
 import { LOST_NAMES, lostNameText } from '../story/lostNames';
+import { isReturned, RETURNS } from '../story/returns';
 import type { CharId, GameState } from '../story/state';
 import { buttonRow, el, infoRow, type Menu, type Page, type Row, selectRow, sepRow, sliderRow, toggleRow } from './menu';
 
@@ -177,7 +178,8 @@ export function journalPage(d: MenuDeps): Page {
       rows.push(infoRow(`<span class="label">${t('journal.names')}</span><span class="value">${found.length} / ${ids.length}</span>`, 'static'));
       for (const id of ids) {
         const has = g.lostNames.includes(id);
-        const text = has ? tr(lostNameText(id, g)) : t('journal.unfound');
+        const back = has && RETURNS[id] && isReturned(g, id) ? `<span class="item-text">${t('journal.returned', { to: tr(RETURNS[id]!.to) })} · ${tr(RETURNS[id]!.keepsake)}</span>` : '';
+        const text = has ? tr(lostNameText(id, g)) + back : t('journal.unfound');
         rows.push(infoRow(`<i class="gem" style="background:${has ? '#B0302A' : 'transparent'}"></i><span class="lost${has ? '' : ' none'}">${text}</span>`, `static${has ? '' : ' dim'}`));
       }
       rows.push(sepRow());

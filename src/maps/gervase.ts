@@ -7,6 +7,7 @@
 
 import { session } from '../engine/session';
 import { CHARACTERS, type Dir } from '../pixel/characters';
+import { returnName } from '../story/returns';
 import type { MapContext, NpcDef, Thing } from './types';
 
 type Stall = 'lane' | 'woodsEdge' | 'fair';
@@ -98,4 +99,5 @@ async function atTheFair(c: MapContext): Promise<void> {
   await c.find('gervasesRibbon');
   if (c.party.some((a) => a.id === 'whit')) await c.say('whit', { en: 'When his time comes, I will read it to him again. He will have heard it twice.', fr: 'Quand son heure viendra, je le lui lirai encore. Il l’aura entendu deux fois.' });
   await c.say('gervase', { en: 'And a quarter off, from now on. Don’t tell the geese.', fr: 'Et un quart de moins, désormais. N’en dites rien aux oies.' });
+  await returnName(c, 'gervase');
 }

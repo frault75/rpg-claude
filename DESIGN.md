@@ -477,14 +477,15 @@ Where they lie: Little Joan in the penitent's cell and Brother Osric on the cloi
 
 **Returning a name.** A Lost Name, once read, can be returned to someone who lost it. They remember, grieve, and are glad. Each return is a short scene and gives experience and a keepsake:
 - **Brother Osric** goes to Brother Cuthwin in the dawn scriptorium (Ch V). He sang beside Osric for thirty years and hums the flat note without knowing why.
-- **Edda Thatcher** goes to her widower Ralf in Lychford (Ch II), who mends roofs he can't remember learning to mend and keeps a ladder he is afraid of.
-- **Hamo the bellringer** goes to Dunstan (Ch II), who writes him into his Underbook.
+- **Edda Thatcher** goes to her widower Ralf at the Fen Mill (Ch II), who mends roofs he can't remember learning to mend and is afraid of his own ladder. Her name tells him why: the fear was hers, and he held the ladder for her for thirty years. He comes down without looking, and gives Isot a twist of her straw.
+- **Hamo the bellringer** goes to Dunstan (Ch II), who climbs the tower at the sound of the passing bell and writes him into his Underbook: *HAMO, WHO RANG*. He gives Isot a knot of the bell-rope.
+- Each return is worth experience once (12 to 18), and the Journal keeps the keepsake under the name.
 - **Maud of the mill** goes to the hermit of Ninefold (Ch III), who was her brother and has kept her hearth lit for a hundred and fifty years.
 - **Gervase** goes to himself (§6.3).
 - **Old Cutha** goes to the bees (Ch IV). In the Margin, by the Fair, there is a skep that has had no one to talk to, and Isot *tells the bees*, as the old custom is.
 
 **Optional places**, one or more in every chapter, each with its own fights, caches and new marginalia:
-- **Ch II, the Fen Mill.** Lychford's mill on the frozen fen, whose wheel has turned under the ice for ten years. Corpse-candles burn there, people who should have died and now light the fen. Ralf is found on its roof.
+- **Ch II, the Fen Mill.** Lychford's mill on the frozen fen, whose wheel has turned under the ice for ten years. Corpse-candles burn there, people who should have died and now light the fen (S1); when they go out, Whit says they looked at him *as if I were late*. Ralf is found on its roof. It is reached from the lane, through the gateway in the hedge, once the hares are dealt with.
 - **Ch III, the Charcoal Hollow.** A clearing in the Blanchwood where the burners' kilns still smoulder, a hundred and fifty years after the burners were scraped. Ember-grylli and a wodewose mother live there.
 - **Ch IV, the Fair's back lanes.** The ape-scribes' copying stall (an optional fight with marginalia that copy the last thing done to them), the skep of bees, and Gervase's stall.
 - **Ch V, the Undercroft.** The Rasure Vault under the scriptorium, where ten years of scrapings have been swept. Its scraped Brothers, palimpsest knights and inkhorn hounds guard **the Heap**, an optional boss made of every letter ever scraped, trying to become a word.
@@ -790,6 +791,7 @@ These are baseline numbers, to be tuned in playtests.
 | **Caladrius**, a bestiary bird | IV | 6 | *Looks away from [ally]: that ally takes double damage this round* (Doomed from the Omen; the bird of the bestiary looks away from those about to die), or *Flutters: Ward 2* |
 | **Bishop-fish** | IV | 8 | *Blesses an ally: heals 4 and gives Ward 2* |
 | **Blotlet** | IV boss | 4 | See Boss IV |
+| **Corpse-candle**, someone who should have died | II, the Fen Mill | 9 | By turns: *Leans to the Front for warmth · 2, and keeps it* (heals itself by what it deals), *Gutters at the Middle · 3*, and *Lends its flame to another · +3* (or, if none is hurt, *Leans to the Rear for warmth*). **Burns down by 1** at the end of every round in which it took no warmth: Strike Through its reaching, and it starves. |
 
 ### 5.12 Encounters
 
@@ -801,6 +803,7 @@ There are 14 fights in all, each placed by hand and visible on the map. Touching
 | F2 | I | Cloister | 2 Pumice Brothers | Places, Step, Shove, Shrive (Isot and Hild) |
 | **B1** | I | Causeway | **The Great Snail and the Tide** | Tally timing, cancelling (full party) |
 | F3 | II | Lychford Lane | 3 Hares | Protecting the Rear, Emend |
+| S1 | II | The Fen Mill (optional) | 4 Corpse-candles | What to cancel: starving the ones that feed |
 | F4 | II | Lych-gate | 2 Babewyns | Several intents per enemy, Immure |
 | **B2** | II | Village Green | **The Mummers' Play** | Shove rotation, reach, kill order, Vigil |
 | F5 | III | Blanchwood | Wodewose and Gryllus | Wind-ups |
@@ -1655,7 +1658,8 @@ Each milestone is playable and arrives as its own PR, with build and tests green
 | **Done** | Relief | Banks, terraces and steps on every outdoor map and behind every outdoor battle (§8.2), buildings on their terraces, snow-covered and gesso faces; nothing left out of reach |
 | **Done** | Growth and difficulty | One shared level from every fight won once (§5.16): HP by level, five ranks, the victory scroll with its filling bar and the bell for a new level, level, experience and purse on the party page; Story, Normal and Illuminated (§5.17), chosen at New Game and in the settings, the old Gentle Hand carried over as Story; saves upgraded with the experience and pennies of fights already won |
 | **Done** | Satchel, caches and the pedlar | §6.1–§6.3: the satchel in battle (given back if the fight is lost), thirteen Glossator caches with their notes, seven of them found by raking light; Gervase's stall on the lane, at the Wood's Edge and at the Fair, his name read back to him and his ribbon; eleven new relics and charms, each bending one rule |
-| **Planned** | Side stories | §3.14: the Fen Mill, the Charcoal Hollow, the Fair's back lanes and the Undercroft, each with its own fights, monsters and caches |
+| **Done** | The Fen Mill and returned names | §3.14: the mill on the frozen fen, its wheel in the ice, the corpse-candles (S1) that feed on warmth and burn down when starved; Ralf on the roof and Edda's name; Dunstan at the bell and Hamo's; returning a name gives a keepsake and experience, and the Journal keeps them |
+| **Planned** | Side stories | §3.14: the Charcoal Hollow, the Fair's back lanes and the Undercroft, each with its own fights, monsters and caches |
 
 ---
 

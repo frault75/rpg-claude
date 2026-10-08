@@ -81,6 +81,8 @@ export const CHARACTERS: Record<string, CharSpec> = {
   wystan: { id: 'wystan', skin: '#6A4A30', hair: '#4A3020', eyes: '#1A1008', headwear: 'hood', headwearColor: '#5E4632', veil: '#2E2018', robe: '#5E4632', belt: '#C8B890', held: 'quill', muzzle: 'ape', scale: 0.74 },
   abbotUnreason: { id: 'abbotUnreason', skin: '#D8702A', hair: '#C8601A', eyes: '#1A1008', headwear: 'mitre', headwearColor: '#F2EDE2', robe: '#F2EDE2', cape: '#C63D2A', held: 'crozier', muzzle: 'fox', scale: 0.86 },
   hunter: { id: 'hunter', skin: '#E0BA96', hair: '#5A3A22', eyes: '#2A1E16', headwear: 'cap', headwearColor: '#2E6A3A', robe: '#4A6A3A', belt: '#4A3A20', held: 'bow' },
+  // Ralf the thatcher's widower, straw in his hair from the mill roof.
+  ralf: { id: 'ralf', skin: '#DDB494', hair: '#8A7A5A', eyes: '#2A2018', headwear: 'cap', headwearColor: '#5A6A4A', robe: '#7A6244', belt: '#C8B070', held: 'none' },
   // Gervase the pedlar: a man of Ninefold, scraped a hundred and fifty years ago, still walking.
   gervase: { id: 'gervase', skin: '#E2C2A4', hair: '#A89A88', eyes: '#3A3028', headwear: 'cap', headwearColor: '#7A4A3A', robe: '#8A7A62', belt: '#C8909C', held: 'ribbons' },
   eadgyth: { id: 'eadgyth', skin: '#E8C6A8', hair: '#A8462A', eyes: '#2A4A3A', headwear: 'none', headwearColor: '#000000', robe: '#2E5A3A', cape: '#4A3A2A', belt: '#6A4A2A', held: 'bow' },

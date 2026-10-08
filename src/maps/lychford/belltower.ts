@@ -14,6 +14,9 @@ import { hex, PixelImage, ramp } from '../../pixel/pixel';
 import { GROUND_DEFAULT } from '../../pixel/terrain';
 import { tiles } from '../../world3d/stage';
 import { backWall, FLOOR, nightInterior, sideWall } from '../interior';
+import { CHARACTERS } from '../../pixel/characters';
+import { session } from '../../engine/session';
+import { isReturned, returnName } from '../../story/returns';
 import type { MapContext, MapDef, Rect, Thing } from '../types';
 
 const GROUND = ['              ', '              ', ' wwwwwwwwwwww ', ' wwwwwwwwwwww ', ' wwwwwwwwwwww ', ' wwwwwwwwwwww ', ' wwwwwwwwwwww ', '              '];
@@ -99,6 +102,8 @@ export const BELLTOWER: MapDef = {
   camera: { h: 4, zoom: 4 / 3 },
   candle: true,
   spawns: { door: { x: tiles(7), y: tiles(6.4), dir: 'up' } },
+  // Dunstan climbs the stair at the sound of the bell.
+  npcs: [{ id: 'dunstan', speaker: 'dunstan', spec: CHARACTERS.dunstan!, x: tiles(7), y: tiles(7.4), dir: 'up', when: (c) => c.flag('dunstanClimbed') }],
   build(r, st) {
     nightInterior(r, { ambient: 0.52, moon: 0.3 });
     st.ground({ ground: GROUND, heights: GROUND.map((row) => '0'.repeat(row.length)), seed: 95, palette: { ...GROUND_DEFAULT, wood: FLOOR.wood } });
@@ -161,5 +166,33 @@ async function passingBell(c: MapContext): Promise<void> {
   await c.say('whit', { en: 'I know that sound. I know it the way you know your own name.', fr: 'Je connais ce son. Je le connais comme on connaît son propre nom.' });
   // The bell keeps its own clapper: it must ring again, at the end.
   await c.find('bellClapper', { en: 'On a hook in the ringing chamber hangs the bell’s old clapper, cracked and replaced long ago. Whit takes it down and weighs it in his hand.', fr: 'À un crochet de la chambre des cloches pend l’ancien battant de la cloche, fêlé, remplacé il y a longtemps. Whit le décroche et le soupèse.' });
+  await dunstanClimbs(c);
   c.goto('village', 'church');
+}
+
+/** The sexton heard it from the village. If the bellringer's name was read on the plaques, it goes back to him. */
+async function dunstanClimbs(c: MapContext): Promise<void> {
+  c.set('dunstanClimbed');
+  const d = c.npc('dunstan');
+  await c.walk(d, [[tiles(7), tiles(6.2)]]);
+  await c.say('dunstan', { en: 'Who rang it? I’ve had the key to this tower for ten years and not climbed it once.', fr: 'Qui l’a sonnée ? J’ai la clé de cette tour depuis dix ans et je n’y suis jamais monté.' });
+  await c.say('dunstan', { en: 'There used to be someone who rang it. Big hands. He cried at weddings. I can’t…', fr: 'Il y avait quelqu’un qui la sonnait, avant. De grandes mains. Il pleurait aux mariages. Je ne…' });
+  if (!session.game.lostNames.includes('hamo') || isReturned(session.game, 'hamo')) {
+    await c.say('dunstan', { en: 'Never mind who. It’s rung.', fr: 'Peu importe qui. Elle a sonné.' });
+    return;
+  }
+  const pick = await c.choose([
+    { en: 'Give him the bellringer’s name.', fr: 'Lui rendre le nom du sonneur.' },
+    { en: 'Say nothing.', fr: 'Ne rien dire.' },
+  ]);
+  if (pick !== 0) {
+    await c.say('dunstan', { en: 'Never mind who. It’s rung.', fr: 'Peu importe qui. Elle a sonné.' });
+    return;
+  }
+  await c.say('isot', { en: 'Hamo. It was written under the rust on the plaques. Hamo the bellringer, who rang the passing bell for the last time on the night of the Mercy.', fr: 'Hamo. C’était écrit sous la rouille des plaques. Hamo le sonneur, qui sonna le glas pour la dernière fois la nuit de la Miséricorde.' });
+  await c.say('dunstan', { en: 'Hamo.', fr: 'Hamo.' });
+  await c.say('dunstan', { en: 'He rang it for my father. I stood down there in the snow and hated him for it, for being so loud about it. Then he bought me a drink.', fr: 'Il l’a sonnée pour mon père. J’étais en bas dans la neige et je le détestais d’en faire tant de bruit. Et puis il m’a payé à boire.' });
+  await c.narrate({ en: 'Dunstan takes out the Underbook, wets a stub of pencil, and writes, slowly, in the margin of the last page: HAMO, WHO RANG.', fr: 'Dunstan sort l’Underbook, mouille un bout de crayon et écrit, lentement, dans la marge de la dernière page : HAMO, QUI SONNAIT.' });
+  await c.say('dunstan', { en: 'There. Now he’s somewhere. Here, scribe: a bit of his rope. He’d want it to go on being pulled.', fr: 'Voilà. Maintenant il est quelque part. Tiens, scribe : un bout de sa corde. Il voudrait qu’on continue de la tirer.' });
+  await returnName(c, 'hamo');
 }

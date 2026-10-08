@@ -60,6 +60,7 @@ export const LANE: MapDef = {
   spawns: {
     start: { x: tiles(2), y: LANE_Y, dir: 'right' },
     village: { x: tiles(W - 2), y: LANE_Y, dir: 'left' },
+    gateway: { x: tiles(18.5), y: tiles(4.4), dir: 'down' },
   },
   build(r, st) {
     winterDay(r);
@@ -122,7 +123,11 @@ export const LANE: MapDef = {
     },
     GERVASE.thing,
   ],
-  exits: [{ rect: [tiles(W - 1), tiles(5), tiles(1), tiles(4)], to: 'village', spawn: 'lane' }],
+  exits: [
+    { rect: [tiles(W - 1), tiles(5), tiles(1), tiles(4)], to: 'village', spawn: 'lane' },
+    // A field track climbs out through the gateway in the hedge, north to the Fen Mill.
+    { rect: [tiles(17), tiles(2), tiles(3), tiles(0.8)], to: 'mill', spawn: 'lane', when: (c) => c.cleared('f3') },
+  ],
   async enter(c, from) {
     if (from === 'start' && !c.flag('learnedEmend')) {
       c.letterbox(true);

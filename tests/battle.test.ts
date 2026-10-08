@@ -865,3 +865,23 @@ describe('Boss V: Aumery and the Writing of FINIS', () => {
     expect(c.result).toBe('defeat');
   });
 });
+
+describe('the corpse-candles (S1)', () => {
+  it('take warmth: a reaching blow heals the candle by what it deals', () => {
+    const b = fight(custom(['corpseCandle']), ['whit', 'hild', 'isot']);
+    const c = b.unit('e0')!;
+    c.hp = 4;
+    b.endTurn();
+    // It leaned to the Front for 2, kept it, and did not burn down.
+    expect(b.unit('whit')!.hp).toBe(18 - 2);
+    expect(c.hp).toBe(6);
+  });
+
+  it('burn down by 1 in a round without warmth: Strike Through starves them', () => {
+    const b = fight(custom(['corpseCandle']), ['whit', 'hild', 'isot']);
+    b.act('isot', 'strike', { intent: b.intents[0]!.id });
+    b.endTurn();
+    expect(b.unit('e0')!.hp).toBe(9 - 1);
+    expect(b.events.some((e) => e.type === 'damage' && e.source === 'wane')).toBe(true);
+  });
+});

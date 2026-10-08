@@ -35,6 +35,7 @@ export const SPEAKERS: Readonly<Record<string, Speaker>> = {
   abbotUnreason: { name: { en: 'The Abbot of Unreason', fr: 'L’Abbé de Déraison' }, portrait: 'abbotUnreason', voice: 330 },
   bishop: { name: { en: 'The Bishop-fish', fr: 'Le Poisson-évêque' }, voice: 280 },
   eadgyth: { name: { en: 'Eadgyth the Uncrowned', fr: 'Eadgyth la Sans-Couronne' }, portrait: 'eadgyth', voice: 380 },
+  ralf: { name: { en: 'Ralf', fr: 'Ralf' }, portrait: 'ralf', voice: 230 },
   // He doesn't know his own name until it is read to him.
   pedlar: { name: { en: 'The pedlar', fr: 'Le colporteur' }, portrait: 'gervase', voice: 270 },
   gervase: { name: { en: 'Gervase', fr: 'Gervais' }, portrait: 'gervase', voice: 270 },
