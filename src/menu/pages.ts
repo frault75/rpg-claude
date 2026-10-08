@@ -61,7 +61,7 @@ export function partyPage(d: MenuDeps): Page {
             }
             d.menu.refresh();
           },
-          who ? `${PARTY_STATS[who].name}${picked === i ? ' ✦' : ''}` : '—',
+          who ? `${tr(PARTY_STATS[who].name)}${picked === i ? ' ✦' : ''}` : '—',
         );
         if (!who) r.focus = false;
         rows.push(r);
@@ -134,7 +134,7 @@ export function equipmentPage(d: MenuDeps): Page {
       const g = d.game();
       const rows: Row[] = [];
       for (const id of g.party) {
-        rows.push(infoRow(`<span class="name" style="color:#F6DC8A;font-variant:small-caps;font-size:1.1em">${PARTY_STATS[id].name}</span>`));
+        rows.push(infoRow(`<span class="name" style="color:#F6DC8A;font-variant:small-caps;font-size:1.1em">${tr(PARTY_STATS[id].name)}</span>`));
         for (const slot of ['relic', 'charm'] as Slot[]) {
           const cur = g.equipment[id][slot];
           const r = buttonRow('', () => d.menu.push(pickerPage(d, id, slot)));
@@ -159,7 +159,7 @@ export function equipmentPage(d: MenuDeps): Page {
 
 function pickerPage(d: MenuDeps, who: CharId, slot: Slot): Page {
   return {
-    title: () => `${PARTY_STATS[who].name} · ${t('equip.' + slot)}`,
+    title: () => `${tr(PARTY_STATS[who].name)} · ${t('equip.' + slot)}`,
     rows: () => {
       const g = d.game();
       const rows: Row[] = [];

@@ -1,7 +1,10 @@
+import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_KEYS } from '../src/engine/input';
 import { defaultSettings, parseSettings, SETTINGS_KEY, SettingsStore } from '../src/engine/settings';
-import { detectLanguage, lang, registerStrings, setLang, t, tr } from '../src/i18n/i18n';
+import { detectLanguage, lang, registerStrings, setLang, stringTable, t, tr } from '../src/i18n/i18n';
+import '../src/i18n/strings';
 
 describe('languages', () => {
   it('picks the first language the game speaks from the browser list', () => {
@@ -20,6 +23,29 @@ describe('languages', () => {
     expect(tr({ en: 'the tide', fr: 'la marée' })).toBe('la marée');
     setLang('en');
     expect(tr({ en: 'the tide', fr: 'la marée' })).toBe('the tide');
+  });
+
+  it('has every interface string in both languages, with the same placeholders', () => {
+    const en = stringTable('en');
+    const fr = stringTable('fr');
+    const holes = (s: string) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort().join(',');
+    const real = (k: string) => !k.startsWith('test.');
+    expect(Object.keys(en).filter(real).filter((k) => !(k in fr))).toEqual([]);
+    expect(Object.keys(fr).filter(real).filter((k) => !(k in en))).toEqual([]);
+    expect(Object.keys(en).filter(real).filter((k) => k in fr && holes(en[k]!) !== holes(fr[k]!))).toEqual([]);
+  });
+
+  it('never sets a bilingual name or text straight into a string (it would read [object Object])', () => {
+    const files = (dir: string): string[] =>
+      readdirSync(dir).flatMap((f) => {
+        const p = join(dir, f);
+        return statSync(p).isDirectory() ? files(p) : p.endsWith('.ts') ? [p] : [];
+      });
+    const raw: string[] = [];
+    for (const f of files('src')) {
+      for (const m of readFileSync(f, 'utf8').matchAll(/\$\{([^{}]*\.(?:name|title|text|lore))\}/g)) raw.push(`${f}: ${m[1]}`);
+    }
+    expect(raw).toEqual([]);
   });
 });
 

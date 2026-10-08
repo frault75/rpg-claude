@@ -54,6 +54,11 @@ export function registerStrings(l: Lang, table: Table): void {
   tables[l] = { ...tables[l], ...table };
 }
 
+/** Every key a language's table holds (for the tests). */
+export function stringTable(l: Lang): Table {
+  return tables[l] ?? {};
+}
+
 /** An interface string by key, with {name} placeholders filled in. */
 export function t(key: string, params: Record<string, string | number> = {}): string {
   const s = tables[current]?.[key] ?? tables.en?.[key] ?? key;
