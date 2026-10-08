@@ -5,6 +5,7 @@ import { registerStrings } from './i18n';
 registerStrings('en', {
   'loading': 'Lighting the candles…',
   'rotate': 'Turn your device sideways to play.',
+  'boot.error': 'The game could not start ({why}). It needs a browser with WebGL 2.',
   'menu.resume': 'Resume',
   'menu.party': 'Party',
   'menu.equipment': 'Equipment',
@@ -118,6 +119,7 @@ registerStrings('en', {
 registerStrings('fr', {
   'loading': 'On allume les cierges…',
   'rotate': 'Tournez votre appareil pour jouer.',
+  'boot.error': 'Le jeu n’a pas pu démarrer ({why}). Il lui faut un navigateur avec WebGL 2.',
   'menu.resume': 'Reprendre',
   'menu.party': 'Équipe',
   'menu.equipment': 'Équipement',
