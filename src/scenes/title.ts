@@ -7,6 +7,7 @@
 import type { AudioEngine } from '../audio/engine';
 import { EbbNightAmbience } from '../audio/ambient';
 import type { DebugInfo } from '../debug/overlay';
+import { needsHomeScreen } from '../engine/fullscreen';
 import type { WorldRenderer } from '../engine/diorama/renderer';
 import type { Input } from '../engine/input';
 import type { Scene } from '../engine/scene';
@@ -32,6 +33,7 @@ export class TitleScene implements Scene {
   private readonly ui: UiLayer;
   private readonly logoPanel: UiPanel;
   private readonly prompt: UiPanel;
+  private readonly homeNote: UiPanel;
   private readonly menu: TitleMenu;
   private readonly ambience = new EbbNightAmbience();
   private logo: HTMLCanvasElement | null = null;
@@ -59,6 +61,10 @@ export class TitleScene implements Scene {
     this.prompt = this.ui.panel(560, 70, 10);
     this.prompt.x = (VIEW_W - 560) / 2;
     this.prompt.y = 560;
+    this.homeNote = this.ui.panel(760, 34, 10);
+    this.homeNote.x = (VIEW_W - 760) / 2;
+    this.homeNote.y = 628;
+    this.homeNote.visible = false;
     this.drawPrompt();
     this.menu = new TitleMenu(audio);
     this.unsubs.push(
@@ -102,6 +108,19 @@ export class TitleScene implements Scene {
       c.fillStyle = INK.text;
       c.fillText(text, w / 2, h / 2);
     });
+    // On an iPhone in Safari a page cannot go full screen; the home screen can.
+    if (d === 'touch' && needsHomeScreen()) {
+      this.homeNote.visible = true;
+      this.homeNote.draw((c, w, h) => {
+        c.font = `italic 17px ${SERIF}`;
+        c.textAlign = 'center';
+        c.textBaseline = 'middle';
+        c.fillStyle = 'rgba(0,0,0,0.75)';
+        c.fillText(t('title.homeScreen'), w / 2 + 1.5, h / 2 + 1.5);
+        c.fillStyle = 'rgba(236, 226, 200, 0.85)';
+        c.fillText(t('title.homeScreen'), w / 2, h / 2);
+      });
+    }
   }
 
   private start(): void {
@@ -145,6 +164,7 @@ export class TitleScene implements Scene {
     this.logoPanel.draw((c) => drawLogo(c, logo, LOGO_W, LOGO_H, reveal, glint));
     this.logoPanel.opacity = 1;
     this.prompt.visible = !this.started && tt > 4.2;
+    if (this.homeNote.visible || this.started) this.homeNote.opacity = this.started ? 0 : Math.min(1, Math.max(0, tt - 4.6));
     this.prompt.opacity = 0.55 + 0.45 * Math.sin(tt * 2.4);
     this.menu.layout(this.r.viewport);
     this.stage.update(dt, tt);

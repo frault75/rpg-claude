@@ -25,6 +25,8 @@ export interface Settings {
     dof: boolean;
     fog: boolean;
     grain: boolean;
+    /** On a touch screen, go full screen on a touch. */
+    fullscreen: boolean;
     /** 0.7 .. 1.3 */
     brightness: number;
     /** 'auto' adapts to the frame time; a number fixes the render scale. */
@@ -39,7 +41,7 @@ export function defaultSettings(): Settings {
   return {
     language: 'auto',
     audio: { master: 0.8, music: 0.7, ambience: 0.7, sfx: 0.8, voices: 0.6 },
-    graphics: { quality: 'auto', shadows: true, reflections: true, bloom: true, dof: true, fog: true, grain: true, brightness: 1, resolution: 'auto' },
+    graphics: { quality: 'auto', shadows: true, reflections: true, bloom: true, dof: true, fog: true, grain: true, fullscreen: true, brightness: 1, resolution: 'auto' },
     controls: { keys: structuredClone(DEFAULT_KEYS), pad: structuredClone(DEFAULT_PAD), touchSize: 1, touchOpacity: 0.85, leftHanded: false, vibration: true, prompts: 'auto' },
     gameplay: { textSpeed: 'normal', battleSpeed: 'normal', difficulty: 'normal' },
     access: { shake: true, flashes: true, textSize: 'normal' },
@@ -87,6 +89,7 @@ export function parseSettings(raw: string | null): Settings {
       dof: bool(g.dof, true),
       fog: bool(g.fog, true),
       grain: bool(g.grain, true),
+      fullscreen: bool(g.fullscreen, true),
       brightness: num(g.brightness, 1, 0.7, 1.3),
       resolution: res === 'auto' ? 'auto' : typeof res === 'number' ? num(res, 1, 0.5, 1) : 'auto',
     },

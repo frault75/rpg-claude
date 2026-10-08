@@ -3,6 +3,7 @@
  * (language, sound, graphics, controls, game, accessibility).
  */
 
+import { canFullscreen, enterFullscreen, exitFullscreen, isFullscreen, isStandalone } from '../engine/fullscreen';
 import { ABILITIES, PARTY_STATS } from '../battle/data';
 import { abilityText, DIFFICULTIES, hpAt, progress } from '../battle/growth';
 import { SATCHEL, SATCHEL_IDS } from '../battle/satchel';
@@ -374,6 +375,27 @@ function languageRows(d: MenuDeps): Row[] {
   );
 }
 
+/**
+ * Full screen: on a touch screen, whether a touch puts the game in full screen; at a desk,
+ * in or out of it now. On an iPhone, where a page cannot, how to get it all the same.
+ */
+function fullscreenRows(d: MenuDeps): Row[] {
+  const s = d.settings;
+  if (!canFullscreen()) return isStandalone() ? [] : [infoRow(t('settings.fullscreen.iphone'), 'dim')];
+  const touch = matchMedia('(pointer: coarse)').matches;
+  return [
+    toggleRow(
+      t('settings.fullscreen'),
+      () => (touch ? s.value.graphics.fullscreen : isFullscreen()),
+      (v) => {
+        s.update((x) => (x.graphics.fullscreen = v));
+        void (v ? enterFullscreen() : exitFullscreen()).then(() => d.menu.refresh());
+      },
+      () => d.menu.refresh(),
+    ),
+  ];
+}
+
 function graphicsRows(d: MenuDeps): Row[] {
   const s = d.settings;
   const refresh = () => d.menu.refresh();
@@ -406,6 +428,7 @@ function graphicsRows(d: MenuDeps): Row[] {
       (v) => s.update((x) => (x.graphics.resolution = v)),
       refresh,
     ),
+    ...fullscreenRows(d),
     sliderRow(t('settings.brightness'), () => s.value.graphics.brightness, (v) => s.update((x) => (x.graphics.brightness = v)), refresh, 0.7, 1.3, 0.05),
     toggle('shadows'),
     toggle('reflections'),
