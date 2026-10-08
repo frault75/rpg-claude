@@ -452,6 +452,7 @@ function boot(): void {
       }
     }
     scene.sync();
+    touch.setCandle(!!scene.rakes && !menu.open);
     renderer.render(menu.open ? 0 : dt);
     renderer.frameTime(ms);
     debug.frame(dt, () => scene.debugInfo());
