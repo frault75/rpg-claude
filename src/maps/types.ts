@@ -156,6 +156,8 @@ export interface MapContext {
   /** Leave for a fight; the map is entered again with `battle:<id>` afterwards. */
   battle(id: string): void;
   goto(map: string, spawn: string): void;
+  /** End the chapter with interlude `n` (a page of Isot's chronicle), then its next map. */
+  interlude(n: number): void;
   save(): void;
   /** A character learns an ability at a story beat (DESIGN.md §5.6). */
   learn(who: CharId, ability: import('../battle/types').AbilityId): Promise<void>;

@@ -61,6 +61,10 @@ export const MENU_CSS = /* css */ `
 #menu .item-text { display: block; font-size: 0.82em; color: #C9C3B6; font-style: normal; }
 #menu .item-lore { display: block; font-size: 0.78em; color: #9AA2C0; font-style: italic; }
 #menu .toast { position: absolute; left: 50%; bottom: 6%; transform: translateX(-50%); padding: 0.5em 1.4em; animation: win-in 0.25s ease-out; }
+#menu .quest-k { color: #E8C76A; font-variant: small-caps; letter-spacing: 0.08em; font-size: 0.9em; }
+#menu .quest { display: block; font-style: italic; font-size: 1.1em; line-height: 1.45; padding: 0.35em 0.9em; border-left: 3px solid #B0302A; background: rgba(0, 0, 0, 0.2); border-radius: 0 6px 6px 0; }
+#menu .lost { font-size: 0.92em; line-height: 1.35; }
+#menu .lost.none { font-style: italic; letter-spacing: 0.04em; }
 #menu .slot { color: #C9A040; font-variant: small-caps; width: 5em; flex: none; }
 `;
 

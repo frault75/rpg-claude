@@ -1265,7 +1265,7 @@ Escape, Start or the touch Menu button opens it, anywhere except the title scree
 - **Save:** writes the manual slot (§12).
 - **Return to title**, after a confirmation that unsaved progress will be lost.
 
-The **Journal** joins the menu with its milestone (§14): the current objective in Isot's words, and the Lost Names found.
+- **Journal** (also J, or Select on a gamepad): the chapter, what to do next in Isot's words (worked out from the map and the story so far), the Lost Names found out of ten, and the time played.
 
 The windows are lapis with a gold double border and a gold manicule cursor (§8.8). The menu works the same with every input: up and down move the manicule, left and right change a value, confirm chooses, cancel goes back; mouse and touch pick rows directly. While it is open, the world pauses.
 
@@ -1504,7 +1504,8 @@ Each milestone is playable and arrives as its own PR, with build and tests green
 | **Done** | Chapter III | The Blanchwood (F5) draining to grisaille as you walk; Ninefold Blank's faded path, the city in sepia underwriting, and the hermit's two Lost Names; Ninefold Gate (Squint, F6 with sealed edicts); the Blanching chase (C7); the Danse Macabre mural (the Emend upgrade); the ossuary (B3), FINIS (C8), the forgiveness choice, Read Aloud; the Phrygian theme that forgets its notes; Lost Names for chapters I–III |
 | **Done** | Chapter IV | The Edge (C9) off the page into the Margin; the Ivy Gate (F7, the caladrius's marked doom, Read Aloud); the catchword arches spelling WHAT · IS · WRITTEN · IS · HELD; the Drollery Fair, the Abbot of Unreason, Amabel as a hen, the optional F8 and two Lost Names; Wystan's Vine (C10, the confession choice, Rubric); the Fall of Names (C11, Whit's first promise); the Ink-Well (B4: Blotlets, harvested Ink, the Rasure); Ermeline written back; the F Lydian hocket; burnished gold ground with punchwork |
 | **Done** | Chapter V and the ending | Saint Ebb's at dawn: MERCY's first toll and the scraped half of the motto (C12); the Abbot's lodging and his Book of Hours; the cloister (F9, Gaudry's hammer); the nave, its bands of colour blanking one per toll; Brother and Sister (C13, Benison and Inscribe); Boss V, the Writing of FINIS (letters at the Rear, smudging, Falter, Forgotten, the Clean Page); Gold, Line by Line (C14) and the farewells; the epilogue page with every Lost Name found, in red; the last two Lost Names (Wat in the cloister, the Grey Year girl in the lodging, whom Isot names Ebba) |
-| **Next** | Polish | The journal, interludes, a tuning and audio-mix pass, larger battle text on phones |
+| **Done** | Journal and interludes | The Journal page and its J shortcut; the four interludes as illuminated pages on the desk by candlelight (historiated initial, vine border and bezants, a drollery at the foot, the prose inked in under a pen of light, solo psaltery and chant, a page turn into the chapter card) |
+| **Next** | Polish | A tuning and audio-mix pass, larger battle text on phones |
 
 ---
 

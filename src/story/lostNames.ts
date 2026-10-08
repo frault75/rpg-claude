@@ -5,6 +5,7 @@
  */
 
 import type { LocalText } from '../i18n/i18n';
+import type { GameState } from './state';
 
 export const LOST_NAMES: Record<string, LocalText> = {
   osric: { en: 'Brother Osric, who sang a quarter-tone flat for forty years and was loved anyway.', fr: 'Frère Osric, qui chanta un quart de ton trop bas pendant quarante ans, et fut aimé quand même.' },
@@ -18,3 +19,9 @@ export const LOST_NAMES: Record<string, LocalText> = {
   wat: { en: 'Wat the ferryman, who never once charged a widow.', fr: 'Wat le passeur, qui ne fit jamais payer une veuve.' },
   girl: { en: 'A girl of Lychford, born in the Grey Year, who was never written in time.', fr: 'Une fille de Lychford, née l’Année grise, qu’on n’écrivit jamais à temps.' },
 };
+
+/** A Lost Name as it reads now: the girl of the Grey Year, once Isot has named her, is Ebba. */
+export function lostNameText(id: string, g: GameState): LocalText {
+  if (id === 'girl' && g.flags.girlNamed) return { en: 'Ebba of Lychford, born in the Grey Year, written at last in a margin.', fr: 'Ebba de Lychford, née l’Année grise, écrite enfin dans une marge.' };
+  return LOST_NAMES[id] ?? { en: id, fr: id };
+}

@@ -165,10 +165,6 @@ async function theFarShore(c: MapContext): Promise<void> {
   await c.say('isot', { en: 'Why are you helping him?', fr: 'Pourquoi tu l’aides ?' });
   await c.say('hild', { en: 'Because he’s lost. I know lost.', fr: 'Parce qu’il est perdu. Je connais ça.' }, 'sad');
   c.close();
-  await c.narrate({ en: 'In Lychford the roses on the lych-gate had bloomed for ten winters, and the sexton had polished his spade until it shone like a mirror.', fr: 'À Lychford, les roses du porche avaient fleuri dix hivers, et le fossoyeur avait poli sa bêche jusqu’à ce qu’elle brille comme un miroir.' });
-  await c.narrate({ en: 'When the passing bell spoke, the whole village came out into the snow to listen, the way you listen for a name on the tip of your tongue.', fr: 'Quand le glas a parlé, le village entier est sorti dans la neige pour écouter, comme on écoute un nom sur le bout de la langue.' });
-  c.card({ en: 'Chapter III', fr: 'Chapitre III' }, { en: 'The Blanchwood', fr: 'La Blanchewood' });
-  await c.wait(4);
   session.game.chapter = 3;
-  c.goto('wood', 'start');
+  c.interlude(2);
 }
