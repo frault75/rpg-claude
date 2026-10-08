@@ -81,6 +81,9 @@ export const CHARACTERS: Record<string, CharSpec> = {
   wystan: { id: 'wystan', skin: '#6A4A30', hair: '#4A3020', eyes: '#1A1008', headwear: 'hood', headwearColor: '#5E4632', veil: '#2E2018', robe: '#5E4632', belt: '#C8B890', held: 'quill', muzzle: 'ape', scale: 0.74 },
   abbotUnreason: { id: 'abbotUnreason', skin: '#D8702A', hair: '#C8601A', eyes: '#1A1008', headwear: 'mitre', headwearColor: '#F2EDE2', robe: '#F2EDE2', cape: '#C63D2A', held: 'crozier', muzzle: 'fox', scale: 0.86 },
   hunter: { id: 'hunter', skin: '#E0BA96', hair: '#5A3A22', eyes: '#2A1E16', headwear: 'cap', headwearColor: '#2E6A3A', robe: '#4A6A3A', belt: '#4A3A20', held: 'bow' },
+  // The Charcoal Hollow: the wodewose who keeps the kiln sparks as her young, and the hermit.
+  wodewoseMother: { id: 'wodewoseMother', skin: '#CABAA8', hair: '#EAE4D8', eyes: '#2A2A30', headwear: 'none', headwearColor: '#000000', robe: '#DCD4C6', held: 'none', fur: true, rags: true, scale: 1.34 },
+  hermit: { id: 'hermit', skin: '#D8B898', hair: '#D8D2C8', eyes: '#3A3A40', headwear: 'hood', headwearColor: '#6A5E4E', veil: '#2E2620', robe: '#7A6E5A', belt: '#3A3020', held: 'broom', rags: true },
   // Ralf the thatcher's widower, straw in his hair from the mill roof.
   ralf: { id: 'ralf', skin: '#DDB494', hair: '#8A7A5A', eyes: '#2A2018', headwear: 'cap', headwearColor: '#5A6A4A', robe: '#7A6244', belt: '#C8B070', held: 'none' },
   // Gervase the pedlar: a man of Ninefold, scraped a hundred and fifty years ago, still walking.

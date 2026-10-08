@@ -21,6 +21,11 @@ export const RETURNS: Record<string, { xp: number; to: LocalText; keepsake: Loca
     to: { en: 'to Dunstan', fr: 'à Dunstan' },
     keepsake: { en: 'A knot cut from Hamo’s bell-rope, from Dunstan.', fr: 'Un nœud coupé dans la corde de Hamo, de la part de Dunstan.' },
   },
+  maud: {
+    xp: 15,
+    to: { en: 'to her brother', fr: 'à son frère' },
+    keepsake: { en: 'A stick of willow charcoal from the hermit’s kiln, for drawing.', fr: 'Un bâton de fusain de saule, de la meule de l’ermite, pour dessiner.' },
+  },
   gervase: {
     xp: 15,
     to: { en: 'to himself', fr: 'à lui-même' },

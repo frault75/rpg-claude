@@ -19,7 +19,7 @@ export const ORDINARY = ORDER.filter((id) => id.startsWith('f') || id.startsWith
 export function known(id: string): Record<CharId, AbilityId[]> {
   const ch5 = ['f9', 'b5'].includes(id);
   const ch4 = ['f7', 'f8', 'b4'].includes(id) || ch5;
-  const ch3 = ['f5', 'f6', 'b3'].includes(id) || ch4;
+  const ch3 = ['f5', 's2', 'f6', 'b3'].includes(id) || ch4;
   const ch2 = ['f3', 's1', 'f4', 'b2'].includes(id) || ch3;
   const ab = Object.fromEntries(Object.entries(CHAPTER_ONE_ABILITIES).map(([k, v]) => [k, [...v]])) as Record<CharId, AbilityId[]>;
   const learn = (c: CharId, a: AbilityId) => ab[c].includes(a) || ab[c].push(a);

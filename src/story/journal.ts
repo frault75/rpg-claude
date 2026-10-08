@@ -61,8 +61,20 @@ const BY_MAP: Record<string, Rule[]> = {
     [() => true, { en: 'The bell has spoken. Down to the village.', fr: 'La cloche a parlé. Redescendre au village.' }],
   ],
   mere: [[() => true, { en: 'Across the frozen mere. The old ford is still under the ice; the candle shows where it holds.', fr: 'Traverser la mare gelée. Le vieux gué est encore sous la glace ; la bougie montre où elle tient.' }]],
-  wood: [[() => true, { en: 'The Blanchwood loses its colour as we go. The chapel where they prayed to the Reader is past Ninefold.', fr: 'La Blanchewood perd ses couleurs à mesure qu’on avance. La chapelle où l’on priait le Lecteur est au-delà de Ninefold.' }]],
-  ninefold: [[() => true, { en: 'The road has faded to bare vellum. The candle shows where it used to run.', fr: 'La route s’est effacée jusqu’au vélin nu. La bougie montre où elle passait.' }]],
+  wood: [
+    [(g) => won(g, 'f5') && !flag(g, 'hollowSeen'), { en: 'The wood loses its colour as we go, but a thread of smoke rises south of the path, where nobody should be. The chapel is past Ninefold.', fr: 'Le bois perd ses couleurs à mesure qu’on avance, mais un fil de fumée monte au sud du chemin, là où il ne devrait y avoir personne. La chapelle est au-delà de Ninefold.' }],
+    [() => true, { en: 'The Blanchwood loses its colour as we go. The chapel where they prayed to the Reader is past Ninefold.', fr: 'La Blanchewood perd ses couleurs à mesure qu’on avance. La chapelle où l’on priait le Lecteur est au-delà de Ninefold.' }],
+  ],
+  hollow: [
+    [(g) => !won(g, 's2'), { en: 'The Charcoal Hollow. The kilns are still burning, and near them the wood keeps its colour.', fr: 'La combe aux charbonniers. Les meules brûlent encore, et près d’elles le bois garde ses couleurs.' }],
+    [(g) => !flag(g, 'returned.maud') && !g.lostNames.includes('maud'), { en: 'The hermit keeps the kilns lit for someone who will want to find her way back. His old hearth was in Ninefold.', fr: 'L’ermite garde les meules allumées pour quelqu’un qui voudra retrouver son chemin. Son ancien foyer était à Ninefold.' }],
+    [(g) => !flag(g, 'returned.maud'), { en: 'Maud’s name was at the hermit’s hearth. He should hear it.', fr: 'Le nom de Maud était au foyer de l’ermite. Il devrait l’entendre.' }],
+    [() => true, { en: 'The hermit has sat down at last. Back to the path, and on to Ninefold.', fr: 'L’ermite s’est enfin assis. Retour au chemin, et en route pour Ninefold.' }],
+  ],
+  ninefold: [
+    [(g) => g.lostNames.includes('maud') && flag(g, 'hermitMet') && !flag(g, 'returned.maud'), { en: 'Maud of the mill. The hermit at the kilns kept a fire for someone; back through the wood, he should hear this name.', fr: 'Maud du moulin. L’ermite des meules gardait un feu pour quelqu’un ; en retournant par le bois, il devrait entendre ce nom.' }],
+    [() => true, { en: 'The road has faded to bare vellum. The candle shows where it used to run.', fr: 'La route s’est effacée jusqu’au vélin nu. La bougie montre où elle passait.' }],
+  ],
   gate: [
     [(g) => !won(g, 'f6'), { en: 'Gaudry and Ermeline are waiting at Ninefold Gate.', fr: 'Gaudry et Ermeline attendent à la porte de Ninefold.' }],
     [() => true, { en: 'Ermeline is scraping the wood behind us. Run for the chapel.', fr: 'Ermeline gratte la forêt derrière nous. Courir jusqu’à la chapelle.' }],

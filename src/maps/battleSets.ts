@@ -27,6 +27,7 @@ import { paintBones } from './blanchwood/ossuary';
 import { acanthusRow, MARGIN_GROUND, MARGIN_SKY, marginLight, pageAbove } from './margin/common';
 import { goldBar, goose, ivy as ivyRun } from '../world3d/margin';
 import { millWheel } from '../world3d/fenmill';
+import { kiln } from '../world3d/hollow';
 
 export interface BattleSet {
   /** Camera: where it looks and from what height. */
@@ -427,6 +428,28 @@ function blanchwoodSet(kind: 'blanchwood' | 'gate', r: WorldRenderer, st: Stage)
   return { camera: { x: tiles(17), y: tiles(5.8), h: 36 }, enemies: TIGHT, party: PARTY_PLACES, seaward: [tiles(17), tiles(9)] };
 }
 
+/** The Charcoal Hollow (S2): the kilns smoulder in a ring, and near them the wood keeps its colour. */
+function hollowSet(r: WorldRenderer, st: Stage): BattleSet {
+  woodLight(r, 0.2);
+  r.grade = { ...r.grade, focusBand: 60, focusRange: 220, saturation: 0.95 };
+  const field = Array.from({ length: 11 }, (_, y) => Array.from({ length: 34 }, (_, x) => (hash2(x, y, 9) < 0.12 && (y < 3 || y > 9) ? 'v' : y >= 4 && y <= 8 ? 'd' : '.')).join(''));
+  st.ground({ ground: field, heights: backdrop(67), seed: 67, palette: { ...WOOD_GROUND, dirt: '#4A3A2E' } });
+  st.addSky({ ...WOOD_SKY }, 220);
+  for (const [x, w, seed] of [
+    [tiles(6), 44, 1],
+    [tiles(16), 52, 2],
+    [tiles(27), 44, 3],
+  ] as const) {
+    const k = kiln(seed, w);
+    st.addImage(k.a, x, tiles(3.2), { glow: k.e });
+    st.addLight(x, tiles(4.2), 24, 90, '#FF8A3A', 0.25, 'flame');
+    st.addEmitter({ kind: 'mote', area: [x - 8, tiles(3), 16, 6], heights: [12, 90], count: 14, color: '#9A948A', size: 2.6, intensity: 0.5 }, seed * 7);
+  }
+  for (let i = 0; i < 8; i++) st.addImage(blanchedTree(i + 171, 0.3 + (i % 3) * 0.1), tiles(1.5 + i * 4.4), tiles(1.6) + (i % 2) * 8);
+  st.addEmitter({ kind: 'ember', area: [tiles(4), tiles(3), tiles(26), tiles(4)], heights: [6, 70], count: 26, color: '#FFA040', size: 1.5, intensity: 1.4 }, 29);
+  return { camera: { x: tiles(17), y: tiles(5.8), h: 36 }, enemies: TIGHT, party: PARTY_PLACES, seaward: [tiles(17), tiles(9)] };
+}
+
 /** The ossuary under Knell Chapel (B3): bones in the walls, a ring of candles. */
 function ossuarySet(r: WorldRenderer, st: Stage): BattleSet {
   nightInterior(r, { ambient: 0.45, moon: 0.1 });
@@ -507,6 +530,8 @@ export function dressBattle(stage: string, r: WorldRenderer, st: Stage): BattleS
       return lychford(stage, r, st);
     case 'fen':
       return fenSet(r, st);
+    case 'hollow':
+      return hollowSet(r, st);
     case 'blanchwood':
     case 'gate':
       return blanchwoodSet(stage, r, st);

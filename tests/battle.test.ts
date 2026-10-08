@@ -885,3 +885,28 @@ describe('the corpse-candles (S1)', () => {
     expect(b.events.some((e) => e.type === 'damage' && e.source === 'wane')).toBe(true);
   });
 });
+
+describe('the Charcoal Hollow (S2)', () => {
+  it('an ember-gryllus bursts when it falls: the Front · 2', () => {
+    const b = fight(custom(['emberGryllus']), ['whit', 'hild', 'isot']);
+    b.act('whit', 'lance', { unit: 'e0' });
+    b.act('isot', 'penknife', { unit: 'e0' });
+    expect(b.unit('e0')!.fallen).toBe(true);
+    expect(b.unit('whit')!.hp).toBe(18 - 2);
+  });
+
+  it('the wodewose mother blows a fallen ember back to life', () => {
+    const b = fight(custom(['emberGryllus', 'wodewoseMother']), ['whit', 'hild', 'isot']);
+    b.act('whit', 'lance', { unit: 'e0' });
+    b.act('isot', 'penknife', { unit: 'e0' });
+    // Her club winds up first; then, with a round free, she blows on the coals.
+    let raised = false;
+    for (let r = 0; r < 4 && !raised; r++) {
+      b.endTurn();
+      raised = b.intents.some((i) => i.effects.some((e) => e.kind === 'raise'));
+    }
+    expect(raised).toBe(true);
+    b.endTurn();
+    expect(b.unit('e0')!.fallen).toBe(false);
+  });
+});

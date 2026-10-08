@@ -748,8 +748,36 @@ export function corpseCandleArt(seed = 5): EnemyArt {
   );
 }
 
+// ---------------------------------------------------------------------------------------
+// The ember-gryllus: a gryllus of the charcoal kilns, charred black, its cracks glowing.
+
+export function emberGryllusArt(seed = 8): EnemyArt {
+  const base = gryllusArt(seed);
+  const a = new PixelImage(base.a.w, base.a.h);
+  const e = new PixelImage(base.a.w, base.a.h);
+  const char = ramp('#2A2222', 4);
+  const ember = [hex('#C83A1A'), hex('#F07A2A'), hex('#FFC060'), hex('#FFF0B0')];
+  for (let y = 0; y < base.a.h; y++)
+    for (let x = 0; x < base.a.w; x++) {
+      const p = base.a.get(x, y);
+      if (!p[3]) continue;
+      const lum = (p[0] * 0.3 + p[1] * 0.55 + p[2] * 0.15) / 255;
+      // Light faces glow through the char; the rest is coal.
+      const n = hash2(x, y, seed);
+      if (lum > 0.62 || (lum > 0.45 && n > 0.7)) {
+        const k = Math.min(3, Math.floor((lum - 0.45) * 7));
+        a.set(x, y, ember[k]!);
+        // Only the hottest cracks glow.
+        if (k >= 2) e.set(x, y, ember[k - 1]!);
+      } else a.set(x, y, char[Math.min(3, Math.floor(lum * 5))]!);
+    }
+  return { ...base, a, e };
+}
+
 export function enemyArt(kind: string): EnemyArt | null {
   switch (kind) {
+    case 'emberGryllus':
+      return emberGryllusArt();
     case 'corpseCandle':
       return corpseCandleArt();
     case 'gryllus':

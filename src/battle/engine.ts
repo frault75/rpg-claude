@@ -1138,6 +1138,12 @@ export class Battle {
     u.status.tally = null;
     u.status.ward = 0;
     this.emit({ type: 'fall', unit: u.id });
+    // An ember bursts as it goes out.
+    const burst = u.side === 'enemy' && !read ? ENEMIES[u.kind]?.bursts : undefined;
+    if (burst) {
+      const t = this.allyAt(burst.place);
+      if (t && !t.fallen) this.hurt(t, burst.damage, 'burst');
+    }
     // The mourning brooch: whoever wears it steels themself when another ally falls.
     if (u.side === 'party')
       for (const o of this.party)
