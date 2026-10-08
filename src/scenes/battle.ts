@@ -65,6 +65,7 @@ import { type AbilityId, type BattleEvent, type Intent, PLACE_NAMES, type Unit }
 import type { DebugInfo } from '../debug/overlay';
 import type { WorldRenderer } from '../engine/diorama/renderer';
 import { type Action, Input } from '../engine/input';
+import { TouchControls } from '../engine/touch';
 import { prefs } from '../engine/prefs';
 import type { Scene } from '../engine/scene';
 import { session } from '../engine/session';
@@ -1058,7 +1059,7 @@ export class BattleScene implements Scene {
     return [
       // The topmost banderole: nothing above it for the hand to cover.
       { id: 'omen', when: () => shown.length > 0, vars: none, at: () => this.banderoleAt([...shown].sort((x, y) => (this.banderoles.get(x.id)?.y ?? 0) - (this.banderoles.get(y.id)?.y ?? 0))[0]) },
-      { id: 'marks', when: () => live.some((i) => b.aims(i).length > 0), vars: none, at: () => this.marksAt() },
+      { id: 'marks', when: () => shown.some((i) => b.aims(i).length > 0), vars: none, at: () => this.marksAt() },
       { id: 'turn', when: () => true, vars: () => ({ endTurn: t('battle.endTurn'), undo: t('battle.undo') }), at: () => this.cmdAt() },
       { id: 'hidden', when: () => live.some((i) => !b.shows(i)) && (knows('isot', 'gloss') || knows('hild', 'squint')), vars: () => names, at: () => this.banderoleAt(live.find((i) => !b.shows(i))) },
       { id: 'windup', when: () => shown.some((i) => i.countdown > 0), vars: none, at: () => this.banderoleAt(shown.find((i) => i.countdown > 0)) },
@@ -1154,7 +1155,7 @@ export class BattleScene implements Scene {
   private marksAt(): TipAt | null {
     const b = this.battle;
     const hit = new Map<string, number>();
-    for (const it of b.intents) if (!it.cancelled && !it.waiting && it.countdown <= 0) for (const u of b.aims(it)) hit.set(u.id, (hit.get(u.id) ?? 0) + 1);
+    for (const it of b.intents) if (!it.cancelled && !it.waiting && it.countdown <= 0 && b.shows(it)) for (const u of b.aims(it)) hit.set(u.id, (hit.get(u.id) ?? 0) + 1);
     const [id, n] = [...hit][0] ?? [];
     const f = id ? this.fig(id) : undefined;
     if (!f || !n) return null;
@@ -1989,10 +1990,19 @@ export class BattleScene implements Scene {
     const PH = PLATE_H * z;
     const placed: { x: number; y: number; w: number; h: number }[] = this.plates().map((p) => ({ x: p.x - 6 * z, y: p.y - 4 * z, w: p.w + 12 * z, h: 26 * z }));
     placed.push(this.commandZone());
+    // Nor under a finger's buttons on a touch screen.
+    const box = this.r.viewport;
+    for (const rc of TouchControls.current?.rects() ?? []) {
+      const x = ((rc.left - box.x) / box.w) * VIEW_W;
+      const y = ((rc.top - box.y) / box.h) * VIEW_H;
+      const w = (rc.width / box.w) * VIEW_W;
+      const h = (rc.height / box.h) * VIEW_H;
+      if (x + w > 0 && x < VIEW_W) placed.push({ x: x - 6, y: y - 6, w: w + 12, h: h + 12 });
+    }
     // Nor over the marks above whoever is about to be struck.
     const hits = new Map<string, number>();
     for (const it of this.battle.intents) {
-      if (it.cancelled || it.waiting || it.countdown > 0) continue;
+      if (it.cancelled || it.waiting || it.countdown > 0 || !this.battle.shows(it)) continue;
       for (const u of this.battle.aims(it)) hits.set(u.id, (hits.get(u.id) ?? 0) + 1);
     }
     for (const [id, n] of hits) {
@@ -2051,7 +2061,8 @@ export class BattleScene implements Scene {
 
   /** What a banderole shows for an intent. */
   private lookOf(it: Intent, b: BanderoleState): BanderoleLook {
-    const timing = it.waiting ? t('battle.waits') : it.countdown > 0 ? t('battle.in', { n: it.countdown }) : '';
+    // A hidden hand hides when it falls as well as what it does.
+    const timing = !this.battle.shows(it) ? '' : it.waiting ? t('battle.waits') : it.countdown > 0 ? t('battle.in', { n: it.countdown }) : '';
     const rule = it.rule && this.battle.shows(it) ? tr(it.rule) : '';
     const far = this.battle.shows(it) && this.battle.tooFarBack(it) ? t('battle.tooFarBack') : '';
     return {
@@ -2119,7 +2130,7 @@ export class BattleScene implements Scene {
     const tended = this.tended();
     if (this.mode === 'command') {
       for (const it of b.intents) {
-        if (it.cancelled || it.waiting || it.countdown > 0) continue;
+        if (it.cancelled || it.waiting || it.countdown > 0 || !b.shows(it)) continue;
         const kin = 'unit' in it.target ? b.unit(it.target.unit) : undefined;
         const ban = this.banderoles.get(it.id);
         const kf = kin && tended.has(kin.id) ? this.fig(kin.id) : undefined;

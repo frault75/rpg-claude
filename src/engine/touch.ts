@@ -16,6 +16,8 @@ const CANDLE =
   '<path d="M12 4.5 C13 6 13 7 12 7.6 C11 7 11 6 12 4.5 Z" fill="#FFF4C0"/></g></svg>';
 
 export class TouchControls {
+  /** The controls in use, so that a screen can keep its own words out from under them. */
+  static current: TouchControls | null = null;
   private readonly root: HTMLDivElement;
   private readonly base: HTMLDivElement;
   private readonly knob: HTMLDivElement;
@@ -26,8 +28,12 @@ export class TouchControls {
   private readonly buttons: { el: HTMLDivElement; right: number; bottom: number; size: number; action: string }[] = [];
   private candle = true;
   private leftHanded = false;
+  private opts = { size: 1, opacity: 0.85, leftHanded: false };
+  /** The width of the black band beside the game, on the buttons' side (0 when it fills the width). */
+  private margin = 0;
 
   constructor(private readonly input: Input) {
+    TouchControls.current = this;
     this.root = document.createElement('div');
     this.root.id = 'touch-controls';
     Object.assign(this.root.style, { position: 'fixed', inset: '0', touchAction: 'none', zIndex: '5', display: 'none', userSelect: 'none', webkitUserSelect: 'none' } satisfies Partial<CSSStyleDeclaration>);
@@ -108,20 +114,72 @@ export class TouchControls {
 
   /** Apply the touch settings: size, opacity, which hand holds the stick. */
   configure(o: { size: number; opacity: number; leftHanded: boolean }): void {
+    this.opts = { ...o };
     this.leftHanded = o.leftHanded;
+    if (this.frame) this.margin = this.bandWidth(this.frame);
+    this.layout();
+  }
+
+  private frame: { x: number; w: number } | null = null;
+
+  private bandWidth(box: { x: number; w: number }): number {
+    return Math.max(0, this.leftHanded ? box.x : window.innerWidth - box.x - box.w);
+  }
+
+  /** Where the game is drawn in the window: the buttons go in the black band beside it when they fit. */
+  setFrame(box: { x: number; w: number }): void {
+    this.frame = { x: box.x, w: box.w };
+    const margin = this.bandWidth(box);
+    if (Math.abs(margin - this.margin) < 1) return;
+    this.margin = margin;
+    this.layout();
+  }
+
+  private layout(): void {
+    const o = this.opts;
+    const side = o.leftHanded ? 'left' : 'right';
+    const h = window.innerHeight;
+    // A column in the band: the menu at the top; B at the foot, A over it, the candle over A.
+    // Smaller if it must be, but never below what a thumb can hit.
+    const k = Math.min(o.size, (this.margin - 10) / 74, (h - 40) / 300);
+    const column = k >= 0.7;
+    const slot: Record<string, { from: number; at: number; top?: boolean }> = {};
+    if (column) {
+      const gap = 10 * k;
+      let y = 16 * k;
+      for (const a of ['cancel', 'confirm', 'rake'] as const) {
+        const b = this.buttons.find((x) => x.action === a)!;
+        slot[a] = { from: this.margin / 2 - (b.size * k) / 2, at: y };
+        y += b.size * k + gap;
+      }
+      const m = this.buttons.find((x) => x.action === 'menu')!;
+      slot.menu = { from: this.margin / 2 - (m.size * k) / 2, at: 14, top: true };
+    }
     for (const b of this.buttons) {
-      const sz = b.size * o.size;
+      const sz = b.size * (column ? k : o.size);
       const st = b.el.style;
       st.width = st.height = `${sz}px`;
       st.fontSize = `${Math.round(sz * 0.42)}px`;
       st.opacity = String(o.opacity);
       st.left = st.right = st.top = st.bottom = '';
-      const side = o.leftHanded ? 'left' : 'right';
+      const s = slot[b.action];
+      if (s) {
+        st[side] = `${s.from}px`;
+        if (s.top) st.top = `calc(${s.at}px + env(safe-area-inset-top, 0px))`;
+        else st.bottom = `calc(${s.at}px + env(safe-area-inset-bottom, 0px))`;
+        continue;
+      }
       st[side] = `calc(${b.right * o.size}px + env(safe-area-inset-${side}, 0px))`;
       if (b.bottom < 0) st.top = 'calc(14px + env(safe-area-inset-top, 0px))';
       else st.bottom = `calc(${b.bottom * o.size}px + env(safe-area-inset-bottom, 0px))`;
     }
     this.base.style.opacity = this.knob.style.opacity = String(Math.min(1, o.opacity + 0.1));
+  }
+
+  /** The buttons on screen, in window pixels (none until the first touch). */
+  rects(): DOMRect[] {
+    if (!this.shown) return [];
+    return this.buttons.filter((b) => b.el.style.display !== 'none').map((b) => b.el.getBoundingClientRect());
   }
 
   /** Offer the candle only where it lights something (maps, not battles or pages). */

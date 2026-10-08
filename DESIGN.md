@@ -292,7 +292,7 @@ The prologue can be skipped (Escape or B).
 1. **Scriptorium.** Isot copies by candlelight. The desk opposite hers is empty, its stool pushed in. She talks to it anyway: *"You'd say my descenders are lazy. They are. I'm tired."* A sleepy brother, Cuthwin, asks who she's talking to. *"No one."*
    - **Raking light tutorial** (the core exploration verb, §10.3). Tilting the candle reveals underwriting. On the Book's latest page, the player finds a freshly scraped line with the ghost of *Brother Wystan, librarian* beneath it.
    - **Secret:** Wystan's psalter, still on his desk, holds a note in underwriting: *"Isot. Thank you for the knife. Don't keep my name; keep your hand steady. W."* An alert player can start to suspect Isot here.
-2. **Fight 1 (Isot alone).** The Book's margins stir. Two grylli, heads on legs, climb off the page, drawn by the fresh wound in the vellum. This fight teaches intents, the Penknife, Gloss and Strike Through.
+2. **Fight 1 (Isot alone).** The Book's margins stir. Two grylli, heads on legs, climb off the page, drawn by the fresh wound in the vellum. This fight teaches intents, the Penknife, Gloss and Strike Through, and each of them pays: one gryllus nips in the open (4 HP, *Nips* · 1); the other hides its hand (*? ? ?*) and gathers itself to charge (5 HP, *in 1* · 4). Measured with a solver over the engine on Normal: the Penknife alone wins with Isot at 3 or 4 HP of 12; striking out the charges, reading the sly one and cutting it in one blow wins at 10. On Illuminated the Penknife alone loses.
 3. **The sentence (C2).** Abbot Aumery arrives with two Pumice Brothers. Through the window, bell-carts are being unloaded in the yard. He finds the scraped line, and the brothers find Isot's penknife with vellum dust on its blade. *"Who scrapes shall be scraped. At the dawn bell."* He kneels and is gentle about it, which is terrifying: *"It won't hurt, child. No one will grieve. That is the mercy of it."*
    - **Choice:** *"I didn't do it."* or *(say nothing)*.
 4. **Penitent's Cell (C3).** Isot is locked in. Through the squint in the wall, Hild speaks (sample scene in §3.12). Raking light shows the cell wall was once a doorway into the anchorhold. Hild breaks through with her chained psalter, steps out of her cell for the first time in ten years, and joins the party.
@@ -810,7 +810,7 @@ There are 20 fights in all (six of them off the path), each placed by hand and v
 
 | # | Ch | Where | Enemies | Teaches |
 |---|---|---|---|---|
-| F1 | I | Scriptorium | 2 Grylli | Intents, Penknife, Gloss, Strike Through (Isot alone) |
+| F1 | I | Scriptorium | A gryllus that nips, a sly one that hides a charge | Intents, Penknife, Gloss (read the hidden hand, +3), Strike Through (the charge) (Isot alone) |
 | F2 | I | Cloister | 2 Pumice Brothers | Places, Step, Shove, Shrive (Isot and Hild) |
 | **B1** | I | Causeway | **The Great Snail and the Tide** | Tally timing, cancelling (full party) |
 | F3 | II | Lychford Lane | 3 Hares | Protecting the Rear, Emend |
@@ -1489,6 +1489,7 @@ The touch controls appear on the first touch and stay out of the way of a mouse.
 - **Desktop and mobile browsers.** The game draws into a 16:9 area of 1280×720 logical units, letterboxed inside the window, and the quality tier and render scale adapt to the device (§8.3).
 - **Landscape.** On a phone held upright, an overlay shows a phone turning and asks the player to turn the device sideways.
 - **Installable.** The build is a Progressive Web App: a web manifest, a service worker that precaches every file of the build so the game plays offline, and app icons drawn by code at build time. Installed, it runs full screen in landscape.
+- **The touch buttons stand beside the game.** On a phone wider than the game's 16:9 (most of them), the black band beside it holds the buttons in a column (the menu at the top, B at the foot, A over it, the candle over A), smaller if they must be but never below a thumb's size, so that nothing covers the field. Where there is no band they sit over the corner, and the battle's banderoles keep clear of them.
 - **Full screen, never zoomed.** On a touch screen the first touch puts the game in full screen and locks it sideways where the browser allows it (Android, iPad), and a later touch puts it back if the player left it; the Full screen setting turns this off, and at a desk enters or leaves it. An iPhone's Safari cannot put a page in full screen, so there the title says, once, how to add the game to the home screen, from which it opens full screen. The page never zooms: pinches and double taps on the game are refused (iOS ignores the viewport's own refusal), and the canvas always matches the visible screen, not the taller 100vh of a phone with its toolbars.
 
 ### 11.2 Languages
@@ -1504,8 +1505,9 @@ The game ships in **English and French**. The language is detected from the brow
 | Front / Middle / Rear | Avant / Milieu / Arrière | Ward | Garde |
 | Tally | Décompte | Reckoning | Règlement |
 | Ink | Encre | Smudge | Bavure |
-| Penknife | Canif | Gloss | Glose |
+| Penknife | Canif | Gloss | Annoter |
 | Strike Through | Rayer | Emend | Corriger |
+| Glossed | Annoté | | |
 | Step | Changer de place | | |
 | Rubric | Rubrique | Shove | Bousculer |
 | Shrive | Absoudre | Immure | Emmurer |
