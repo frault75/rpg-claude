@@ -92,7 +92,14 @@ const BY_MAP: Record<string, Rule[]> = {
   ],
   fair: [
     [(g) => flag(g, 'amabelScraped') && !flag(g, 'amabelFound'), { en: 'The Drollery Fair. There is a little brown hen here who keeps looking at me.', fr: 'La foire aux drôleries. Il y a ici une petite poule brune qui ne cesse de me regarder.' }],
-    [() => true, { en: 'The Abbot of Unreason says the old ape on the vine knows the way down.', fr: 'L’Abbé de Déraison dit que le vieux singe de la vigne connaît le chemin du fond.' }],
+    [(g) => g.lostNames.includes('cutha') && !flag(g, 'returned.cutha'), { en: 'Old Cutha told his bees everything. There is a skep in the lanes behind the Fair; somebody should tell them.', fr: 'Le vieux Cutha racontait tout à ses abeilles. Il y a une ruche dans les ruelles derrière la foire ; il faudrait le leur dire.' }],
+    [() => true, { en: 'The Abbot of Unreason says the old ape on the vine knows the way down. Between two stalls at the bottom of the Fair, a way leads round the back.', fr: 'L’Abbé de Déraison dit que le vieux singe de la vigne connaît le chemin du fond. Entre deux étals, au bas de la foire, un passage mène derrière.' }],
+  ],
+  lanes: [
+    [(g) => !won(g, 's3'), { en: 'Behind the Fair: a copying stall, and copyists who copy whatever is done to them.', fr: 'Derrière la foire : un étal de copistes, qui recopient tout ce qu’on leur fait.' }],
+    [(g) => !flag(g, 'returned.cutha') && !g.lostNames.includes('cutha'), { en: 'The bees in the skep have had nobody to tell them anything. The Court of Unreason keeps a name in its alcove.', fr: 'Les abeilles de la ruche n’ont eu personne pour leur dire quoi que ce soit. La Cour de Déraison garde un nom dans son alcôve.' }],
+    [(g) => !flag(g, 'returned.cutha'), { en: 'Tell the bees about Old Cutha.', fr: 'Annoncer le vieux Cutha aux abeilles.' }],
+    [() => true, { en: 'The bees are busy again. Back to the Fair, and on to the vine.', fr: 'Les abeilles se sont remises au travail. Retour à la foire, et en route pour la vigne.' }],
   ],
   vine: [[() => true, { en: 'Wystan is on the vine.', fr: 'Wystan est sur la vigne.' }]],
   inkwell: [[() => true, { en: 'The Ink-Well, at the bottom of the Margin, where every scraped name drains.', fr: 'Le Puits d’encre, au fond de la Marge, où s’écoule chaque nom gratté.' }]],

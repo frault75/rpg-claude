@@ -93,6 +93,7 @@ interface Snapshot {
   dealt: [string, number][];
   falterNext: string[];
   satchel: Satchel;
+  copied: [string, { ability: AbilityId; by: string; amount: number }][];
   eventsLen: number;
 }
 
@@ -146,6 +147,10 @@ export class Battle {
   private resolved = new Set<string>();
   /** Enemies that took warmth this round (a corpse-candle that fed does not burn down). */
   private fed = new Set<string>();
+  /** The last thing done to each enemy this party phase, for the ape-scribes to copy. */
+  private copied = new Map<string, { ability: AbilityId; by: string; amount: number }>();
+  /** The ability being carried out, while it is. */
+  private acting: { ability: AbilityId; by: string } | null = null;
   private nextIntentId = 1;
   /** What is left in the satchel, and what it held when the fight began. */
   satchel: Satchel = {};
@@ -300,6 +305,8 @@ export class Battle {
     const env = this.def.env?.(this.round, this.phases);
     if (env) this.intents.push(this.makeIntent('env', env));
     this.intents.forEach((it, i) => (it.order = i + 1));
+    // The copyists have planned their copies; this round starts a new page.
+    this.copied.clear();
     this.emit({ type: 'omen', intents: this.intents.map((i) => i.id) });
     // Whoever faltered last round loses their first intent now.
     for (const id of this.falterNext) {
@@ -367,7 +374,10 @@ export class Battle {
       .map((o) => ({ id: o.id, kind: o.kind, name: o.name, hp: o.hp, maxHp: o.maxHp, place: o.place }));
     const fallen = this.enemies.filter((o) => o !== e && o.fallen).map((o) => ({ id: o.id, kind: o.kind, name: o.name }));
     const party = this.party.filter((u) => !u.fallen).map((u) => ({ id: u.id, name: u.name, hp: u.hp, maxHp: u.maxHp, place: u.place }));
-    return def.behave({ round, phase: e.phase, hp: e.hp, maxHp: e.maxHp, place: e.place, allies, party, fallen, letters: this.letters, phases: this.phases, rng });
+    const k = this.copied.get(e.id);
+    const by = k ? this.unit(k.by) : undefined;
+    const copied = k && by && !by.fallen ? { ...k, byName: by.name } : undefined;
+    return def.behave({ round, phase: e.phase, hp: e.hp, maxHp: e.maxHp, place: e.place, allies, party, fallen, letters: this.letters, phases: this.phases, copied, rng });
   }
 
   private makeIntent(actor: string, s: IntentSpec): Intent {
@@ -438,6 +448,7 @@ export class Battle {
       dealt: [...this.dealt],
       falterNext: [...this.falterNext],
       satchel: { ...this.satchel },
+      copied: [...this.copied].map(([k, v]) => [k, { ...v }]),
       eventsLen: this.events.length,
     });
   }
@@ -469,6 +480,7 @@ export class Battle {
     this.dealt = new Map(s.dealt);
     this.falterNext = new Set(s.falterNext);
     this.satchel = s.satchel;
+    this.copied = new Map(s.copied);
     this.events.length = s.eventsLen;
     this.result = 'ongoing';
     return true;
@@ -620,6 +632,7 @@ export class Battle {
       else this.firstAbility.delete(u.id);
     }
     const x = dbl ? 2 : 1;
+    this.acting = { ability, by: u.id };
     switch (ability) {
       case 'penknife': {
         const bonus = this.wears('isot', 'wystansPumice') && t!.status.glossed ? 1 : 0;
@@ -633,6 +646,7 @@ export class Battle {
         break;
       }
       case 'gloss':
+        this.copied.set(t!.id, { ability, by: u.id, amount: 0 });
         t!.status.glossed = true;
         t!.status.revealed = true;
         this.emit({ type: 'status', unit: t!.id, status: 'glossed', on: true });
@@ -729,6 +743,7 @@ export class Battle {
         break;
       }
     }
+    this.acting = null;
     this.checkEnd();
     return true;
   }
@@ -990,6 +1005,12 @@ export class Battle {
         case 'heal':
           this.heal(t, e.amount);
           break;
+        case 'gloss':
+          if (!t.fallen) {
+            t.status.glossed = true;
+            this.emit({ type: 'status', unit: t.id, status: 'glossed', on: true });
+          }
+          break;
         case 'kneel':
           if (!t.fallen) t.status.kneeling = true;
           break;
@@ -1080,6 +1101,12 @@ export class Battle {
       this.emit({ type: 'letter', count: this.letters, lost: true });
     }
     this.emit({ type: 'damage', unit: u.id, amount: a, absorbed, source });
+    // What an ally's ability did to an enemy, for a copyist to copy (the sum, if it was hit twice).
+    if (u.side === 'enemy' && this.acting && from?.side === 'party' && a > 0) {
+      const was = this.copied.get(u.id);
+      const same = was && was.ability === this.acting.ability && was.by === this.acting.by;
+      this.copied.set(u.id, { ...this.acting, amount: (same ? was.amount : 0) + a });
+    }
     if (u.hp <= 0) {
       this.fell(u, false);
       return;

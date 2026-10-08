@@ -81,6 +81,8 @@ export const CHARACTERS: Record<string, CharSpec> = {
   wystan: { id: 'wystan', skin: '#6A4A30', hair: '#4A3020', eyes: '#1A1008', headwear: 'hood', headwearColor: '#5E4632', veil: '#2E2018', robe: '#5E4632', belt: '#C8B890', held: 'quill', muzzle: 'ape', scale: 0.74 },
   abbotUnreason: { id: 'abbotUnreason', skin: '#D8702A', hair: '#C8601A', eyes: '#1A1008', headwear: 'mitre', headwearColor: '#F2EDE2', robe: '#F2EDE2', cape: '#C63D2A', held: 'crozier', muzzle: 'fox', scale: 0.86 },
   hunter: { id: 'hunter', skin: '#E0BA96', hair: '#5A3A22', eyes: '#2A1E16', headwear: 'cap', headwearColor: '#2E6A3A', robe: '#4A6A3A', belt: '#4A3A20', held: 'bow' },
+  // The ape-scribes of the Fair's back lanes, copyists of the Margin like Wystan.
+  apeScribe: { id: 'apeScribe', skin: '#7A5034', hair: '#5A3420', eyes: '#1A1008', headwear: 'cap', headwearColor: '#B83A2A', robe: '#8A6A44', belt: '#3A2A18', held: 'quill', muzzle: 'ape', scale: 0.72 },
   // The Charcoal Hollow: the wodewose who keeps the kiln sparks as her young, and the hermit.
   wodewoseMother: { id: 'wodewoseMother', skin: '#CABAA8', hair: '#EAE4D8', eyes: '#2A2A30', headwear: 'none', headwearColor: '#000000', robe: '#DCD4C6', held: 'none', fur: true, rags: true, scale: 1.34 },
   hermit: { id: 'hermit', skin: '#D8B898', hair: '#D8D2C8', eyes: '#3A3A40', headwear: 'hood', headwearColor: '#6A5E4E', veil: '#2E2620', robe: '#7A6E5A', belt: '#3A3020', held: 'broom', rags: true },
