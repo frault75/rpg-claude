@@ -8,6 +8,7 @@
 
 import type { AudioEngine } from './engine';
 import { degreeToMidi, drone, midiToHz, MODES, noiseBurst } from './instruments';
+import { trim } from './mix';
 
 const FINAL = 62; // D4
 const BPM = 150; // eighth notes per minute ÷ 3: a brisk dotted-quarter pulse
@@ -120,7 +121,7 @@ export class BattleMusic {
     this.running = true;
     const out = ctx.createGain();
     out.gain.setValueAtTime(0, ctx.currentTime);
-    out.gain.linearRampToValueAtTime(1, ctx.currentTime + 1.5);
+    out.gain.linearRampToValueAtTime(trim('battle'), ctx.currentTime + 1.5);
     out.connect(engine.bus('music'));
     const wet = ctx.createGain();
     wet.gain.value = 0.25;

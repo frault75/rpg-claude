@@ -7,6 +7,7 @@
 
 import type { AudioEngine } from './engine';
 import { degreeToMidi, drone, midiToHz, MODES, noiseBurst, noiseSource } from './instruments';
+import { trim } from './mix';
 
 const FINAL = 64; // E4
 const BEAT = 1; // 60 bpm
@@ -133,7 +134,8 @@ export class BlanchwoodAmbience {
     sd.gain.value = 160;
     sway.connect(sd).connect(bp.frequency);
     const wg = ctx.createGain();
-    wg.gain.value = this.opts.ossuary ? 0.04 : 0.1;
+    const level = trim(this.opts.ossuary ? 'ossuary' : 'blanchwood');
+    wg.gain.value = (this.opts.ossuary ? 0.04 : 0.1) * level;
     wind.connect(bp).connect(wg).connect(engine.bus('ambience'));
     wind.start();
     sway.start();
@@ -143,6 +145,7 @@ export class BlanchwoodAmbience {
       sway.stop(ctx.currentTime + 3);
     });
     const out = ctx.createGain();
+    out.gain.value = level;
     out.connect(engine.bus('music'));
     const wet = ctx.createGain();
     wet.gain.value = 0.45;
