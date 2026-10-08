@@ -393,6 +393,32 @@ export function drawHelp(c: CanvasRenderingContext2D, w: number, h: number, text
   lines.forEach((l, i) => shadowText(c, l, w / 2, h / 2 + (i - (lines.length - 1) / 2) * 22, warn ? '#F4A080' : INK.text));
 }
 
+export const TIP_W = 760;
+
+/** The height a first-time tip needs for its words. */
+export function tipHeight(text: string): number {
+  const c = document.createElement('canvas').getContext('2d')!;
+  c.font = `${prefs.largeText ? 21 : 19}px ${SERIF}`;
+  return 58 + wrap(c, text, TIP_W - 64).length * (prefs.largeText ? 27 : 25);
+}
+
+/** A first-time tip: what the screen shows and how to use it, and how to go on. */
+export function drawTip(c: CanvasRenderingContext2D, w: number, h: number, text: string, next: string): void {
+  drawWindow(c, 0, 0, w, h, 0.96);
+  c.strokeStyle = INK.gold;
+  c.lineWidth = 2;
+  c.strokeRect(7, 7, w - 14, h - 14);
+  c.textBaseline = 'middle';
+  c.textAlign = 'left';
+  const big = prefs.largeText;
+  c.font = `${big ? 21 : 19}px ${SERIF}`;
+  const lh = big ? 27 : 25;
+  wrap(c, text, w - 64).forEach((l, i) => shadowText(c, l, 32, 30 + i * lh, INK.text));
+  c.textAlign = 'right';
+  c.font = `italic ${big ? 16 : 15}px ${SERIF}`;
+  shadowText(c, `${next}  ›`, w - 26, h - 20, '#E8D290');
+}
+
 /** The name of the ability being used, as the old games showed it. */
 export function drawCallout(c: CanvasRenderingContext2D, w: number, h: number, text: string): void {
   drawWindow(c, 0, 0, w, h, 0.92);
