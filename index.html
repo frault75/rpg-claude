@@ -81,6 +81,27 @@
     <canvas id="page"></canvas>
     <div id="loading">Lighting the candles…</div>
     <div id="rotate"><div class="phone"></div><div class="text">Turn your device sideways to play.</div></div>
+    <script>
+      // Before the game has loaded, speak its language already (the same lines as src/i18n/strings.ts).
+      (function () {
+        var lang = 'en';
+        try {
+          var saved = JSON.parse(localStorage.getItem('palimpsest:settings:v1') || '{}').language;
+          if (saved === 'en' || saved === 'fr') lang = saved;
+          else {
+            var prefs = navigator.languages || [navigator.language];
+            for (var i = 0; i < prefs.length; i++) {
+              var base = String(prefs[i]).toLowerCase().split('-')[0];
+              if (base === 'en' || base === 'fr') { lang = base; break; }
+            }
+          }
+        } catch (e) {}
+        if (lang !== 'fr') return;
+        document.documentElement.lang = 'fr';
+        document.getElementById('loading').textContent = 'On allume les cierges…';
+        document.querySelector('#rotate .text').textContent = 'Tournez votre appareil pour jouer.';
+      })();
+    </script>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

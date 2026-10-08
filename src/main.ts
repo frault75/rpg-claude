@@ -524,8 +524,11 @@ try {
 } catch (err) {
   const loading = document.getElementById('loading');
   if (loading) {
+    // The renderer fails before the settings are applied: pick the language here.
+    const l = session.settings.value.language;
+    setLang(l === 'auto' ? detectLanguage(navigator.languages ?? [navigator.language]) : l);
     loading.className = 'error';
-    loading.textContent = `The game could not start: ${err instanceof Error ? err.message : String(err)}. This game needs WebGL 2.`;
+    loading.textContent = t('boot.error', { why: (err instanceof Error ? err.message : String(err)).replace(/\.$/, '') });
   }
   throw err;
 }

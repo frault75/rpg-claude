@@ -35,6 +35,14 @@ describe('languages', () => {
     expect(Object.keys(en).filter(real).filter((k) => k in fr && holes(en[k]!) !== holes(fr[k]!))).toEqual([]);
   });
 
+  it('shows the loading lines in French before the game loads, as the tables have them', () => {
+    const html = readFileSync('index.html', 'utf8');
+    for (const key of ['loading', 'rotate']) {
+      expect(html).toContain(stringTable('en')[key]!);
+      expect(html).toContain(stringTable('fr')[key]!);
+    }
+  });
+
   it('never sets a bilingual name or text straight into a string (it would read [object Object])', () => {
     const files = (dir: string): string[] =>
       readdirSync(dir).flatMap((f) => {
