@@ -25,6 +25,7 @@ export type Terrain =
   | 'stairs'
   | 'water'
   | 'ice'
+  | 'vellum'
   | 'void';
 
 export const TERRAIN_CHARS: Readonly<Record<string, Terrain>> = {
@@ -41,10 +42,11 @@ export const TERRAIN_CHARS: Readonly<Record<string, Terrain>> = {
   '=': 'stairs',
   '~': 'water',
   i: 'ice',
+  v: 'vellum',
   ' ': 'void',
 };
 
-export const KINDS: readonly Terrain[] = ['void', 'grass', 'meadow', 'dirt', 'sand', 'cobble', 'flag', 'wood', 'snow', 'rock', 'cliff', 'stairs', 'water', 'ice'];
+export const KINDS: readonly Terrain[] = ['void', 'grass', 'meadow', 'dirt', 'sand', 'cobble', 'flag', 'wood', 'snow', 'rock', 'cliff', 'stairs', 'water', 'ice', 'vellum'];
 const KIND_ID = new Map(KINDS.map((k, i) => [k, i]));
 
 /** How far an edge wanders, in pixels (0 = crisp, for masonry and cliffs). */
@@ -63,6 +65,7 @@ const SOFT: Record<Terrain, number> = {
   stairs: 0,
   water: 3.5,
   ice: 4,
+  vellum: 6,
 };
 
 /** Which terrain sits on top where two meet (higher casts a lip onto lower). */
@@ -70,6 +73,7 @@ const RANK: Record<Terrain, number> = {
   void: 0,
   water: 0,
   ice: 1,
+  vellum: 1,
   sand: 1,
   dirt: 1,
   cobble: 2,
@@ -93,6 +97,8 @@ export interface GroundPalette {
   rock: string;
   /** Black ice, as on a frozen mere. */
   ice: string;
+  /** Blank vellum, where the world has been scraped (Ninefold Blank). */
+  vellum: string;
   flowers: readonly string[];
 }
 
@@ -105,6 +111,7 @@ export const GROUND_DEFAULT: GroundPalette = {
   snow: '#E6ECF4',
   rock: '#77726C',
   ice: '#62788E',
+  vellum: '#EDE3CC',
   flowers: ['#F4F0E8', '#F2D24A', '#E58AA8', '#8AA8E8', '#C79AE0'],
 };
 
@@ -189,6 +196,7 @@ export function paintGround(layout: readonly string[], seed = 1, pal: GroundPale
     snow: ramp(pal.snow, 5, 0.5),
     rock: ramp(pal.rock, 6),
     ice: ramp(pal.ice, 5, 0.7),
+    vellum: ramp(pal.vellum, 5, 0.35),
     moss: ramp('#5E7A3A', 4),
   };
   const pick = (r: readonly RGBA[], t: number, x: number, y: number): RGBA => {
@@ -231,6 +239,15 @@ export function paintGround(layout: readonly string[], seed = 1, pal: GroundPale
           let t = 1.5 + (lo - 0.5) * 1.2 + (streak ? 0.9 : 0);
           if (crack) t = 3.4;
           c = hi > 0.998 ? hex('#F4F8FF') : pick(R.ice, t, x, y);
+          break;
+        }
+        case 'vellum': {
+          // A scraped page: fibres in the skin, the dry-point ruling still faintly there.
+          let t = 2.4 + (lo - 0.5) * 0.9 + (noise.value(x / 3, y / 9) - 0.5) * 0.5;
+          if (y % 12 === 0 && hash2(x >> 2, y, seed) > 0.2) t -= 1.3;
+          if (x % 96 === 8 && hash2(x, y >> 2, seed) > 0.25) t -= 1.1;
+          if (hash2(x >> 3, y >> 2, seed + 9) > 0.985) t -= 0.9;
+          c = pick(R.vellum, t, x, y);
           break;
         }
         case 'dirt': {

@@ -20,6 +20,7 @@ import { CHARACTERS, type Dir } from '../pixel/characters';
 import { hex, PixelImage } from '../pixel/pixel';
 import { TILE } from '../pixel/terrain';
 import type { CharId } from '../story/state';
+import { LOST_NAMES } from '../story/lostNames';
 import { LocationCard, Letterbox } from '../ui/card';
 import { Dialogue } from '../ui/dialogue';
 import { PageView } from '../ui/page';
@@ -541,7 +542,7 @@ export class MapScene implements Scene {
 
     // The map's own watch (thin ice, and the like).
     if (free && this.def.watch) {
-      const run = this.def.watch(this.ctx);
+      const run = this.def.watch(this.ctx, dt);
       if (run) void this.script(() => run(this.ctx));
     }
     // Zones and exits.
@@ -595,6 +596,12 @@ export class MapScene implements Scene {
         gh.seen += dt;
         if (gh.seen > 0.5) {
           session.game.flags[`seen.${gh.u.id}`] = true;
+          const name = gh.u.lostName;
+          if (name && LOST_NAMES[name] && !session.game.lostNames.includes(name)) {
+            session.game.lostNames.push(name);
+            uiTick(this.audio, true);
+            this.cardUi.show(t('lostName.title'), tr(LOST_NAMES[name]!));
+          }
           if (gh.u.revealed) void this.script(() => gh.u.revealed!(this.ctx));
         }
       }

@@ -9,6 +9,7 @@
 import { bell, midiToHz } from '../../audio/instruments';
 import { textImage } from '../../pixel/font';
 import { coffer } from '../../pixel/furniture';
+import { ghostWords } from '../../pixel/underwriting';
 import { hex, PixelImage, ramp } from '../../pixel/pixel';
 import { GROUND_DEFAULT } from '../../pixel/terrain';
 import { tiles } from '../../world3d/stage';
@@ -110,13 +111,16 @@ export const BELLTOWER: MapDef = {
     return { blocked };
   },
   things: ropes,
-  underwriting: BELLS.map((b, i) => ({
-    id: `plaque-${b.id}`,
-    x: ROPE_X[i]!,
-    y: WALL_Y + 2,
-    h: 51,
-    art: textImage([b.name], hex('#F0D090', 240)),
-  })),
+  underwriting: [
+    ...BELLS.map((b, i) => ({
+      id: `plaque-${b.id}`,
+      x: ROPE_X[i]!,
+      y: WALL_Y + 2,
+      h: 51,
+      art: textImage([b.name], hex('#F0D090', 240)),
+    })),
+    { id: 'name-hamo', x: tiles(2.2), y: WALL_Y + 2, h: 24, art: ghostWords(['HAMO', 'THE BELLRINGER']), lostName: 'hamo' },
+  ],
   exits: [{ rect: [tiles(5.5), tiles(6.8), tiles(3), tiles(0.4)], to: 'churchyard', spawn: 'tower', when: (c) => !c.flag('bellRung') }],
   async enter(c) {
     rung = [];

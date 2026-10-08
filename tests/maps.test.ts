@@ -66,3 +66,21 @@ describe('chapter II puzzles', () => {
     expect(ENCOUNTERS.b2!.stage).toBe('green');
   });
 });
+
+describe('the Lost Names', () => {
+  it('every cache names a Lost Name, two in each place so far', async () => {
+    const { LOST_NAMES } = await import('../src/story/lostNames');
+    const where: Record<string, string[]> = {};
+    for (const [id, m] of Object.entries(MAPS))
+      for (const u of m.underwriting ?? [])
+        if (u.lostName) {
+          expect(LOST_NAMES[u.lostName], `${id}: ${u.lostName}`).toBeDefined();
+          (where[id] ??= []).push(u.lostName);
+        }
+    const found = Object.values(where).flat();
+    expect(new Set(found).size).toBe(found.length);
+    expect([...(where.cell ?? []), ...(where.cloister ?? [])]).toHaveLength(2);
+    expect([...(where.village ?? []), ...(where.belltower ?? [])]).toHaveLength(2);
+    expect(where.ninefold).toHaveLength(2);
+  });
+});

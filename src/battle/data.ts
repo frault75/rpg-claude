@@ -58,8 +58,32 @@ export interface EnemyDef {
   size?: number;
   hidden?: boolean;
   readOnly?: boolean;
+  /** Blows from the party pass through it (the Danse Macabre's followers). */
+  hollow?: boolean;
+  /** When it falls, every hollow enemy falls with it (the dance ends). */
+  leads?: boolean;
   behave(ctx: BehaviourCtx): IntentSpec[];
 }
+
+// The Danse Macabre's figures (DESIGN.md §5.14).
+const HAND: IntentSpec = {
+  label: { en: 'Takes the hand of the Front · 3, and leads them back', fr: 'Prend la main de l’Avant · 3, et l’entraîne en arrière' },
+  rule: { en: 'Then the Front and the Middle swap', fr: 'Puis l’Avant et le Milieu échangent' },
+  target: { place: 0 },
+  damage: 3,
+  reach: 'any',
+  effects: [{ kind: 'swapFrontMiddle' }],
+};
+const WHIRL: IntentSpec = { label: { en: 'Whirls: the Middle and the Rear · 2', fr: 'Tournoie : le Milieu et l’Arrière · 2' }, target: { places: [1, 2] }, damage: 2, reach: 'any' };
+const BOW: IntentSpec = { label: { en: 'Bows to the empty place', fr: 'S’incline devant la place vide' }, target: { self: true }, reach: 'any' };
+const TUNE: IntentSpec = {
+  label: { en: 'Calls the tune', fr: 'Donne le ton' },
+  rule: { en: 'Every dancer acts twice next round', fr: 'Chaque danseur agit deux fois au prochain tour' },
+  target: { self: true },
+  reach: 'any',
+  effects: [{ kind: 'tune' }],
+};
+const dancer = (name: LocalText, offset: number): EnemyDef => ({ name, hp: 8, hidden: true, hollow: true, behave: (c) => [[HAND], [WHIRL], [BOW]][(c.phase + offset) % 3]! });
 
 export const ENEMIES: Record<string, EnemyDef> = {
   gryllus: {
@@ -180,6 +204,28 @@ export const ENEMIES: Record<string, EnemyDef> = {
       ];
     },
   },
+  gaudry: {
+    name: { en: 'Prior Gaudry', fr: 'Prieur Gaudry' },
+    hp: 18,
+    // His edicts come sealed: Squint reads them.
+    hidden: true,
+    behave: (c) =>
+      c.phase % 2 === 0
+        ? [
+            {
+              label: { en: 'EDICT: the Front shall kneel', fr: 'ÉDIT : que l’Avant s’agenouille' },
+              rule: { en: 'Whoever stands at the Front can’t act next round', fr: 'Qui se tient à l’Avant ne peut agir au prochain tour' },
+              target: { place: 0 },
+              reach: 'any',
+              effects: [{ kind: 'kneel' }],
+            },
+          ]
+        : [{ label: { en: 'Brings the hammer down on the Front · 4, strips Ward', fr: 'Abat le marteau sur l’Avant · 4, ôte la Garde' }, target: { place: 0 }, damage: 4, reach: 'close', effects: [{ kind: 'stripWard' }] }],
+  },
+  pope: dancer({ en: 'The Pope', fr: 'Le Pape' }, 0),
+  king: dancer({ en: 'The King', fr: 'Le Roi' }, 1),
+  ploughman: dancer({ en: 'The Ploughman', fr: 'Le Laboureur' }, 2),
+  childDancer: { name: { en: 'The Child', fr: 'L’Enfant' }, hp: 24, hidden: true, leads: true, behave: (c) => [[BOW], [TUNE], [HAND]][c.phase % 3]! },
   greatSnail: {
     name: { en: 'The Great Snail', fr: 'Le Grand Escargot' },
     hp: 24,
@@ -214,6 +260,16 @@ export const ENCOUNTERS: Record<string, EncounterDef> = {
   f2: { id: 'f2', name: { en: 'The Pumice Brothers', fr: 'Les Frères de la Ponce' }, party: ['hild', 'isot'], enemies: ['brother', 'brother'], stage: 'cloister' },
   f3: { id: 'f3', name: { en: 'Hares on the lane', fr: 'Lièvres sur le chemin' }, party: ['whit', 'hild', 'isot'], enemies: ['hare', 'hare', 'hare'], stage: 'lane' },
   f4: { id: 'f4', name: { en: 'Babewyns on the lych-gate', fr: 'Babouins sur le porche' }, party: ['whit', 'hild', 'isot'], enemies: ['babewyn', 'babewyn'], stage: 'lychgate' },
+  f5: { id: 'f5', name: { en: 'The wild man of the wood', fr: 'L’homme sauvage du bois' }, party: ['whit', 'hild', 'isot'], enemies: ['wodewose', 'gryllus'], stage: 'blanchwood' },
+  f6: { id: 'f6', name: { en: 'Prior Gaudry at Ninefold Gate', fr: 'Le prieur Gaudry à la porte de Ninefold' }, party: ['whit', 'hild', 'isot'], enemies: ['brother', 'gaudry', 'brother'], stage: 'gate' },
+  b3: {
+    id: 'b3',
+    name: { en: 'The Danse Macabre', fr: 'La Danse macabre' },
+    party: ['whit', 'hild', 'isot'],
+    enemies: ['pope', 'king', 'childDancer', 'ploughman'],
+    stage: 'ossuary',
+    env: () => ({ label: { en: 'The dance turns: every dancer one place back', fr: 'La danse tourne : chaque danseur recule d’une place' }, target: { self: true }, reach: 'any', effects: [{ kind: 'turn' }] }),
+  },
   b2: { id: 'b2', name: { en: 'The Mummers’ Play', fr: 'La pièce des Mimes' }, party: ['whit', 'hild', 'isot'], enemies: ['george', 'slasher', 'doctor'], stage: 'green' },
   b1: {
     id: 'b1',

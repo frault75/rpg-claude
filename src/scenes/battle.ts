@@ -26,7 +26,7 @@ import {
   whoosh,
 } from '../audio/battleSfx';
 import { footstep, pageTurn, uiTick } from '../audio/sfx';
-import { ABILITIES, ENCOUNTERS } from '../battle/data';
+import { ABILITIES, ENCOUNTERS, ENEMIES } from '../battle/data';
 import { Battle, type Refusal } from '../battle/engine';
 import {
   BANDEROLE_H,
@@ -346,6 +346,7 @@ export class BattleScene implements Scene {
       abilities: Object.fromEntries(this.partyIds.map((c) => [c, (g.abilities[c] ?? []).filter((a): a is AbilityId => a in ABILITIES)])) as Record<CharId, AbilityId[]>,
       equipment: g.equipment,
       gentle: this.gentle,
+      emendAnywhere: !!g.flags.emendUpgraded,
       seed: 7,
     });
     for (const u of this.battle.units) {
@@ -753,6 +754,17 @@ export class BattleScene implements Scene {
           },
         });
         break;
+      case 'pass':
+        this.queue({
+          dur: 0.45,
+          start: () => {
+            this.popup(e.unit, t('battle.passes'), 'word');
+            fizzleSound(a);
+            const f = this.fig(e.unit);
+            if (f) this.burst(f, '#D8D0C0', 30);
+          },
+        });
+        break;
       case 'fizzle':
         this.queue({
           dur: 0.55,
@@ -1007,15 +1019,19 @@ export class BattleScene implements Scene {
       title: tr(ABILITIES.emend.name),
       cursor: 0,
       options: () =>
-        [...this.battle.party]
-          .sort((x, y) => x.place - y.place)
+        [
+          ...[...this.battle.party].sort((x, y) => x.place - y.place),
+          // After Knell Chapel, a correction can point anywhere: at another enemy too.
+          ...(this.battle.emendAnywhere ? this.battle.standingEnemies() : []),
+        ]
           .filter((x) => !x.fallen)
           .map((x) => {
             const refusal = this.battle.check(u.id, 'emend', { intent, to: x.id });
+            const choose = x.side === 'enemy' ? t('battle.chooseEnemyEmend') : t('battle.chooseAlly');
             return {
               label: tr(x.name),
               unit: x.id,
-              help: refusal ? this.refusalText(refusal, u) : `${t('battle.chooseAlly')} ${this.unitHelp(x)}`,
+              help: refusal ? this.refusalText(refusal, u) : `${choose} ${this.unitHelp(x)}`,
               warn: !!refusal,
               disabled: !!refusal,
               run: () => (refusal ? this.buzz(this.refusalText(refusal, u)) : this.doAct(u.id, 'emend', { intent, to: x.id })),
@@ -1274,6 +1290,9 @@ export class BattleScene implements Scene {
     if (s.doomed) out.push({ text: t('status.doomed'), color: '#E07070' });
     if (s.guarded) out.push({ text: t('status.guarded'), color: '#E8D8A0' });
     if (s.readOnly) out.push({ text: t('status.readOnly'), color: '#C8A8E8' });
+    // The dance keeps its secret until it is Glossed or Squinted.
+    if (s.revealed && s.hollow) out.push({ text: t('status.hollow'), color: '#D8D0C0' });
+    if (s.revealed && u.side === 'enemy' && ENEMIES[u.kind]?.leads) out.push({ text: t('status.leads'), color: '#F0C060' });
     return out;
   }
 
@@ -1367,6 +1386,16 @@ export class BattleScene implements Scene {
       out.push({ id: e.id, x: p.x - w / 2, y: p.y - PLATE_H + 2, w });
     }
     c.restore();
+    // Close ranks put plates on top of each other: lift the one further back until clear.
+    out.sort((a, b) => b.y - a.y);
+    for (let i = 1; i < out.length; i++) {
+      const p = out[i]!;
+      for (let tries = 0; tries < 6; tries++) {
+        const clash = out.slice(0, i).some((q) => p.x < q.x + q.w + 4 && p.x + p.w + 4 > q.x && p.y < q.y + PLATE_H && p.y + PLATE_H > q.y);
+        if (!clash) break;
+        p.y -= PLATE_H + 2;
+      }
+    }
     return out;
   }
 
@@ -1392,11 +1421,22 @@ export class BattleScene implements Scene {
       const k = byActor.get(it.actor) ?? 0;
       byActor.set(it.actor, k + 1);
       const head = this.r.mapToScreen(f.hx, f.hy, f.height + 4);
-      const x = Math.max(8, Math.min(VIEW_W - BANDEROLE_W - 8, head.x - BANDEROLE_W / 2));
-      let y = head.y - PLATE_H - BANDEROLE_H * (k + 1);
-      while (hits(x, y) && y > 80) y -= 8;
-      b.x = x;
-      b.y = Math.max(76, y);
+      const clampX = (x: number) => Math.max(8, Math.min(VIEW_W - BANDEROLE_W - 8, x));
+      const base = head.y - PLATE_H - BANDEROLE_H * (k + 1);
+      // Straight above the head if there is room; failing that, step aside, left then right.
+      let spot: { x: number; y: number } | null = null;
+      for (const dx of [0, -0.6, 0.6, -1.15, 1.15, -1.7]) {
+        const x = clampX(head.x - BANDEROLE_W / 2 + dx * BANDEROLE_W);
+        for (let y = base; y >= 76; y -= 8)
+          if (!hits(x, y)) {
+            spot = { x, y };
+            break;
+          }
+        if (spot) break;
+      }
+      spot ??= { x: clampX(head.x - BANDEROLE_W / 2), y: Math.max(76, base) };
+      b.x = spot.x;
+      b.y = spot.y;
       placed.push({ x: b.x, y: b.y, w: BANDEROLE_W, h: BANDEROLE_H });
     }
   }
@@ -1411,7 +1451,7 @@ export class BattleScene implements Scene {
       const selected = this.selectedIntent() === it.id;
       const look: BanderoleLook = {
         order: it.order,
-        text: (it.actor === ENV_ID ? `${t('battle.tide')}: ` : '') + (this.battle.shows(it) ? tr(it.label) : t('battle.hidden')).replace(/^The tide: |^La marée : /, ''),
+        text: this.battle.shows(it) ? tr(it.label) : t('battle.hidden'),
         note,
         hidden: !this.battle.shows(it),
         struck: b.struck,

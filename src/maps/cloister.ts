@@ -13,7 +13,7 @@ import { bush, yewTree } from '../pixel/nature';
 import { hex, ramp } from '../pixel/pixel';
 import { stoneCross } from '../pixel/props';
 import { GROUND_DEFAULT } from '../pixel/terrain';
-import { ghostDoor } from '../pixel/underwriting';
+import { ghostDoor, ghostWords } from '../pixel/underwriting';
 import { NIGHT_SKY } from '../world3d/sky';
 import { tiles } from '../world3d/stage';
 import { backWall, sideWall } from './interior';
@@ -181,6 +181,7 @@ export const CLOISTER: MapDef = {
       when: (c) => c.cleared('f2'),
       revealed: (c) => theFlight(c),
     },
+    { id: 'name-osric', x: CHURCH_X - tiles(3.4), y: WALL_Y + 1, h: 34, art: ghostWords(['BROTHER OSRIC', 'WHO SANG FLAT']), lostName: 'osric' },
   ],
   async enter(c, from) {
     if (from === 'church' && !c.cleared('f2')) {

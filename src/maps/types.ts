@@ -85,6 +85,8 @@ export interface Underwriting {
   flat?: boolean;
   /** When it has been fully revealed: a flag is set and this runs. */
   revealed?: (c: MapContext) => Promise<void>;
+  /** A Glossator's cache: reading it finds this Lost Name (an id of LOST_NAMES). */
+  lostName?: string;
   when?: (c: MapContext) => boolean;
 }
 
@@ -116,7 +118,7 @@ export interface MapDef {
   /** Save the game whenever the map is entered. */
   checkpoint?: boolean;
   /** Looked at every frame while the player is free: return a scene to play, or null. */
-  watch?: (c: MapContext) => ((c: MapContext) => Promise<void>) | null;
+  watch?: (c: MapContext, dt: number) => ((c: MapContext) => Promise<void>) | null;
 }
 
 export interface MapContext {

@@ -3,6 +3,7 @@ import { CHARACTERS, characterSheet, drawCharacter, FRAMES } from '../src/pixel/
 import type { PixelImage } from '../src/pixel/pixel';
 import { drawPortrait, type Mood } from '../src/pixel/portraits';
 import { babewynArt, greatSnailArt, gryllusArt, hareArt } from '../src/pixel/enemies';
+import { blanch, ghostFacade, MURAL_ORDER, muralPanel, ninefoldGate, outlineBird, woodTree } from '../src/world3d/blanchwood';
 import { armarium, bench, candle, candleStand, coffer, lectern, psalter, stool, writingDesk } from '../src/pixel/furniture';
 
 const params = new URLSearchParams(location.search);
@@ -31,7 +32,8 @@ function show(images: { img: PixelImage; label: string }[], cols: number): void 
 
 if (what === 'faces') {
   const imgs = [];
-  for (const c of Object.values(CHARACTERS)) {
+  const ids = params.get('ids')?.split(',');
+  for (const c of Object.values(CHARACTERS).filter((c) => !ids || ids.includes(c.id))) {
     imgs.push({ img: drawCharacter(c, 'down', FRAMES[0]!), label: c.id });
     imgs.push({ img: drawCharacter(c, 'down', FRAMES[5]!), label: '' });
     imgs.push({ img: drawCharacter(c, 'left', FRAMES[0]!), label: '' });
@@ -82,3 +84,14 @@ if (what === 'furniture') {
   );
 }
 (window as unknown as { ready: boolean }).ready = true;
+
+if (what === 'blanchwood') {
+  const imgs: { img: PixelImage; label: string }[] = [];
+  for (const k of [0, 0.25, 0.5, 0.7, 0.82, 0.94]) imgs.push({ img: blanch(woodTree(1), k, 3), label: `k ${k}` });
+  imgs.push({ img: outlineBird(2), label: 'bird' });
+  imgs.push({ img: ghostFacade(40, 44, 3), label: 'facade' });
+  imgs.push({ img: ninefoldGate().a, label: 'gate' });
+  for (const f of MURAL_ORDER) imgs.push({ img: muralPanel(f), label: f });
+  show(imgs, 6);
+  (window as unknown as { ready: boolean }).ready = true;
+}

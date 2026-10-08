@@ -14,6 +14,7 @@ import { barrel, crate, lanternPost } from '../../pixel/props';
 import { tiles } from '../../world3d/stage';
 import { bareTree, cottage3D, snowHedge } from '../../world3d/lychford';
 import { WinterAmbience } from '../../audio/winter';
+import { ghostWords } from '../../pixel/underwriting';
 import type { MapContext, MapDef, NpcDef, Rect } from '../types';
 import { SNOW_GROUND, snowfall, WINTER_NIGHT_SKY, WINTER_SKY, winterDay, winterNight } from './winter';
 
@@ -210,6 +211,8 @@ export const VILLAGE: MapDef = {
       },
     },
   ],
+  // A Glossator's cache on the thatcher's own house.
+  underwriting: [{ id: 'name-edda', x: tiles(9.6) + 28, y: tiles(1.8) + 35, h: 30, art: ghostWords(['EDDA THATCHER', 'AFRAID OF LADDERS'], true), lostName: 'edda' }],
   exits: [
     { rect: [0, tiles(8.5), tiles(0.6), tiles(3)], to: 'lane', spawn: 'village', when: (c) => !c.flag('bellRung') },
     { rect: [tiles(W - 0.6), tiles(5.5), tiles(0.6), tiles(3)], to: 'churchyard', spawn: 'village', when: (c) => !c.flag('bellRung') },

@@ -170,7 +170,5 @@ async function theFarShore(c: MapContext): Promise<void> {
   c.card({ en: 'Chapter III', fr: 'Chapitre III' }, { en: 'The Blanchwood', fr: 'La Blanchewood' });
   await c.wait(4);
   session.game.chapter = 3;
-  c.save();
-  await c.narrate({ en: 'Chapter III is still being written. Thank you for reading this far.', fr: 'Le chapitre III est encore en cours d’écriture. Merci d’avoir lu jusqu’ici.' });
-  c.goto('title', 'start');
+  c.goto('wood', 'start');
 }
