@@ -22,12 +22,31 @@ export class LocationCard {
     this.t = 0;
     this.panel.visible = true;
     this.panel.draw((c, w, h) => {
-      // A soft dark band for legibility.
-      const g = c.createRadialGradient(w / 2, h / 2, 10, w / 2, h / 2, w / 2);
-      g.addColorStop(0, 'rgba(4, 8, 24, 0.55)');
-      g.addColorStop(1, 'rgba(4, 8, 24, 0)');
-      c.fillStyle = g;
+      // A dark band behind the name, soft at every edge, so it holds over bright snow too.
+      const across = c.createLinearGradient(0, 0, w, 0);
+      across.addColorStop(0, 'rgba(4, 8, 24, 0)');
+      across.addColorStop(0.22, 'rgba(4, 8, 24, 0.62)');
+      across.addColorStop(0.78, 'rgba(4, 8, 24, 0.62)');
+      across.addColorStop(1, 'rgba(4, 8, 24, 0)');
+      c.fillStyle = across;
       c.fillRect(0, 0, w, h);
+      const down = c.createLinearGradient(0, 0, 0, h);
+      down.addColorStop(0, 'rgba(0, 0, 0, 0)');
+      down.addColorStop(0.2, 'rgba(0, 0, 0, 1)');
+      down.addColorStop(0.85, 'rgba(0, 0, 0, 1)');
+      down.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      c.globalCompositeOperation = 'destination-in';
+      c.fillStyle = down;
+      c.fillRect(0, 0, w, h);
+      c.globalCompositeOperation = 'source-over';
+      // And a dark halo behind the letters themselves.
+      const halo = (draw: () => void) => {
+        c.save();
+        c.shadowColor = 'rgba(0, 0, 0, 0.9)';
+        c.shadowBlur = 10;
+        draw();
+        c.restore();
+      };
       c.textAlign = 'center';
       c.textBaseline = 'middle';
       // Long names (an item's, a chapter's) set smaller rather than spill off the card.
@@ -41,7 +60,7 @@ export class LocationCard {
       tg.addColorStop(0, '#FFF1C4');
       tg.addColorStop(1, '#D9A848');
       c.fillStyle = tg;
-      c.fillText(caps, w / 2, 62);
+      halo(() => c.fillText(caps, w / 2, 62));
       // Rules with a lozenge in the middle.
       const tw = Math.min(w - 80, c.measureText(caps).width + 60);
       for (const y of [28, 98]) {
@@ -64,7 +83,7 @@ export class LocationCard {
       c.fillStyle = 'rgba(0,0,0,0.7)';
       c.fillText(line, w / 2 + 1.5, 124 + 1.5);
       c.fillStyle = '#E6DCC4';
-      c.fillText(line, w / 2, 124);
+      halo(() => c.fillText(line, w / 2, 124));
     });
   }
 
