@@ -5,6 +5,7 @@
  * came. Then, close: a penknife scrapes one line away.
  */
 
+import { controlParams } from '../ui/prompts';
 import * as THREE from 'three';
 import type { AudioEngine } from '../audio/engine';
 import { bell, drone, noiseBurst } from '../audio/instruments';
@@ -146,13 +147,16 @@ export class PrologueScene implements Scene {
     this.skipHint = this.ui.panel(260, 30, 13);
     this.skipHint.x = VIEW_W - 280;
     this.skipHint.y = 14;
-    this.skipHint.draw((c, w, h) => {
-      c.font = `16px ${SERIF}`;
-      c.textAlign = 'right';
-      c.textBaseline = 'middle';
-      c.fillStyle = INK.dim;
-      c.fillText(t('prologue.skip'), w - 4, h / 2);
-    });
+    const drawSkip = () =>
+      this.skipHint.draw((c, w, h) => {
+        c.font = `16px ${SERIF}`;
+        c.textAlign = 'right';
+        c.textBaseline = 'middle';
+        c.fillStyle = INK.dim;
+        c.fillText(t('prologue.skip', controlParams()), w - 4, h / 2);
+      });
+    drawSkip();
+    this.unsubs.push(input.onDevice(drawSkip));
     this.director = new Director(r, { minX: -1e4, maxX: 1e4, minY: -1e4, maxY: 1e4 });
     this.director.take(PAGE.x + PAGE.w / 2, PAGE.y + PAGE.h / 2 + 6, 1);
     this.unsubs.push(

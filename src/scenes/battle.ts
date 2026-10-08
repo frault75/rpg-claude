@@ -60,7 +60,7 @@ import { abilityText, claim, type Difficulty, hpAt, LEVEL_XP, levelFor, MAX_LEVE
 import { type AbilityId, type BattleEvent, type Intent, PLACE_NAMES, type Unit } from '../battle/types';
 import type { DebugInfo } from '../debug/overlay';
 import type { WorldRenderer } from '../engine/diorama/renderer';
-import type { Action, Input } from '../engine/input';
+import { type Action, Input } from '../engine/input';
 import { prefs } from '../engine/prefs';
 import type { Scene } from '../engine/scene';
 import { session } from '../engine/session';
@@ -232,7 +232,8 @@ interface BanderoleState {
 
 const ENV_ID = 'env';
 /** Show the 1–5 shortcuts beside the commands, except where fingers are the pointer. */
-const KEY_HINTS = typeof window === 'undefined' || !window.matchMedia?.('(pointer: coarse)').matches;
+/** The number keys that pick a row are shown at the keyboard only. */
+const keyHints = () => (Input.current?.prompts ?? 'keys') === 'keys';
 /** The enemy's name plate, between its head and its banderoles. */
 const PLATE_H = 30;
 
@@ -347,6 +348,7 @@ export class BattleScene implements Scene {
     this.hand.draw((c, w, h) => drawTargetHand(c, w, h));
 
     this.unsubs.push(
+      input.onDevice(() => (this.cmdDirty = true)),
       input.onAction((a) => this.onAction(a)),
       input.onPointer((px, py) => {
         const p = r.windowToScreen(px, py);
@@ -1981,7 +1983,7 @@ export class BattleScene implements Scene {
     this.cmdWin.x = r.x;
     this.cmdWin.y = r.y;
     const inTarget = this.menu?.kind === 'target';
-    this.cmdWin.draw((c, w) => drawCommands(c, w, r.inner, m.title, entries, inTarget ? -1 : m.cursor, this.time, KEY_HINTS));
+    this.cmdWin.draw((c, w) => drawCommands(c, w, r.inner, m.title, entries, inTarget ? -1 : m.cursor, this.time, keyHints()));
     // The help bar follows the cursor.
     const cur = this.menu!.options()[this.menu!.cursor];
     this.drawHelpText(cur?.help ?? '', !!cur?.warn);

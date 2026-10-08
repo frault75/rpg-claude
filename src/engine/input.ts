@@ -112,6 +112,14 @@ export interface Axis {
   y: number;
 }
 
+/** What the player is playing with: the keyboard (and mouse), a gamepad, or a touch screen. */
+export type Device = 'keys' | 'pad' | 'touch';
+
+/** The device a screen probably has before anything is pressed. */
+export function guessDevice(): Device {
+  return typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches ? 'touch' : 'keys';
+}
+
 /** Combine digital keys, an analog stick and a touch stick into one movement, length <= 1. */
 export function combineMove(keys: Axis, pad: Axis, touch: Axis): Axis {
   for (const a of [keys, pad, touch]) {
@@ -122,7 +130,45 @@ export function combineMove(keys: Axis, pad: Axis, touch: Axis): Axis {
 }
 
 export class Input {
+  /** The one the game runs on, for the hints that name a key or a button. */
+  static current: Input | null = null;
   private readonly held = new Set<Action>();
+  /** The device last used; hints follow it unless the settings choose one. */
+  device: Device = guessDevice();
+  /** The settings' choice of hints: 'auto' follows the device last used. */
+  preferred: 'auto' | Device = 'auto';
+  private readonly deviceListeners = new Set<() => void>();
+
+  constructor() {
+    Input.current = this;
+  }
+
+  /** The device whose keys and buttons the hints should name. */
+  get prompts(): Device {
+    return this.preferred === 'auto' ? this.device : this.preferred;
+  }
+
+  /** Listen for the hints changing device; returns a function that stops listening. */
+  onDevice(fn: () => void): () => void {
+    this.deviceListeners.add(fn);
+    return () => this.deviceListeners.delete(fn);
+  }
+
+  /** The player has just used this device. */
+  used(d: Device): void {
+    if (d === this.device) return;
+    const before = this.prompts;
+    this.device = d;
+    if (this.prompts !== before) for (const fn of this.deviceListeners) fn();
+  }
+
+  /** Change the settings' choice of hints. */
+  prefer(p: 'auto' | Device): void {
+    if (p === this.preferred) return;
+    const before = this.prompts;
+    this.preferred = p;
+    if (this.prompts !== before) for (const fn of this.deviceListeners) fn();
+  }
   keys: KeyBindings = structuredClone(DEFAULT_KEYS);
   pad: PadBindings = structuredClone(DEFAULT_PAD);
   /** While set, the next key press goes here instead of becoming an action (rebinding). */
@@ -161,6 +207,7 @@ export class Input {
       this.pointer = { x: e.clientX, y: e.clientY };
     });
     target.addEventListener('pointerdown', (e) => {
+      this.used(e.pointerType === 'touch' ? 'touch' : 'keys');
       if ((e.target as HTMLElement | null)?.closest?.('#debug-overlay, #debug-menu, #menu, #touch-controls')) return;
       if (e.button === 2) this.held.add('rake');
       for (const l of this.pointerListeners) l(e.clientX, e.clientY, e.button);
@@ -171,6 +218,7 @@ export class Input {
     target.addEventListener('contextmenu', (e) => e.preventDefault());
     target.addEventListener('keydown', (e) => {
       this.gesture();
+      this.used('keys');
       if (this.keyCapture) {
         e.preventDefault();
         const c = this.keyCapture;
@@ -219,6 +267,7 @@ export class Input {
 
   /** Press or release an action from an on-screen button. */
   hold(a: Action, down: boolean): void {
+    if (down) this.used('touch');
     if (down && !this.touchHeld.has(a)) {
       this.touchHeld.add(a);
       this.gesture();
@@ -229,6 +278,7 @@ export class Input {
   /** A tap on the screen (window pixels), as if clicked. */
   tap(x: number, y: number): void {
     this.gesture();
+    this.used('touch');
     for (const l of this.pointerListeners) l(x, y, 0);
   }
 
@@ -294,6 +344,7 @@ export class Input {
       return;
     }
     this.padPrev = buttons;
+    if (buttons.size || Math.hypot(this.padAxis.x, this.padAxis.y) > 0.5) this.used('pad');
     for (const a of BINDABLE) if (this.pad[a].some((b) => buttons.has(b))) now.add(a);
     const d = (a: Bindable) => (this.pad[a].some((b) => buttons.has(b)) ? 1 : 0);
     const dx = d('right') - d('left');

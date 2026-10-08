@@ -169,6 +169,11 @@ export interface MapContext {
   page(def: PageDef): Promise<void>;
   /** Open Gervase's stall (an id of STALLS); resolves when it is closed. */
   shop(stall: string): Promise<void>;
+  /**
+   * A control hint, apart from the story's words: {rake}, {confirm}… name the key or button
+   * on the player's device. It goes when `until` is used, or after `seconds`.
+   */
+  hint(text: LocalText, opts?: { seconds?: number; until?: import('../engine/input').Action }): void;
 }
 
 /** A page seen close up: lines of writing, some scraped, read by tilting the candle. */

@@ -105,7 +105,8 @@ export const CELL: MapDef = {
         await c.say('isot', { en: 'No one has. That’s the point.', fr: 'Personne. C’est bien ça le problème.' }, 'wry');
         await c.say('hild', { en: 'You read scraped pages by tilting the candle. Read the wall.', fr: 'Tu lis les pages grattées en inclinant la bougie. Lis le mur.' }, 'stern');
         c.set('hildAsked');
-        await c.narrate({ en: 'Near the wall, hold R, the right mouse button, Y on a gamepad, or the candle button on a touch screen, to tilt the candle.', fr: 'Près du mur, maintenez R, le bouton droit de la souris, Y sur une manette, ou le bouton bougie sur écran tactile, pour incliner la bougie.' });
+        c.close();
+        c.hint({ en: 'Near the wall, hold {rake} to tilt the candle.', fr: 'Près du mur, maintenez {rake} pour incliner la bougie.' }, { seconds: 14, until: 'rake' });
       },
     },
     {

@@ -1203,6 +1203,8 @@ Behind every outdoor battle the ground rises in two steps. Banks bay in now and 
 5. Vignette and grain.
 6. Fades and flashes for cinematics; flashes are scaled down by the accessibility setting.
 
+Every pass that reads the scene drops a pixel that is not a finite number and holds the rest under a ceiling. Without that, one bad pixel (a GPU's NaN from `pow()` of a base a hair below zero, or an overflow of the half-float target) spreads through the bloom and depth-of-field levels into a flat pale rectangle. The test is on the float's bits, which shader compilers cannot optimise away.
+
 Each location supplies an *atmosphere* (sky and ground ambient, key light colour and direction, fog, mist) and a *grade*.
 
 **Quality tiers.** The tier is picked from the device: phones (a coarse pointer, or a short side under 600 px) get low, or medium with at least 6 GB of memory and 8 cores; desktops get high, or medium with less than 4 GB or 4 cores. `?quality=low|medium|high` forces a tier, and so does the Quality setting.
@@ -1425,7 +1427,7 @@ Settings are kept apart from game saves (§12) and apply at once.
 | **Language** | Automatic (the browser's language), English, Français (§11.2) |
 | **Sound** | Master, music, ambience, effects, voices |
 | **Graphics** | Quality (automatic, low, medium, high; §8.3); resolution (adaptive, 100%, 85%, 70%, 55%); brightness; toggles for shadows, reflections, glow (bloom), depth of field, fog and mist, film grain |
-| **Controls** | Rebind keyboard and gamepad; touch button size and opacity, left-handed layout (stick on the right), vibration; restore default controls |
+| **Controls** | Hints show (what I play with, keyboard, gamepad, touch); rebind keyboard and gamepad; touch button size and opacity, left-handed layout (stick on the right), vibration; restore default controls |
 | **Game** | Text speed (slow, normal, fast, instant); battle animations (normal, fast); difficulty (Story, Normal, Illuminated; §5.17) |
 | **Accessibility** | Screen shake, flashes, larger text |
 
@@ -1444,6 +1446,8 @@ All input becomes the same actions, so every screen works with keyboard, mouse, 
 | Raking light | Hold R | Hold right button | Hold the candle button | Hold Y |
 | Journal | J | — | — | Select |
 | Mute | M | — | — | — |
+
+**Hints name one device.** The story's own words never name a key. When the player must be told how to do something, a small hint window low on the screen says it for the device in hand: *hold R* at the keyboard (or whatever R was rebound to), *hold Y* with a gamepad, *hold the candle button* on a touch screen. It follows the last device used, changes as soon as the player switches, and goes once the control is used. A touch screen is assumed from the start where the pointer is coarse, and the Hints setting can fix one device. The same applies to the help line under a page, the title's *press any key* and the battle's number keys (shown at the keyboard only).
 
 The touch controls appear on the first touch and stay out of the way of a mouse. The virtual stick appears wherever the left thumb lands; A and B sit under the right thumb, and Menu in the corner. Taps anywhere else advance dialogue or walk to the spot.
 

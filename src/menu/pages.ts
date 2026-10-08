@@ -422,6 +422,15 @@ function controlsPage(d: MenuDeps): Page {
   return {
     title: () => t('settings.controls'),
     rows: () => [
+      // Which keys or buttons the hints name: the device last used, or one chosen here.
+      selectRow(
+        t('settings.prompts'),
+        (['auto', 'keys', 'pad', 'touch'] as const).map((v) => ({ value: v, label: t(`settings.prompts.${v}`) })),
+        () => s.value.controls.prompts,
+        (v) => s.update((x) => (x.controls.prompts = v)),
+        refresh,
+      ),
+      sepRow(),
       buttonRow(t('settings.keyboard'), () => d.menu.push(bindPage(d, 'keys'))),
       buttonRow(t('settings.gamepad'), () => d.menu.push(bindPage(d, 'pad'))),
       buttonRow(t('settings.touch'), () =>

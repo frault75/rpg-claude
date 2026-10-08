@@ -27,9 +27,11 @@ varying vec2 vUv;
 varying vec3 vWorld;
 ${NOISE_GLSL}
 void main() {
-  // u across the beam, v along it (0 at the source).
-  float across = 1.0 - pow(abs(vUv.x * 2.0 - 1.0), 1.6);
-  float along = pow(1.0 - vUv.y, 1.3) * smoothstep(0.0, 0.12, vUv.y);
+  // u across the beam, v along it (0 at the source). Interpolation can carry them a hair
+  // past 0 and 1 at the edges, and pow() of a negative number is not a number on some GPUs.
+  vec2 uv = clamp(vUv, 0.0, 1.0);
+  float across = 1.0 - pow(abs(uv.x * 2.0 - 1.0), 1.6);
+  float along = pow(1.0 - uv.y, 1.3) * smoothstep(0.0, 0.12, uv.y);
   float dust = 0.75 + 0.25 * vnoise(vWorld.xz * 0.08 + vec2(uTime * 0.15, vWorld.y * 0.05));
   float a = across * along * dust * uIntensity;
   gl_FragColor = vec4(uColor * a, 1.0);
