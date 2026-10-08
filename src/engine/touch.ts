@@ -23,7 +23,8 @@ export class TouchControls {
   private stickOrigin = { x: 0, y: 0 };
   private readonly taps = new Map<number, { x: number; y: number; t: number }>();
   private shown = false;
-  private readonly buttons: { el: HTMLDivElement; right: number; bottom: number; size: number }[] = [];
+  private readonly buttons: { el: HTMLDivElement; right: number; bottom: number; size: number; action: string }[] = [];
+  private candle = true;
   private leftHanded = false;
 
   constructor(private readonly input: Input) {
@@ -76,7 +77,7 @@ export class TouchControls {
     const b = document.createElement('div');
     if (html) b.innerHTML = label;
     else b.textContent = label;
-    this.buttons.push({ el: b, right, bottom, size });
+    this.buttons.push({ el: b, right, bottom, size, action });
     Object.assign(b.style, {
       position: 'absolute',
       width: `${size}px`,
@@ -121,6 +122,15 @@ export class TouchControls {
       else st.bottom = `calc(${b.bottom * o.size}px + env(safe-area-inset-bottom, 0px))`;
     }
     this.base.style.opacity = this.knob.style.opacity = String(Math.min(1, o.opacity + 0.1));
+  }
+
+  /** Offer the candle only where it lights something (maps, not battles or pages). */
+  setCandle(on: boolean): void {
+    if (on === this.candle) return;
+    this.candle = on;
+    for (const b of this.buttons) if (b.action === 'rake') b.el.style.display = on ? 'flex' : 'none';
+    // Hidden under a finger, it would never hear the finger lift.
+    if (!on) this.input.hold('rake', false);
   }
 
   show(): void {

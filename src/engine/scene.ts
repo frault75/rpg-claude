@@ -5,6 +5,8 @@ export interface Scene {
   readonly name: string;
   /** False where the pause menu must not open (title screen, some cinematics). */
   readonly pausable?: boolean;
+  /** True where the raking light can be used, so the touch screen offers the candle. */
+  readonly rakes?: boolean;
   update(dt: number): void;
   /** Push sprite transforms into their meshes just before rendering. */
   sync(): void;

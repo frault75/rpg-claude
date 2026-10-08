@@ -68,6 +68,7 @@ const CELL = 8;
 
 export class MapScene implements Scene {
   readonly name: string;
+  readonly rakes = true;
   readonly stage: Stage;
   readonly player: Actor;
   readonly party: Actor[] = [];
