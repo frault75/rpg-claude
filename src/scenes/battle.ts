@@ -1047,22 +1047,34 @@ export class BattleScene implements Scene {
    * is needed and only when it is on screen: the banderoles, the marks over the heads, the turn,
    * Ink, hidden intents, wind-ups, places, and the difference between striking out and emending.
    */
-  private tips(): { id: string; when: () => boolean; text: () => string; at: () => TipAt | null }[] {
+  private tips(): { id: string; when: () => boolean; vars: () => Record<string, string | number>; at: () => TipAt | null }[] {
     const b = this.battle;
     const live = b.intents.filter((i) => !i.cancelled).sort((x, y) => x.order - y.order);
     const shown = live.filter((i) => b.shows(i));
     const knows = (who: CharId, a: AbilityId) => b.party.some((u) => u.id === who) && b.abilitiesOf(who).includes(a);
-    const name = (a: AbilityId) => tr(ABILITIES[a].name);
+    const names = { strike: tr(ABILITIES.strike.name), emend: tr(ABILITIES.emend.name), gloss: tr(ABILITIES.gloss.name) };
     const blow = () => shown.find((i) => i.damage > 0) ?? shown[0];
+    const none = () => ({});
     return [
-      { id: 'omen', when: () => shown.length > 0, text: () => t('tip.omen'), at: () => this.banderoleAt(shown[0]) },
-      { id: 'marks', when: () => live.some((i) => b.aims(i).length > 0), text: () => t('tip.marks'), at: () => this.marksAt() },
-      { id: 'turn', when: () => true, text: () => t('tip.turn', { endTurn: t('battle.endTurn'), undo: t('battle.undo') }), at: () => this.cmdAt() },
-      { id: 'hidden', when: () => live.some((i) => !b.shows(i)) && (knows('isot', 'gloss') || knows('hild', 'squint')), text: () => t('tip.hidden', { gloss: name('gloss') }), at: () => this.banderoleAt(live.find((i) => !b.shows(i))) },
-      { id: 'windup', when: () => shown.some((i) => i.countdown > 0), text: () => t('tip.windup', { strike: name('strike') }), at: () => this.banderoleAt(shown.find((i) => i.countdown > 0)) },
-      { id: 'ink', when: () => b.round >= 2 && knows('isot', 'strike'), text: () => t('tip.ink', { strike: name('strike') }), at: () => this.inkAt() },
-      { id: 'places', when: () => b.party.filter((u) => !u.fallen).length >= 2, text: () => t('tip.places', { step: t('battle.step') }), at: () => this.partyAt() },
-      { id: 'emend', when: () => knows('isot', 'emend') && knows('isot', 'strike') && !!blow(), text: () => t('tip.emend', { strike: name('strike'), emend: name('emend') }), at: () => this.banderoleAt(blow()) },
+      // The topmost banderole: nothing above it for the hand to cover.
+      { id: 'omen', when: () => shown.length > 0, vars: none, at: () => this.banderoleAt([...shown].sort((x, y) => (this.banderoles.get(x.id)?.y ?? 0) - (this.banderoles.get(y.id)?.y ?? 0))[0]) },
+      { id: 'marks', when: () => live.some((i) => b.aims(i).length > 0), vars: none, at: () => this.marksAt() },
+      { id: 'turn', when: () => true, vars: () => ({ endTurn: t('battle.endTurn'), undo: t('battle.undo') }), at: () => this.cmdAt() },
+      { id: 'hidden', when: () => live.some((i) => !b.shows(i)) && (knows('isot', 'gloss') || knows('hild', 'squint')), vars: () => names, at: () => this.banderoleAt(live.find((i) => !b.shows(i))) },
+      { id: 'windup', when: () => shown.some((i) => i.countdown > 0), vars: none, at: () => this.banderoleAt(shown.find((i) => i.countdown > 0)) },
+      {
+        id: 'ink',
+        when: () => b.round >= 2 && knows('isot', 'strike'),
+        vars: () => ({ ...names, cost: ABILITIES.strike.ink ?? 2, max: b.maxInk, back: t(this.difficulty === 'story' ? 'tip.two' : 'tip.one') }),
+        at: () => this.inkAt(),
+      },
+      { id: 'places', when: () => b.party.filter((u) => !u.fallen).length >= 2, vars: none, at: () => this.partyAt() },
+      {
+        id: 'emend',
+        when: () => knows('isot', 'emend') && knows('isot', 'strike') && !!blow(),
+        vars: () => ({ ...names, sc: ABILITIES.strike.ink ?? 2, ec: ABILITIES.emend.ink ?? 1 }),
+        at: () => this.banderoleAt(blow()),
+      },
     ];
   }
 
@@ -1072,12 +1084,14 @@ export class BattleScene implements Scene {
     const flags = session.game.flags;
     const tip = this.tips().find((x) => !flags[`tip.${x.id}`] && x.when());
     if (!tip) return;
-    const text = tip.text();
-    const h = tipHeight(text);
+    const vars = tip.vars();
+    const title = t(`tip.${tip.id}.title`, vars);
+    const body = t(`tip.${tip.id}`, vars);
+    const h = tipHeight(body);
     const panel = this.ui.panel(TIP_W, h, 9);
     panel.zoom = this.zw;
     const next = tr(withControls({ en: '{confirm} to go on', fr: '{confirm} pour continuer' }));
-    panel.draw((c, w, hh) => drawTip(c, w, hh, text, next));
+    panel.draw((c, w, hh) => drawTip(c, w, hh, title, body, next));
     this.layoutBanderoles();
     const at = tip.at();
     panel.x = (VIEW_W - TIP_W * this.zw) / 2;
@@ -1125,8 +1139,15 @@ export class BattleScene implements Scene {
 
   private banderoleAt(it: Intent | undefined): TipAt | null {
     const ban = it && this.banderoles.get(it.id);
-    // As when a banderole is aimed at: the hand over its middle, pointing down.
-    return ban ? { x: ban.x + (ban.w * this.z) / 2, y: ban.y - 6, from: 'above' } : null;
+    if (!ban) return null;
+    const z = this.z;
+    const mid = ban.x + (ban.w * z) / 2;
+    // As when a banderole is aimed at: the hand over its middle, pointing down, unless another
+    // banderole sits there; then from its side.
+    const hidesOther = [...this.banderoles.values()].some((o) => o !== ban && mid + 28 * z > o.x && mid - 28 * z < o.x + o.w * z && ban.y - 56 * z < o.y + BANDEROLE_H * z && ban.y > o.y);
+    if (!hidesOther) return { x: mid, y: ban.y - 6, from: 'above' };
+    const y = ban.y + (BANDEROLE_H * z) / 2;
+    return ban.x > 70 * z ? { x: ban.x + 8 * z, y, from: 'left' } : { x: ban.x + ban.w * z - 8 * z, y, from: 'right' };
   }
 
   /** The marks over the first ally about to be struck. */
@@ -1156,7 +1177,8 @@ export class BattleScene implements Scene {
   private inkAt(): TipAt {
     const rows = [...this.battle.party].sort((x, y) => (this.shown.place.get(x.id) ?? x.place) - (this.shown.place.get(y.id) ?? y.place));
     const k = Math.max(0, rows.findIndex((u) => u.id === 'isot'));
-    return { x: this.partyWin.x + 352 * this.zw, y: this.partyWin.y + (13 + 50 * k + 38) * this.zw, from: 'left' };
+    // The pots start right of the HP bar (drawParty): 178 + 170 + 16, a row's middle at 31.
+    return { x: this.partyWin.x + 362 * this.zw, y: this.partyWin.y + (14 + 50 * k + 29) * this.zw, from: 'left' };
   }
 
   // ---- commands ----
