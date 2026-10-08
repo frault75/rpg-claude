@@ -115,13 +115,18 @@ export class PageView {
         }
       }
       // How to read it.
-      c.font = `italic 17px ${SERIF}`;
+      // The pill fits its words (they are longer on a touch screen), shrinking them if need be.
+      const help = t('page.help', controlParams());
+      let fs = 17;
+      c.font = `italic ${fs}px ${SERIF}`;
+      while (fs > 12 && c.measureText(help).width > w - 120) c.font = `italic ${--fs}px ${SERIF}`;
+      const pw = Math.min(w - 80, c.measureText(help).width + 48);
       c.textAlign = 'center';
       c.fillStyle = 'rgba(4, 8, 24, 0.55)';
       c.beginPath();
-      c.roundRect(w / 2 - 250, h - 44, 500, 32, 16);
+      c.roundRect(w / 2 - pw / 2, h - 44, pw, 32, 16);
       c.fill();
-      shadowText(c, t('page.help', controlParams()), w / 2, h - 22, INK.text);
+      shadowText(c, help, w / 2, h - 22, INK.text);
     });
   }
 

@@ -170,7 +170,7 @@ function boot(): void {
             // First, how hard the Book fights back; backing out returns to the title.
             let chosen = false;
             menu.layout(renderer.viewport);
-            menu.show([{ label: () => t('newgame.title'), page: () => newGamePage(deps, () => ((chosen = true), menu.close())) }], 0);
+            menu.show([{ label: () => t('newgame.title'), page: () => newGamePage(deps, () => ((chosen = true), menu.close())) }], 0, { compact: true });
             menu.onClose = () => {
               if (!chosen) return title.showMenu();
               transition(() => {
@@ -209,7 +209,7 @@ function boot(): void {
           run: () => {
             title.hideMenu();
             menu.layout(renderer.viewport);
-            menu.show([{ label: () => t('title.credits'), page: () => ({ title: () => t('title.credits'), rows: () => [infoRowHtml(t('credits.body'))] }) }], 0);
+            menu.show([{ label: () => t('title.credits'), page: () => ({ title: () => t('title.credits'), rows: () => [infoRowHtml(t('credits.body'))] }) }], 0, { compact: true });
             menu.onClose = () => title.showMenu();
           },
         },

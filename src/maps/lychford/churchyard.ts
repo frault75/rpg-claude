@@ -6,7 +6,7 @@
  */
 
 import { hex } from '../../pixel/pixel';
-import { textImage } from '../../pixel/font';
+import { localTextImage } from '../../pixel/font';
 import { babewynArt } from '../../pixel/enemies';
 import { yewTree } from '../../pixel/nature';
 import { gravestone } from '../../pixel/props';
@@ -178,7 +178,16 @@ export const CHURCHYARD: MapDef = {
       x: GRAVE[0],
       y: GRAVE[1] - 7,
       h: 6,
-      art: textImage(['HILD OF', "SAINT EBB'S,", 'WHO NURSED US', 'THROUGH THE', 'GREY SWEAT'], hex('#E8C88A', 230)),
+      art: localTextImage(
+        [
+          { en: 'HILD OF', fr: 'HILD DE' },
+          { en: "SAINT EBB'S,", fr: 'SAINT-EBB,' },
+          { en: 'WHO NURSED US', fr: 'QUI NOUS SOIGNA' },
+          { en: 'THROUGH THE', fr: 'PENDANT LA' },
+          { en: 'GREY SWEAT', fr: 'SUETTE GRISE' },
+        ],
+        hex('#E8C88A', 230),
+      ),
       revealed: async (c) => {
         c.set('hildStoneRead');
         await c.say('isot', { en: '“Hild of Saint Ebb’s, who nursed us through the Grey Sweat.” It’s your grave.', fr: '« Hild de Saint-Ebb, qui nous a soignés pendant la Suette grise. » C’est ta tombe.' }, 'alarmed');
