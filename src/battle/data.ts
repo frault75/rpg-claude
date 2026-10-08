@@ -6,7 +6,7 @@ import type { AbilityDef, AbilityId, IntentEffect, Target } from './types';
 
 export const ABILITIES: Record<AbilityId, AbilityDef> = {
   penknife: { id: 'penknife', name: { en: 'Penknife', fr: 'Canif' }, owner: 'isot', target: 'enemy', text: { en: '2 damage to any enemy.', fr: '2 dégâts à n’importe quel ennemi.' } },
-  gloss: { id: 'gloss', name: { en: 'Gloss', fr: 'Glose' }, owner: 'isot', target: 'enemy', text: { en: 'Reveal its intent; the next blow it takes deals 3 more.', fr: 'Révèle son intention ; le prochain coup qu’il reçoit fait 3 de plus.' } },
+  gloss: { id: 'gloss', name: { en: 'Gloss', fr: 'Annoter' }, owner: 'isot', target: 'enemy', text: { en: 'Note its weak spot: the next blow it takes deals 3 more. What it hides, it shows.', fr: 'Note son point faible : le prochain coup qu’il reçoit fait 3 de plus. Ce qu’il cache se lit.' } },
   strike: { id: 'strike', name: { en: 'Strike Through', fr: 'Rayer' }, owner: 'isot', ink: 2, target: 'intent', text: { en: 'Cross out one enemy intent: it does not happen this round.', fr: 'Raye une intention ennemie : elle n’a pas lieu ce tour-ci.' } },
   emend: { id: 'emend', name: { en: 'Emend', fr: 'Corriger' }, owner: 'isot', ink: 1, target: 'intent', text: { en: 'Change whom a single blow strikes: another ally takes it.', fr: 'Corrige la cible d’un coup unique : il tombe sur un autre allié.' } },
   rubric: { id: 'rubric', name: { en: 'Rubric', fr: 'Rubrique' }, owner: 'isot', ink: 1, target: 'ally', text: { en: 'An ally’s next ability this round is doubled.', fr: 'La prochaine capacité d’un allié ce tour-ci est doublée.' } },
@@ -130,6 +130,20 @@ export const ENEMIES: Record<string, EnemyDef> = {
     name: { en: 'Gryllus', fr: 'Grylle' },
     hp: 4,
     behave: () => [{ label: { en: 'Headbutts', fr: 'Donne un coup de tête' }, target: { place: 0 }, damage: 2, reach: 'close' }],
+  },
+  // The first fight's pair (F1): one nips, out in the open; the other hides its hand and
+  // gathers itself to charge. Penknife alone wins, hurt; reading, striking out and the
+  // penknife together win almost unharmed.
+  marginGryllus: {
+    name: { en: 'Gryllus', fr: 'Grylle' },
+    hp: 4,
+    behave: () => [{ label: { en: 'Nips', fr: 'Mordille' }, target: { place: 0 }, damage: 1, reach: 'close' }],
+  },
+  slyGryllus: {
+    name: { en: 'Gryllus', fr: 'Grylle' },
+    hp: 5,
+    hidden: true,
+    behave: () => [{ label: { en: 'Gathers itself to charge', fr: 'Se ramasse pour foncer' }, target: { place: 0 }, damage: 4, reach: 'close', countdown: 1 }],
   },
   brother: {
     name: { en: 'Pumice Brother', fr: 'Frère de la Ponce' },
@@ -410,7 +424,7 @@ export const ENEMIES: Record<string, EnemyDef> = {
         return [{ label: { en: `Copies the ${n.en} back`, fr: `Recopie « ${n.fr} »` }, rule: { en: 'As hard as it was done', fr: 'Aussi fort qu’il l’a reçu' }, target: { unit: k.by }, damage: k.amount, reach: 'any' }];
       }
       if (k && k.ability === 'gloss')
-        return [{ label: { en: 'Copies the Gloss back', fr: 'Recopie la Glose en retour' }, rule: { en: 'The next blow on them deals 3 more', fr: 'Le prochain coup reçu fait 3 de plus' }, target: { unit: k.by }, effects: [{ kind: 'gloss' }], reach: 'any' }];
+        return [{ label: { en: 'Copies the Gloss back', fr: 'Annote en retour' }, rule: { en: 'The next blow on them deals 3 more', fr: 'Le prochain coup reçu fait 3 de plus' }, target: { unit: k.by }, effects: [{ kind: 'gloss' }], reach: 'any' }];
       return (c.phase + c.place) % 2 === 0
         ? [{ label: { en: 'Scribbles', fr: 'Griffonne' }, target: { place: 1 }, damage: 2, reach: 'any' }]
         : [{ label: { en: 'Blots the page', fr: 'Tache la page' }, rule: { en: 'Smudge', fr: 'Bavure' }, target: { place: 2 }, reach: 'far', effects: [{ kind: 'smudge' }] }];
@@ -550,7 +564,7 @@ export interface EncounterDef {
 }
 
 export const ENCOUNTERS: Record<string, EncounterDef> = {
-  f1: { id: 'f1', name: { en: 'Grylli in the margin', fr: 'Grylles dans la marge' }, party: ['isot'], enemies: ['gryllus', 'gryllus'], stage: 'scriptorium' },
+  f1: { id: 'f1', name: { en: 'Grylli in the margin', fr: 'Grylles dans la marge' }, party: ['isot'], enemies: ['marginGryllus', 'slyGryllus'], stage: 'scriptorium' },
   f2: { id: 'f2', name: { en: 'The Pumice Brothers', fr: 'Les Frères de la Ponce' }, party: ['hild', 'isot'], enemies: ['brother', 'brother'], stage: 'cloister' },
   f3: { id: 'f3', name: { en: 'Hares on the lane', fr: 'Lièvres sur le chemin' }, party: ['whit', 'hild', 'isot'], enemies: ['hare', 'hare', 'hare'], stage: 'lane' },
   s1: { id: 's1', name: { en: 'The corpse-candles', fr: 'Les chandelles des morts' }, party: ['whit', 'hild', 'isot'], enemies: ['corpseCandle', 'corpseCandle', 'corpseCandle', 'corpseCandle'], stage: 'fen' },

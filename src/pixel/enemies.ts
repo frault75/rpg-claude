@@ -987,6 +987,8 @@ export function enemyArt(kind: string): EnemyArt | null {
     case 'corpseCandle':
       return corpseCandleArt();
     case 'gryllus':
+    case 'marginGryllus':
+    case 'slyGryllus':
       return gryllusArt();
     case 'greatSnail':
       return greatSnailArt();

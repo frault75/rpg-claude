@@ -1059,7 +1059,7 @@ export class BattleScene implements Scene {
     return [
       // The topmost banderole: nothing above it for the hand to cover.
       { id: 'omen', when: () => shown.length > 0, vars: none, at: () => this.banderoleAt([...shown].sort((x, y) => (this.banderoles.get(x.id)?.y ?? 0) - (this.banderoles.get(y.id)?.y ?? 0))[0]) },
-      { id: 'marks', when: () => live.some((i) => b.aims(i).length > 0), vars: none, at: () => this.marksAt() },
+      { id: 'marks', when: () => shown.some((i) => b.aims(i).length > 0), vars: none, at: () => this.marksAt() },
       { id: 'turn', when: () => true, vars: () => ({ endTurn: t('battle.endTurn'), undo: t('battle.undo') }), at: () => this.cmdAt() },
       { id: 'hidden', when: () => live.some((i) => !b.shows(i)) && (knows('isot', 'gloss') || knows('hild', 'squint')), vars: () => names, at: () => this.banderoleAt(live.find((i) => !b.shows(i))) },
       { id: 'windup', when: () => shown.some((i) => i.countdown > 0), vars: none, at: () => this.banderoleAt(shown.find((i) => i.countdown > 0)) },
@@ -1155,7 +1155,7 @@ export class BattleScene implements Scene {
   private marksAt(): TipAt | null {
     const b = this.battle;
     const hit = new Map<string, number>();
-    for (const it of b.intents) if (!it.cancelled && !it.waiting && it.countdown <= 0) for (const u of b.aims(it)) hit.set(u.id, (hit.get(u.id) ?? 0) + 1);
+    for (const it of b.intents) if (!it.cancelled && !it.waiting && it.countdown <= 0 && b.shows(it)) for (const u of b.aims(it)) hit.set(u.id, (hit.get(u.id) ?? 0) + 1);
     const [id, n] = [...hit][0] ?? [];
     const f = id ? this.fig(id) : undefined;
     if (!f || !n) return null;
@@ -2002,7 +2002,7 @@ export class BattleScene implements Scene {
     // Nor over the marks above whoever is about to be struck.
     const hits = new Map<string, number>();
     for (const it of this.battle.intents) {
-      if (it.cancelled || it.waiting || it.countdown > 0) continue;
+      if (it.cancelled || it.waiting || it.countdown > 0 || !this.battle.shows(it)) continue;
       for (const u of this.battle.aims(it)) hits.set(u.id, (hits.get(u.id) ?? 0) + 1);
     }
     for (const [id, n] of hits) {
@@ -2061,7 +2061,8 @@ export class BattleScene implements Scene {
 
   /** What a banderole shows for an intent. */
   private lookOf(it: Intent, b: BanderoleState): BanderoleLook {
-    const timing = it.waiting ? t('battle.waits') : it.countdown > 0 ? t('battle.in', { n: it.countdown }) : '';
+    // A hidden hand hides when it falls as well as what it does.
+    const timing = !this.battle.shows(it) ? '' : it.waiting ? t('battle.waits') : it.countdown > 0 ? t('battle.in', { n: it.countdown }) : '';
     const rule = it.rule && this.battle.shows(it) ? tr(it.rule) : '';
     const far = this.battle.shows(it) && this.battle.tooFarBack(it) ? t('battle.tooFarBack') : '';
     return {
@@ -2129,7 +2130,7 @@ export class BattleScene implements Scene {
     const tended = this.tended();
     if (this.mode === 'command') {
       for (const it of b.intents) {
-        if (it.cancelled || it.waiting || it.countdown > 0) continue;
+        if (it.cancelled || it.waiting || it.countdown > 0 || !b.shows(it)) continue;
         const kin = 'unit' in it.target ? b.unit(it.target.unit) : undefined;
         const ban = this.banderoles.get(it.id);
         const kf = kin && tended.has(kin.id) ? this.fig(kin.id) : undefined;

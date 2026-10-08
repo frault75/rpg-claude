@@ -18,10 +18,63 @@ function fight(encounter: BattleSetup['encounter'], party: CharId[], extra: Part
 }
 
 const custom = (enemies: string[]): EncounterDef => ({ id: 'test', name: { en: 'Test', fr: 'Test' }, party: [], enemies, stage: 'test' });
+/** Two plain grylli, the fixture most of these rules are shown on. */
+const GRYLLI = custom(['gryllus', 'gryllus']);
+
+describe('the first fight (F1)', () => {
+  const play = (pick: (b: Battle, round: number) => void) => {
+    const b = fight('f1', ['isot']);
+    for (let r = 1; r <= 12 && b.result === 'ongoing'; r++) {
+      pick(b, r);
+      if (b.result === 'ongoing') b.endTurn();
+    }
+    return b;
+  };
+  const first = (b: Battle) => b.standingEnemies()[0]!.id;
+
+  it('one gryllus nips in the open; the other hides its hand', () => {
+    const b = fight('f1', ['isot']);
+    const [open, sly] = b.intents;
+    expect(b.shows(open!)).toBe(true);
+    expect(b.shows(sly!)).toBe(false);
+    b.act('isot', 'gloss', { unit: b.enemies[1]!.id });
+    expect(b.shows(sly!)).toBe(true);
+    expect(sly!.countdown).toBe(1);
+  });
+
+  it('the penknife alone wins, but hurt', () => {
+    const b = play((x) => x.act('isot', 'penknife', { unit: first(x) }));
+    expect(b.result).toBe('victory');
+    expect(b.unit('isot')!.hp).toBeLessThanOrEqual(5);
+  });
+
+  it('reading, striking out and the penknife together win almost unharmed', () => {
+    // Nip the open one down; strike out each charge as it comes; read the sly one, then cut.
+    const b = play((x, r) => {
+      const charge = x.intents.find((i) => !i.cancelled && i.damage >= 4 && i.countdown === 0);
+      const sly = x.enemies[1]!;
+      if (charge && x.ink >= 2) x.act('isot', 'strike', { intent: charge.id });
+      else if (!x.enemies[0]!.fallen) x.act('isot', 'penknife', { unit: x.enemies[0]!.id });
+      else if (!sly.status.glossed && r > 1) x.act('isot', 'gloss', { unit: sly.id });
+      else x.act('isot', 'penknife', { unit: sly.id });
+    });
+    expect(b.result).toBe('victory');
+    expect(b.unit('isot')!.hp).toBeGreaterThanOrEqual(9);
+  });
+
+  it('reading the sly one is worth a turn: read and cut fells it in two', () => {
+    const b = fight('f1', ['isot']);
+    const sly = b.enemies[1]!;
+    b.act('isot', 'gloss', { unit: sly.id });
+    b.endTurn();
+    b.act('isot', 'penknife', { unit: sly.id });
+    expect(b.unit(sly.id)!.fallen).toBe(true);
+  });
+});
 
 describe('the Omen', () => {
   it('shows every enemy intent, numbered in order', () => {
-    const b = fight('f1', ['isot']);
+    const b = fight(GRYLLI, ['isot']);
     expect(b.round).toBe(1);
     expect(b.intents.map((i) => [i.actor, i.order, i.damage])).toEqual([
       ['e0', 1, 2],
@@ -31,7 +84,7 @@ describe('the Omen', () => {
   });
 
   it('names whoever stands where a blow falls, and a Step changes the name at once', () => {
-    const b = fight('f1', ['whit', 'isot']);
+    const b = fight(GRYLLI, ['whit', 'isot']);
     const blow = b.intents[0]!;
     const front = b.party.find((u) => u.place === 0)!;
     const middle = b.party.find((u) => u.place === 1)!;
@@ -67,7 +120,7 @@ describe('the Omen', () => {
 
 describe('the party phase', () => {
   it('resolves an action at once and lets it be undone', () => {
-    const b = fight('f1', ['isot']);
+    const b = fight(GRYLLI, ['isot']);
     expect(b.act('isot', 'penknife', { unit: 'e0' })).toBe(true);
     expect(b.unit('e0')!.hp).toBe(2);
     expect(b.unit('isot')!.acted).toBe(true);
@@ -79,7 +132,7 @@ describe('the party phase', () => {
   });
 
   it('allows one free Step a round, and a place-aimed blow hits whoever stands there', () => {
-    const b = fight('f1', ['hild', 'isot']);
+    const b = fight(GRYLLI, ['hild', 'isot']);
     expect(b.step(0, 1)).toBe(true);
     expect(b.step(0, 1)).toBe(false);
     expect(b.allyAt(0)!.id).toBe('isot');
@@ -97,7 +150,7 @@ describe('the party phase', () => {
   });
 
   it('Strike Through cancels an intent; it costs 2 Ink', () => {
-    const b = fight('f1', ['isot']);
+    const b = fight(GRYLLI, ['isot']);
     expect(b.act('isot', 'strike', { intent: b.intents[0]!.id })).toBe(true);
     expect(b.ink).toBe(0);
     b.endTurn();
@@ -115,7 +168,7 @@ describe('the party phase', () => {
   });
 
   it('Penance cannot be paid with the last point', () => {
-    const b = fight('f1', ['hild', 'isot']);
+    const b = fight(GRYLLI, ['hild', 'isot']);
     b.unit('hild')!.hp = 3;
     expect(b.check('hild', 'shrive', { unit: 'isot' })).toBe('hp');
     b.unit('hild')!.hp = 4;
@@ -124,7 +177,7 @@ describe('the party phase', () => {
   });
 
   it('Shrive raises a fallen ally, who cannot act that round', () => {
-    const b = fight('f1', ['hild', 'isot']);
+    const b = fight(GRYLLI, ['hild', 'isot']);
     const isot = b.unit('isot')!;
     isot.hp = 0;
     isot.fallen = true;
@@ -352,18 +405,18 @@ describe('Boss I: the Great Snail', () => {
 
 describe('equipment', () => {
   it('Lamp-black: Ink holds 4 but starts at 1', () => {
-    const b = fight('f1', ['isot'], { equipment: { isot: { relic: 'lampBlack', charm: null } } });
+    const b = fight(GRYLLI, ['isot'], { equipment: { isot: { relic: 'lampBlack', charm: null } } });
     expect([b.ink, b.maxInk]).toEqual([1, 4]);
   });
 
   it('Ebb Shell softens only the first blow', () => {
-    const b = fight('f1', ['isot'], { equipment: { isot: { relic: null, charm: 'ebbShell' } } });
+    const b = fight(GRYLLI, ['isot'], { equipment: { isot: { relic: null, charm: 'ebbShell' } } });
     b.endTurn();
     expect(b.unit('isot')!.hp).toBe(12 - 1 - 2);
   });
 
   it('Story: more HP, Ink refills by 2, and every blow a point softer', () => {
-    const b = fight('f1', ['isot'], { difficulty: 'story' });
+    const b = fight(GRYLLI, ['isot'], { difficulty: 'story' });
     expect(b.unit('isot')!.maxHp).toBe(18);
     expect(b.intents[0]!.damage).toBe(1);
     expect(b.intents[0]!.label.en).toBe('Headbutts');
