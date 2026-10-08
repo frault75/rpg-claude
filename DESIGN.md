@@ -1355,7 +1355,7 @@ The game ships in **English and French**. The language is detected from the brow
 
 - **Storage:** `localStorage`, one key per slot (`palimpsest:save:v1:auto` and `palimpsest:save:v1:manual`). Each save has a version number, with migration functions when the format changes. Version 2 added the items found at story beats: a version 1 save is given those whose beats it has already passed.
 - **Slots:** one autosave and one manual save. **Continue** on the title screen loads whichever is more recent.
-- **Manual saves** come from the pause menu's Save and from lecterns with an open book.
+- **Manual saves** come from the pause menu's Save, anywhere the pause menu opens.
 - **Autosave checkpoints:** entering any map, after every battle, at every chapter start, and after key story beats.
 - **Contents:**
   - version, slot and timestamp
