@@ -24,6 +24,8 @@ export interface Page {
   title: () => string;
   help?: () => string;
   rows: () => Row[];
+  /** The row the cursor starts on. */
+  focus?: number;
 }
 
 export interface Entry {
@@ -132,7 +134,8 @@ export class Menu {
       return;
     }
     if (e.page) {
-      this.stack = [{ page: e.page(), focus: 0 }];
+      const page = e.page();
+      this.stack = [{ page, focus: page.focus ?? 0 }];
       this.level = 'content';
     }
   }
@@ -141,7 +144,7 @@ export class Menu {
   push(page: Page): void {
     const top = this.stack[this.stack.length - 1];
     if (top) top.focus = this.focusIndex();
-    this.stack.push({ page, focus: 0 });
+    this.stack.push({ page, focus: page.focus ?? 0 });
     this.level = 'content';
     this.render();
     uiTick(this.audio, true);

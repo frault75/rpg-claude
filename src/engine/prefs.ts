@@ -3,6 +3,8 @@
  * one small object so they need not know about the settings store.
  */
 
+import type { Difficulty } from '../battle/growth';
+
 export const prefs = {
   /** Dialogue letters per second. */
   textCps: 48,
@@ -12,5 +14,5 @@ export const prefs = {
   /** Multiplies screen flashes (reduced, not removed, when off). */
   flashes: 1,
   battleFast: false,
-  gentle: false,
+  difficulty: 'normal' as Difficulty,
 };

@@ -5,7 +5,8 @@
 
 import './i18n/strings';
 import { AudioEngine } from './audio/engine';
-import { CHAPTER_ONE_ABILITIES } from './battle/data';
+import { CHAPTER_ONE_ABILITIES, REWARDS } from './battle/data';
+import { spoilsOf } from './battle/growth';
 import type { CharId } from './story/state';
 import { DebugOverlay } from './debug/overlay';
 import { detectQuality, quality } from './engine/diorama/quality';
@@ -18,7 +19,7 @@ import { type Settings, TEXT_SPEEDS } from './engine/settings';
 import { TouchControls } from './engine/touch';
 import { detectLanguage, setLang, t, tr } from './i18n/i18n';
 import { Menu } from './menu/menu';
-import { equipmentPage, journalPage, type MenuDeps, partyPage, settingsPage } from './menu/pages';
+import { equipmentPage, journalPage, type MenuDeps, newGamePage, partyPage, settingsPage } from './menu/pages';
 import { MAPS } from './maps/index';
 import { BattleScene } from './scenes/battle';
 import { type Arrival, MapScene } from './scenes/map';
@@ -66,7 +67,7 @@ function boot(): void {
       shake: s.access.shake ? 1 : 0,
       flashes: s.access.flashes ? 1 : 0.25,
       battleFast: s.gameplay.battleSpeed === 'fast',
-      gentle: s.gameplay.gentle,
+      difficulty: s.gameplay.difficulty,
     });
   };
   apply(settings.value);
@@ -155,10 +156,17 @@ function boot(): void {
           label: () => t('title.new'),
           run: () => {
             title.hideMenu();
-            transition(() => {
-              startGame();
-              return prologue();
-            }, 1.6);
+            // First, how hard the Book fights back; backing out returns to the title.
+            let chosen = false;
+            menu.layout(renderer.viewport);
+            menu.show([{ label: () => t('newgame.title'), page: () => newGamePage(deps, () => ((chosen = true), menu.close())) }], 0);
+            menu.onClose = () => {
+              if (!chosen) return title.showMenu();
+              transition(() => {
+                startGame();
+                return prologue();
+              }, 1.6);
+            };
           },
         },
         {
@@ -199,11 +207,14 @@ function boot(): void {
     return title;
   };
   const deps: MenuDeps = { menu, settings, game: () => session.game, input, autoTier: () => detected.tier };
+  /** The experience and pennies of the fights already marked won (the debug jumps skip them). */
+  const settle = () => Object.assign(session.game, spoilsOf(session.game.cleared));
   /** The state at the start of chapter II: the whole party, chapter I behind them. */
   const chapterTwo = (): void => {
     startGame();
     session.game.party = ['isot', 'hild', 'whit'];
     session.game.cleared.push('f1', 'f2', 'b1');
+    settle();
     session.game.chapter = 2;
     session.game.inventory.push('lampBlack', 'anchorStone', 'blankPennon', 'ebbShell');
     session.game.equipment.whit.relic = 'blankPennon';
@@ -213,6 +224,7 @@ function boot(): void {
     chapterTwo();
     const g = session.game;
     g.cleared.push('f3', 'f4', 'b2');
+    settle();
     g.chapter = 3;
     g.inventory.push('bellClapper');
     g.abilities.isot.push('emend');
@@ -249,12 +261,16 @@ function boot(): void {
       learn('hild', 'benison');
       learn('isot', 'inscribe');
     }
+    // As strong as the story makes them by this fight.
+    const order = Object.keys(REWARDS);
+    Object.assign(g, spoilsOf(order.slice(0, Math.max(0, order.indexOf(id)))));
   };
   /** The state at the start of chapter IV: the Blanchwood behind them, Whit able to read. */
   const chapterFour = (): void => {
     chapterThree();
     const g = session.game;
     g.cleared.push('f5', 'f6', 'b3');
+    settle();
     g.chapter = 4;
     g.abilities.hild.push('squint');
     g.abilities.whit.push('read');
@@ -266,6 +282,7 @@ function boot(): void {
     chapterFour();
     const g = session.game;
     g.cleared.push('f7', 'b4');
+    settle();
     g.chapter = 5;
     g.inventory.push('vermilionPot');
     g.abilities.isot.push('rubric');
@@ -378,6 +395,7 @@ function boot(): void {
           transition(() => {
             chapterTwo();
             session.game.cleared.push('f3', 'f4');
+            settle();
             Object.assign(session.game.flags, { learnedEmend: true, pilgrimsPassed: true, rhyme: true, learnedImmure: true });
             session.game.abilities.isot.push('emend');
             session.game.abilities.hild.push('immure');
@@ -391,6 +409,7 @@ function boot(): void {
           transition(() => {
             chapterThree();
             session.game.cleared.push('f5', 'f6');
+            settle();
             session.game.abilities.hild.push('squint');
             Object.assign(session.game.flags, { blanchingBegun: true, escaped: true });
             return mapScene('chapel', { spawn: 'door' });
@@ -404,6 +423,7 @@ function boot(): void {
           transition(() => {
             chapterFive();
             session.game.cleared.push('f9');
+            settle();
             Object.assign(session.game.flags, { mercyTolled: true, hammerDown: true });
             return mapScene('nave', { spawn: 'doors' });
           }, 0.3),

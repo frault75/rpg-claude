@@ -10,7 +10,7 @@
 |---|---|
 | **Title** | *Palimpsest* |
 | **Genre** | Story-driven, turn-based RPG with puzzle-like, hand-placed fights |
-| **Length** | 45–60 minutes, five chapters plus prologue and epilogue |
+| **Length** | 2–3 hours: five chapters, a prologue and an epilogue, side stories in every chapter and an optional undercroft |
 | **Platforms** | Desktop and mobile browsers, installable as a Progressive Web App and playable offline (§11.1) |
 | **Languages** | English and French, switchable at any time (§11.2) |
 | **Visual language** | HD-2D: pixel art standing in a lit 3D diorama, with modern light, fog, bloom and depth of field, in the spirit of *Octopath Traveler* and the 16-bit *Final Fantasy* and *Chrono Trigger* games (§8) |
@@ -22,7 +22,7 @@
 **Design pillars**
 
 1. **The world is a book.** Hollin is the text, and the wild places are the margin. Monsters are marginal doodles, and a person who is forgotten is scraped vellum. The game is drawn as HD-2D pixel art, but every rule, sound and story beat belongs to the book.
-2. **Plan, don't grind.** Every enemy shows what it will do next. Every fight is hand-placed and visible, and works as a small puzzle with an exact answer. There is no XP and no random encounters, and the party is fully restored after each battle. New abilities come from story beats, and equipment bends rules instead of raising numbers.
+2. **Plan, don't grind.** Every enemy shows what it will do next. Every fight is hand-placed, visible and fought once, and works as a small puzzle with an exact answer. The party grows with every fight won (§5.16), but there are no random encounters and nothing to farm: experience, pennies and loot are all placed by hand, so the game is balanced for exactly what a player has done. The party is fully restored after each battle. New abilities come from story beats, ranks from levels, and most equipment bends a rule rather than raising a number.
 3. **Endings matter.** The story is about letting things finish, so the game itself has to end well and on time. Anything that doesn't serve story, feel or atmosphere gets cut.
 
 ---
@@ -473,6 +473,22 @@ Ten names are hidden in underwriting across the five locations, two in each. The
 
 Where they lie: Little Joan in the penitent's cell and Brother Osric on the cloister wall (Saint Ebb's); Edda Thatcher on her own house and Hamo in the ringing chamber (Lychford); Maud and Gervase at the hermit's hearth (Ninefold Blank); Cutha and the Fishers in the Margin; Wat on the cloister wall at dawn, by the church door, and the girl of Lychford on the infirmary roll in the Abbot's lodging (Chapter V). Reading one shows a card and adds it to the save.
 
+### 3.14 Side stories and returned names
+
+**Returning a name.** A Lost Name, once read, can be returned to someone who lost it. They remember, grieve, and are glad. Each return is a short scene and gives experience and a keepsake:
+- **Brother Osric** goes to Brother Cuthwin in the dawn scriptorium (Ch V). He sang beside Osric for thirty years and hums the flat note without knowing why.
+- **Edda Thatcher** goes to her widower Ralf in Lychford (Ch II), who mends roofs he can't remember learning to mend and keeps a ladder he is afraid of.
+- **Hamo the bellringer** goes to Dunstan (Ch II), who writes him into his Underbook.
+- **Maud of the mill** goes to the hermit of Ninefold (Ch III), who was her brother and has kept her hearth lit for a hundred and fifty years.
+- **Gervase** goes to himself (§6.3).
+- **Old Cutha** goes to the bees (Ch IV). In the Margin, by the Fair, there is a skep that has had no one to talk to, and Isot *tells the bees*, as the old custom is.
+
+**Optional places**, one or more in every chapter, each with its own fights, caches and new marginalia:
+- **Ch II, the Fen Mill.** Lychford's mill on the frozen fen, whose wheel has turned under the ice for ten years. Corpse-candles burn there, people who should have died and now light the fen. Ralf is found on its roof.
+- **Ch III, the Charcoal Hollow.** A clearing in the Blanchwood where the burners' kilns still smoulder, a hundred and fifty years after the burners were scraped. Ember-grylli and a wodewose mother live there.
+- **Ch IV, the Fair's back lanes.** The ape-scribes' copying stall (an optional fight with marginalia that copy the last thing done to them), the skep of bees, and Gervase's stall.
+- **Ch V, the Undercroft.** The Rasure Vault under the scriptorium, where ten years of scrapings have been swept. Its scraped Brothers, palimpsest knights and inkhorn hounds guard **the Heap**, an optional boss made of every letter ever scraped, trying to become a word.
+
 ---
 
 ## 4. Cinematics
@@ -752,7 +768,7 @@ Each character has one **Illumination**, a large illuminated move that is anothe
 - **Victory:** every enemy has fallen, or the fight's objective is met (Boss V). Defeated marginalia aren't killed, because nothing in Hollin dies. They scatter back into the Margin as sketches.
 - **Defeat:** every ally has fallen, or the objective has failed. *"The ink runs. Every fight is the same puzzle. Try another way."* You can **Try again**, which restarts the same fight instantly, or **Return to the page**, which goes back to the map.
 - **No attrition.** The party is fully restored after every battle, so each fight is a self-contained puzzle.
-- **Gentle Hand** (a setting, §10.8): the party has +50% HP and Ink refills by 2 per round. After two defeats in a row, *Try again · Gentle Hand* joins the choices; it is never forced.
+- **Easier, never forced.** After two defeats in a row, *Try again · one step easier* joins the choices (Illuminated to Normal, Normal to Story, §5.17).
 
 ### 5.10 Determinism
 
@@ -911,6 +927,44 @@ Each boss has a staged entrance and one phase change, announced on a banderole o
 | **B4 The Blot** | Ermeline scrapes at the bright word at the bottom of the well. Ink rises in a column, swallows her, and opens a hundred eyes made of letters. | **The Rasure** (15 HP): Ermeline's outline surfaces. She can't be damaged, and each round she scrapes Isot's inkhorn for −1 Ink. Emend at its naming cost (2 Ink) frees her: expensive, but it stops the drain. |
 | **B5 Aumery** | C13 cuts straight in. Aumery raises Ebba's Pumice and MERCY tolls overhead. Two Brothers rise, the lectern slides to the party's Rear, and his first EDICT unrolls down the nave. | **The Clean Page** (after the letter N): Aumery steps into the Book and the church folds flat into the page. He becomes a giant gilded figure in the initial **M** of MERCY, and the party fights on as tiny figures in its margin. New intent: *MERCY tolls: the Middle is blanked* (Forgotten for 1 round). After S: silence, Lychford's bell, the gauntlet on his wrist. |
 
+### 5.16 Growth: levels, experience and ranks
+
+The Book remembers the three of them together, so **the party shares one level**, from 1 to 12.
+
+- **Experience** comes from every fight, once, at a fixed amount shown on the victory scroll, and from side stories and returned names (§3.14). Nothing can be fought twice, so there is nothing to farm: the main path reaches level 9 by the last fight, and everything optional together reaches 12. The last fight gives nothing, because nothing comes after it.
+- **Each level** raises the party's HP. Hild and Whit gain about one point per level and Isot one every other level, from 12/19/15 at level 1. At level 3 they are 12/22/18, the numbers the first fights were tuned for.
+- **Ranks.** Some levels sharpen an ability. The victory scroll announces each one with its new rule.
+
+| Level | Rank |
+|---|---|
+| 4 | **Shove II**: 3 damage |
+| 6 | **Lance II**: 5 damage |
+| 8 | **Penknife II**: 3 damage |
+| 10 | **Shrive II**: heals 8 |
+| 12 | **Ink-well**: Isot's Ink holds 4 |
+
+- **The victory scroll** shows the experience and pennies gained and fills the level bar from the old total to the new. A new level rings in with its HP and its rank.
+
+Fights are tuned for the level the main path is sure to give, with every optional fight (F8) skipped, and the tests play each one at that level (§13.4). Optional content makes the main path a little easier, and that ease is its reward.
+
+### 5.17 Difficulty
+
+Three modes are offered at New Game, and the mode can be changed at any time in the settings:
+
+| Mode | Party | Enemies |
+|---|---|---|
+| **Story** (*Conte*) | +50% HP; Ink refills by 2 | every blow deals 1 less (never below 1) |
+| **Normal** | as tuned | as tuned |
+| **Illuminated** (*Enluminé*) | as tuned | +25% HP (rounded up); blows of 3 or more deal 1 more |
+
+Banderoles always name the blow as it will land in the chosen mode, warnings of a blow to come included.
+
+The tests play every fight in every mode, at the level the story gives:
+- in Story, plain fighting wins every ordinary fight and the first two bosses;
+- in Normal, plain fighting wins every ordinary fight, the Snail is a slog without its answer, and the Danse Macabre and the Blot can't be won without reading them (§5.12);
+- in Illuminated, plain fighting loses the very first fight and the Snail;
+- in every mode, every fight is won by its answer. A beam search over the engine finds it, and the last fight's is written out.
+
 ---
 
 ## 6. Equipment
@@ -946,6 +1000,37 @@ Where each is found, with a line saying how and the item's card:
 A test checks that every item is either carried from the start or found by a script.
 
 Every fight can be won with no items worn.
+
+### 6.1 Pennies, caches and loot
+
+- **Silver pennies** (*deniers*) are the realm's coin. They come from every fight once, from Glossator caches and from side stories, and they are spent at the pedlar (§6.3). The pause menu shows the purse.
+- **Glossator caches** are small iron-bound boxes left off the path by the hedge-scribes (§1.6), two to four in every chapter. Some sit in plain sight; others are known only by a chalk manicule that the raking light finds on a wall or a stone (§10.3). A cache holds pennies, satchel items, and now and then an item of equipment.
+- **Loot is placed, not rolled.** Every reward is fixed and listed on the victory scroll, so a retried fight gives the same puzzle and the same prize.
+
+### 6.2 The satchel
+
+Up to three of each kind are carried. In battle, any ally can use one instead of an ability: **Satchel** opens from the command list, and using an item spends that ally's action.
+
+| Item | Effect | Price |
+|---|---|---|
+| **Poultice** (*Cataplasme*) | An ally regains 8 HP. | 8 |
+| **Oak-gall ink** (*Encre de galle*) | Isot regains 2 Ink. | 12 |
+| **Wax seal** (*Sceau de cire*) | An ally gains Ward 4. | 10 |
+| **Holy water** (*Eau bénite*) | An enemy loses its Ward and its Shell. | 14 |
+| **Sal volatile** (*Sels*) | A fallen ally rises with 6 HP. | 18 |
+
+### 6.3 Gervase, the pedlar of ribbons
+
+*"Gervase, a pedlar of ribbons, who walked every road twice"* is one of the Lost Names (§3.13): a man of Ninefold, scraped a hundred and fifty years ago, who never stopped walking. He sells from a pack of faded ribbons and does not know his own name.
+
+- **Where he is found:**
+  - on Lychford Lane (Ch II);
+  - at the Wood's Edge (Ch III);
+  - at the Drollery Fair (Ch IV);
+  - at the mouth of the Undercroft (Ch V), whose way he knows, because he has walked every road twice.
+- **His stock.** The satchel items, and equipment that grows chapter by chapter. Prices are in §6.2 and in the item list.
+- **Fraying.** He frays a little more at each meeting.
+- **His name.** Once the player has read his name at the hermit's hearth in Ninefold, Isot can read it to him at the Fair. He remembers the second walk of every road: once to sell, once to see how the ribbons were worn. He gives her his last ribbon, *Gervase's Ribbon* (a charm: the first time the wearer would fall in a battle, they stay at 1 HP), and asks a quarter less from then on. In the ending his name is read with the others.
 
 ---
 
@@ -1299,7 +1384,7 @@ Settings are kept apart from game saves (§12) and apply at once.
 | **Sound** | Master, music, ambience, effects, voices |
 | **Graphics** | Quality (automatic, low, medium, high; §8.3); resolution (adaptive, 100%, 85%, 70%, 55%); brightness; toggles for shadows, reflections, glow (bloom), depth of field, fog and mist, film grain |
 | **Controls** | Rebind keyboard and gamepad; touch button size and opacity, left-handed layout (stick on the right), vibration; restore default controls |
-| **Game** | Text speed (slow, normal, fast, instant); battle animations (normal, fast); Gentle Hand (§5.9) |
+| **Game** | Text speed (slow, normal, fast, instant); battle animations (normal, fast); difficulty (Story, Normal, Illuminated; §5.17) |
 | **Accessibility** | Screen shake, flashes, larger text |
 
 ### 10.9 Controls
@@ -1455,7 +1540,7 @@ wodewose: {
 The battle engine is pure, deterministic and fully unit-tested. The screen drives it and animates what it reports; it never changes the state itself.
 
 ```ts
-const b = new Battle({ encounter: 'b1', party: ['whit', 'hild', 'isot'], abilities, equipment, seed, gentle });
+const b = new Battle({ encounter: 'b1', party: ['whit', 'hild', 'isot'], abilities, equipment, seed, level, difficulty });
 b.start();                                    // round 1: the Omen
 b.check('isot', 'strike', { intent: 'i2' });  // a refusal ('ink', 'from-front', 'reach', 'too-strong', ...) or null
 b.act('isot', 'strike', { intent: 'i2' });    // resolves at once; targets are { unit }, { intent } or, for Emend, { intent, to }
@@ -1476,6 +1561,8 @@ b.result;                                     // 'ongoing' | 'victory' | 'defeat
 - every ability and status, and how they interact (Ward expiry, Tally to Reckoning, Immure delay, Shelled caps, Emend retargeting, carry-over rules for empty or fallen places, reach and fizzles, wind-ups, intents declared at the Omen);
 - every item;
 - every boss script and its intended solutions;
+- every fight at the level the story gives, in each difficulty (plain fighting, and the answer a beam search finds);
+- levels, ranks and the spoils of a fight, given once;
 - the victory and defeat conditions;
 - determinism under a seed;
 - the story script runner (flags, branching);
@@ -1532,6 +1619,9 @@ Each milestone is playable and arrives as its own PR, with build and tests green
 | **Done** | The last page | The epilogue as the fifth illuminated page: the three small figures in its initial, the Lost Names found in red, FINIS in a cartouche set into the border, the score's only major chord, then the credits card; the title offers it again once the story is finished |
 | **Done** | Items in the story | The six items not carried from the start are found at story beats (§6), each with a line and its card; the clapper is the passing bell's old one, so the bell still rings at the end |
 | **Done** | Relief | Banks, terraces and steps on every outdoor map and behind every outdoor battle (§8.2), buildings on their terraces, snow-covered and gesso faces; nothing left out of reach |
+| **Done** | Growth and difficulty | One shared level from every fight won once (§5.16): HP by level, five ranks, the victory scroll with its filling bar and the bell for a new level, level, experience and purse on the party page; Story, Normal and Illuminated (§5.17), chosen at New Game and in the settings, the old Gentle Hand carried over as Story; saves upgraded with the experience and pennies of fights already won |
+| **Next** | Satchel, caches and the pedlar | §6.1–§6.3: the satchel in battle, Glossator caches (some found only by raking light), Gervase's stall, new equipment |
+| **Planned** | Side stories | §3.14: the Fen Mill, the Charcoal Hollow, the Fair's back lanes and the Undercroft, each with its own fights, monsters and caches |
 
 ---
 
@@ -1539,10 +1629,9 @@ Each milestone is playable and arrives as its own PR, with build and tests green
 
 **Out of scope by design:**
 
-- XP and levels
-- random encounters
-- gold, shops and crafting (equipment is found, never bought; key items are story flags)
-- items that raise numbers without changing a rule
+- random encounters, and anything that can be farmed (every fight is fought once; every reward is placed)
+- crafting
+- random loot
 - voice acting (dialogue uses voice blips)
 - languages beyond English and French
 

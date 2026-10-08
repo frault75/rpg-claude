@@ -9,6 +9,7 @@
 import { Rng } from '../engine/rng';
 import type { CharId } from '../story/state';
 import { ABILITIES, ENCOUNTERS, ENEMIES, type EncounterDef, type IntentSpec, PARTY_STATS } from './data';
+import { type Difficulty, enemyDamage, enemyHp, hasRank, hpAt, relabel, TUNED_LEVEL } from './growth';
 import { type AbilityId, type BattleEvent, freshStatuses, type Intent, type Place, type Unit } from './types';
 
 export interface BattleSetup {
@@ -18,8 +19,10 @@ export interface BattleSetup {
   abilities: Record<CharId, AbilityId[]>;
   equipment?: Partial<Record<CharId, { relic: string | null; charm: string | null }>>;
   seed?: number;
-  /** Gentle Hand: +50% HP, Ink refills by 2. */
-  gentle?: boolean;
+  /** The party's level (DESIGN.md §5.16); the first fights were tuned at level 3. */
+  level?: number;
+  /** DESIGN.md §5.17. Story: +50% HP, Ink refills by 2, softer blows. Normal by default. */
+  difficulty?: Difficulty;
   /** Emend upgraded at Knell Chapel: a blow can be turned onto another enemy (2 Ink). */
   emendAnywhere?: boolean;
 }
@@ -110,7 +113,8 @@ export class Battle {
   private knelt = new Set<string>();
   private readonly abilities: Record<CharId, AbilityId[]>;
   private readonly equipment: BattleSetup['equipment'] & object;
-  private readonly gentle: boolean;
+  readonly level: number;
+  readonly difficulty: Difficulty;
   readonly emendAnywhere: boolean;
   private readonly fighting: ReadonlySet<CharId>;
   /** A tune was called: every dancer plans twice next round. */
@@ -135,13 +139,14 @@ export class Battle {
     this.def = def;
     this.rng = new Rng(setup.seed ?? 7);
     this.abilities = setup.abilities;
-    this.gentle = !!setup.gentle;
+    this.level = setup.level ?? TUNED_LEVEL;
+    this.difficulty = setup.difficulty ?? 'normal';
     this.emendAnywhere = !!setup.emendAnywhere;
     this.equipment = setup.equipment ?? {};
     this.fighting = new Set(setup.party.slice(0, 3));
     setup.party.slice(0, 3).forEach((c, i) => {
       const st = PARTY_STATS[c];
-      const hp = Math.round(st.hp * (this.gentle ? 1.5 : 1));
+      const hp = Math.round(hpAt(c, this.level) * (this.difficulty === 'story' ? 1.5 : 1));
       const u: Unit = { id: c, side: 'party', kind: c, name: st.name, hp, maxHp: hp, place: i, size: 1, status: freshStatuses(), fallen: false, acted: false, phase: 0, hiddenIntents: false };
       if (this.wears(c, 'anchorStone')) u.status.ward = 2;
       if (this.wears(c, 'ebbShell')) this.firstBlow.add(c);
@@ -152,6 +157,7 @@ export class Battle {
       this.maxInk = 4;
       this.ink = 1;
     }
+    if (hasRank(this.level, 'inkwell')) this.maxInk++;
     let place = 0;
     this.def.enemies.forEach((kind, i) => {
       const e = ENEMIES[kind];
@@ -160,7 +166,8 @@ export class Battle {
       const st = freshStatuses();
       st.readOnly = !!e.readOnly;
       st.hollow = !!e.hollow;
-      this.units.push({ id: `e${i}`, side: 'enemy', kind, name: e.name, hp: e.hp, maxHp: e.hp, place, size, status: st, fallen: false, acted: false, phase: 0, hiddenIntents: !!e.hidden });
+      const hp = enemyHp(e.hp, this.difficulty);
+      this.units.push({ id: `e${i}`, side: 'enemy', kind, name: e.name, hp, maxHp: hp, place, size, status: st, fallen: false, acted: false, phase: 0, hiddenIntents: !!e.hidden });
       place += size;
     });
     this.nextUnit = this.def.enemies.length;
@@ -340,14 +347,20 @@ export class Battle {
   }
 
   private makeIntent(actor: string, s: IntentSpec): Intent {
+    // The difficulty bends the blow, and the banderole says what it will really deal.
+    const base = s.damage ?? 0;
+    const damage = enemyDamage(base, this.difficulty);
+    const foretold = s.foretells ? enemyDamage(s.foretells, this.difficulty) : 0;
+    let label = relabel(s.label, base, damage);
+    if (s.foretells) label = relabel(label, s.foretells, foretold);
     return {
       id: `i${this.nextIntentId++}`,
       actor,
       order: 0,
-      label: s.label,
-      rule: s.rule,
+      label,
+      rule: s.rule && relabel(s.rule, base, damage),
       target: s.target,
-      damage: s.damage ?? 0,
+      damage,
       reach: s.reach ?? 'any',
       effects: s.effects ?? [],
       countdown: s.countdown ?? 0,
@@ -579,7 +592,7 @@ export class Battle {
           this.ink++;
           this.emit({ type: 'ink', amount: 1 });
         }
-        this.hurt(t!, 2 * x + bonus, u.id);
+        this.hurt(t!, (hasRank(this.level, 'penknife2') ? 3 : 2) * x + bonus, u.id);
         break;
       }
       case 'gloss':
@@ -608,12 +621,12 @@ export class Battle {
         break;
       case 'shove': {
         const first = this.standingEnemies()[0]!;
-        this.hurt(first, 2 * x, u.id);
+        this.hurt(first, (hasRank(this.level, 'shove2') ? 3 : 2) * x, u.id);
         if (!first.fallen) this.toBack(first);
         break;
       }
       case 'shrive': {
-        const amount = (this.wears('hild', 'psalterChain') ? 5 : 6) * x;
+        const amount = ((hasRank(this.level, 'shrive2') ? 8 : 6) - (this.wears('hild', 'psalterChain') ? 1 : 0)) * x;
         if (t!.fallen) {
           t!.fallen = false;
           t!.hp = Math.min(t!.maxHp, amount);
@@ -644,7 +657,7 @@ export class Battle {
         }
         break;
       case 'lance':
-        this.hurt(t!, (this.wears('whit', 'bellClapper') ? 3 : 4) * x, u.id);
+        this.hurt(t!, ((hasRank(this.level, 'lance2') ? 5 : 4) - (this.wears('whit', 'bellClapper') ? 1 : 0)) * x, u.id);
         break;
       case 'tally':
         t!.status.tally = this.wears('whit', 'blankPennon') ? 2 : 3;
@@ -932,7 +945,7 @@ export class Battle {
       return;
     }
     const ph = u.side === 'enemy' ? ENEMIES[u.kind]?.phaseAt : undefined;
-    if (ph && u.hp <= ph.hp && !this.phases.has(ph.id)) {
+    if (ph && u.hp <= enemyHp(ph.hp, this.difficulty) && !this.phases.has(ph.id)) {
       this.phases.add(ph.id);
       this.emit({ type: 'phase', title: ph.title, line: ph.line, id: ph.id });
     }
@@ -1011,7 +1024,8 @@ export class Battle {
     const st = freshStatuses();
     st.readOnly = !!def.readOnly;
     st.hollow = !!def.hollow;
-    const u: Unit = { id: `e${this.nextUnit++}`, side: 'enemy', kind, name: def.name, hp: def.hp, maxHp: def.hp, place: free, size: def.size ?? 1, status: st, fallen: false, acted: true, phase: 0, hiddenIntents: !!def.hidden };
+    const hp = enemyHp(def.hp, this.difficulty);
+    const u: Unit = { id: `e${this.nextUnit++}`, side: 'enemy', kind, name: def.name, hp, maxHp: hp, place: free, size: def.size ?? 1, status: st, fallen: false, acted: true, phase: 0, hiddenIntents: !!def.hidden };
     this.units.push(u);
     this.emit({ type: 'spawn', unit: u.id });
   }
@@ -1092,7 +1106,7 @@ export class Battle {
       u.status.doomed = false;
       u.status.guarded = false;
     }
-    const gain = Math.min(this.maxInk - this.ink, this.gentle ? 2 : 1);
+    const gain = Math.min(this.maxInk - this.ink, this.difficulty === 'story' ? 2 : 1);
     if (gain > 0) {
       this.ink += gain;
       this.emit({ type: 'ink', amount: gain });
