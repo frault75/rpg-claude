@@ -168,7 +168,7 @@ export const NINEFOLD: MapDef = {
     // The city shows a little even without the candle: the faintest pentimento of its fronts.
     for (const u of CITY) {
       if (u.flat) continue;
-      const b = st.addImage(u.art, u.x, u.y, { shadow: false });
+      const b = st.addImage(u.art, u.x, u.y, { shadow: false, solid: false });
       b.opacity = 0.24;
     }
     // The hermit's ruin: two broken walls, half blanched.

@@ -35,7 +35,7 @@ export const EDGE_MAP: MapDef = {
   spawns: { start: { x: tiles(3), y: tiles(7), dir: 'right' }, below: { x: tiles(EDGE + 3), y: tiles(7), dir: 'right' } },
   build(r, st) {
     marginLight(r);
-    st.ground({ ground: GROUND, heights: HEIGHTS, seed: 71, palette: { ...MARGIN_GROUND, rock: '#D8CCB0' } });
+    st.ground({ ground: GROUND, heights: HEIGHTS, seed: 71, palette: { ...MARGIN_GROUND, rock: '#D8CCB0', cliffTop: '#D8CEB6' } });
     st.addSky({ ...MARGIN_SKY }, 220);
     pageAbove(st, tiles(W));
     // The last of the scraped wood: ink outlines on blank vellum.
@@ -44,7 +44,7 @@ export const EDGE_MAP: MapDef = {
     acanthusRow(st, tiles(EDGE + 2), tiles(W), tiles(3.4), 3, 74, 1.1);
     acanthusRow(st, tiles(EDGE + 4), tiles(W), tiles(13.6), 8, 96, 0.9);
     for (let x = tiles(EDGE + 1); x < tiles(W); x += 90) st.addImage(goldBar(86, 14, x), x + 43, tiles(5.2));
-    for (let x = tiles(EDGE + 1); x < tiles(W); x += 84) st.addImage(ivy(80, x), x + 40, tiles(10.4));
+    for (let x = tiles(EDGE + 1); x < tiles(W); x += 84) st.addImage(ivy(80, x), x + 40, tiles(10.4), { solid: false });
     st.addEmitter({ kind: 'glint', area: [tiles(EDGE), tiles(1), tiles(W - EDGE), tiles(12)], heights: [2, 60], count: 22, color: '#FFF4C8', size: 1.6, intensity: 1.2 }, 31);
     return { blocked: [] };
   },

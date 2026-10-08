@@ -11,6 +11,7 @@ import { CHARACTERS } from '../../pixel/characters';
 import { wellHead } from '../../pixel/furniture';
 import { pineTree } from '../../pixel/nature';
 import { barrel, crate, lanternPost } from '../../pixel/props';
+import { relief } from '../../world3d/relief';
 import { tiles } from '../../world3d/stage';
 import { bareTree, cottage3D, snowHedge } from '../../world3d/lychford';
 import { WinterAmbience } from '../../audio/winter';
@@ -67,11 +68,23 @@ const BROTHERS: NpcDef[] = Array.from({ length: 6 }, (_, k) => ({
   when: (c: MapContext) => c.cleared('b2') && !c.flag('raidDone'),
 }));
 
+// The north side of the village stands on a snowy terrace above the street and the green,
+// each cottage on its own footing; the bank between them bays in and out.
+const HEIGHTS = relief(W, H, [
+  { at: [0, 0, W, 4], h: 2, ragged: 's' },
+  { at: [2, 0, 5, 5], h: 2 },
+  { at: [9, 0, 5, 4], h: 2 },
+  { at: [20, 0, 5, 5], h: 2 },
+  { at: [28, 0, 5, 4], h: 2 },
+  { at: [0, 0, W, 2], h: 3, ragged: 's' },
+], 81);
+
 export const VILLAGE: MapDef = {
   id: 'village',
   card: { title: { en: 'Lychford', fr: 'Lychford' }, line: { en: 'The Village Without Graves', fr: 'Le village sans tombes' } },
   walkable: 'dn',
   ground: GROUND,
+  heights: HEIGHTS,
   bounds: { minX: tiles(13.4), maxX: tiles(W - 13.4), minY: tiles(8.6), maxY: tiles(10.2) },
   camera: { h: 4 },
   ambience: () => new WinterAmbience(),
@@ -85,11 +98,11 @@ export const VILLAGE: MapDef = {
     const dark = night();
     if (dark) winterNight(r);
     else winterDay(r);
-    st.ground({ ground: GROUND, heights: GROUND.map((row) => '0'.repeat(row.length)), seed: 81, palette: SNOW_GROUND });
+    st.ground({ ground: GROUND, heights: HEIGHTS, seed: 81, palette: SNOW_GROUND });
     st.addSky(dark ? { ...WINTER_NIGHT_SKY } : { ...WINTER_SKY }, 220);
     const blocked: Rect[] = [];
     const house = (x: number, y: number, w: number, seed: number, plaster: string) => {
-      const b = st.addBuilding(cottage3D(x, y, w, 34, { seed, plaster, lit: true }));
+      const b = st.addBuilding(cottage3D(x, y, w, 34, { seed, plaster, lit: true }), st.heightAt(x + w / 2, y + 17));
       blocked.push(...b.footprints);
     };
     house(tiles(2.5), tiles(2.4), 60, 1, '#E8DCC0');
@@ -120,7 +133,7 @@ export const VILLAGE: MapDef = {
     st.addImage(pineTree(32, true), tiles(17), tiles(2.6));
     st.addArt(barrel(7), tiles(13.6), tiles(4.4));
     st.addArt(crate(8), tiles(14.6), tiles(4.6));
-    st.addImage(snowHedge(60, 4), tiles(12), tiles(16.8));
+    st.addImage(snowHedge(60, 4), tiles(12), tiles(16.8), { solid: 58 });
     if (dark) {
       // The burning tower, beyond the roofs to the north-east, once the raid begins.
       if (session.game.cleared.includes('b2')) {

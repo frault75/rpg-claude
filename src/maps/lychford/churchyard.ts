@@ -11,6 +11,7 @@ import { babewynArt } from '../../pixel/enemies';
 import { yewTree } from '../../pixel/nature';
 import { gravestone } from '../../pixel/props';
 import { Billboard, pixelTexture } from '../../world3d/billboard';
+import { relief } from '../../world3d/relief';
 import { tiles } from '../../world3d/stage';
 import { bareTree, lychGate, parishChurch3D } from '../../world3d/lychford';
 import { WinterAmbience } from '../../audio/winter';
@@ -21,9 +22,20 @@ import { PixelImage, ramp } from '../../pixel/pixel';
 
 const W = 28;
 const H = 16;
+// The church stands on a terrace a step above the graves; the path from the lych-gate
+// climbs to it by two stone steps.
+const STEP_ROW = 6;
 const GROUND = Array.from({ length: H }, (_, y) =>
-  Array.from({ length: W }, (_, x) => (y >= 4 && Math.abs(x + 0.5 - 15) < 1.4) || (y >= 4 && y <= 5 && x >= 4 && x <= 16) ? 'd' : 'n').join(''),
+  Array.from({ length: W }, (_, x) => {
+    const path = y >= 4 && Math.abs(x + 0.5 - 15) < 1.4;
+    if (path && y === STEP_ROW) return '=';
+    return path || (y >= 4 && y <= 5 && x >= 4 && x <= 16) ? 'd' : 'n';
+  }).join(''),
 );
+const HEIGHTS = relief(W, H, [
+  { at: [0, 0, W, STEP_ROW], h: 1 },
+  { at: [18, 0, 10, 3], h: 2, ragged: 's' },
+], 91);
 const CHURCH_X = tiles(4);
 const CHURCH_Y = tiles(0.6);
 const TOWER_DOOR: [number, number] = [CHURCH_X + 15, CHURCH_Y + 44];
@@ -58,8 +70,9 @@ function blankStone(): ReturnType<typeof newArt> & { anchor: [number, number] } 
 export const CHURCHYARD: MapDef = {
   id: 'churchyard',
   card: { title: { en: 'Lychford', fr: 'Lychford' }, line: { en: 'The Churchyard of Saint Hilda', fr: 'Le cimetière de Sainte-Hilda' } },
-  walkable: 'dn',
+  walkable: 'dn=',
   ground: GROUND,
+  heights: HEIGHTS,
   bounds: { minX: tiles(13.4), maxX: tiles(W - 13.4), minY: tiles(5.6), maxY: tiles(8.6) },
   camera: { h: 4 },
   ambience: () => new WinterAmbience(),
@@ -71,12 +84,12 @@ export const CHURCHYARD: MapDef = {
   },
   build(r, st) {
     winterDay(r);
-    st.ground({ ground: GROUND, heights: GROUND.map((row) => '0'.repeat(row.length)), seed: 91, palette: SNOW_GROUND });
+    st.ground({ ground: GROUND, heights: HEIGHTS, seed: 91, palette: SNOW_GROUND });
     st.addSky({ ...WINTER_SKY }, 220);
     const blocked: Rect[] = [];
-    const church = st.addBuilding(parishChurch3D(CHURCH_X, CHURCH_Y));
+    const church = st.addBuilding(parishChurch3D(CHURCH_X, CHURCH_Y), st.heightAt(CHURCH_X + 60, CHURCH_Y + 20));
     blocked.push(...church.footprints);
-    st.addArt(lychGate(), ...GATE);
+    st.addArt(lychGate(), ...GATE, { solid: false });
     blocked.push([GATE[0] - 30, GATE[1] - 4, 18, 5], [GATE[0] + 12, GATE[1] - 4, 18, 5]);
     // Graves, all of them older than the Mercy.
     let k = 0;

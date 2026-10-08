@@ -14,6 +14,7 @@ import { session } from '../../engine/session';
 import { CHARACTERS } from '../../pixel/characters';
 import { writingDesk } from '../../pixel/furniture';
 import { fallingLetter, goldBar, ivy } from '../../world3d/margin';
+import { relief } from '../../world3d/relief';
 import { tiles } from '../../world3d/stage';
 import type { MapContext, MapDef } from '../types';
 import { acanthusRow, MARGIN_GROUND, MARGIN_SKY, marginLight, pageAbove } from './common';
@@ -23,11 +24,18 @@ const H = 13;
 const GROUND = Array.from({ length: H }, () => 'o'.repeat(W));
 const DESK: [number, number] = [tiles(16), tiles(5.4)];
 
+// Behind the vine the gold stands up on its gesso in two steps.
+const HEIGHTS = relief(W, H, [
+  { at: [0, 0, W, 3], h: 2, ragged: 's' },
+  { at: [0, 0, W, 1], h: 3 },
+], 79);
+
 export const VINE: MapDef = {
   id: 'vine',
   card: { title: { en: 'The Margin', fr: 'La Marge' }, line: { en: 'Wystan’s Vine', fr: 'La vigne de Wystan' } },
   walkable: 'o',
   ground: GROUND,
+  heights: HEIGHTS,
   bounds: { minX: tiles(13.4), maxX: tiles(W - 13.4), minY: tiles(6.4), maxY: tiles(6.4) },
   camera: { h: 4 },
   ambience: () => new MarginAmbience({ vine: true }),
@@ -36,7 +44,7 @@ export const VINE: MapDef = {
   spawns: { west: { x: tiles(1.6), y: tiles(7.4), dir: 'right' } },
   build(r, st) {
     marginLight(r, 0.35);
-    st.ground({ ground: GROUND, heights: GROUND.map((row) => '0'.repeat(row.length)), seed: 79, palette: MARGIN_GROUND });
+    st.ground({ ground: GROUND, heights: HEIGHTS, seed: 79, palette: MARGIN_GROUND });
     st.addSky({ ...MARGIN_SKY }, 220);
     pageAbove(st, tiles(W));
     // The vine: a great acanthus stem rising behind the desk, ivy hung from it.

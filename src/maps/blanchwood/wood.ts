@@ -10,6 +10,7 @@ import { hash2 } from '../../engine/noise';
 import { CHARACTERS } from '../../pixel/characters';
 import { rock } from '../../pixel/nature';
 import { blanch, outlineBird } from '../../world3d/blanchwood';
+import { relief } from '../../world3d/relief';
 import { tiles } from '../../world3d/stage';
 import type { MapDef, Rect } from '../types';
 import { blanchedTree, blanchingGround, setDepth, WOOD_GROUND, WOOD_SKY, woodDepth, woodLight } from './common';
@@ -21,11 +22,18 @@ const depthAt = (x: number) => Math.max(0, Math.min(1, (x / tiles(W) - 0.12) / 0
 const GROUND = blanchingGround(W, H, (tx) => Math.max(0, (tx - 22) / 30), (_x, y) => y >= 6 && y <= 7, 31);
 const PATH_Y = tiles(7);
 
+// The wood climbs away from the path in two banks, the trees standing on them.
+const HEIGHTS = relief(W, H, [
+  { at: [0, 0, W, 5], h: 2, ragged: 's' },
+  { at: [0, 0, W, 2], h: 3, ragged: 's' },
+], 33);
+
 export const WOOD: MapDef = {
   id: 'wood',
   card: { title: { en: 'The Blanchwood', fr: 'La Blanchewood' }, line: { en: 'Where the colour goes first', fr: 'Là où la couleur s’en va d’abord' } },
   walkable: '.dv',
   ground: GROUND,
+  heights: HEIGHTS,
   bounds: { minX: tiles(13.4), maxX: tiles(W - 13.4), minY: tiles(6.4), maxY: tiles(6.4) },
   camera: { h: 4 },
   ambience: () => new BlanchwoodAmbience({ depth: () => woodDepth() * 0.9 }),
@@ -37,7 +45,7 @@ export const WOOD: MapDef = {
   },
   build(r, st) {
     woodLight(r, 0);
-    st.ground({ ground: GROUND, heights: GROUND.map((row) => '0'.repeat(row.length)), seed: 33, palette: WOOD_GROUND });
+    st.ground({ ground: GROUND, heights: HEIGHTS, seed: 33, palette: WOOD_GROUND });
     st.addSky({ ...WOOD_SKY }, 200);
     const posts: [number, number, number][] = [];
     const blocked: Rect[] = [];
@@ -48,7 +56,7 @@ export const WOOD: MapDef = {
       st.addImage(blanchedTree(i + 11, depthAt(x) * 1.25), x, y);
       posts.push([x, y, 5]);
       // Birds on the boughs, outlines only.
-      if (i % 4 === 1) st.addImage(blanch(outlineBird(i), depthAt(x) * 0.8, i), x + 10, y - 2, { h: 36 + (i % 3) * 4, shadow: false });
+      if (i % 4 === 1) st.addImage(blanch(outlineBird(i), depthAt(x) * 0.8, i), x + 10, y - 2, { h: st.heightAt(x, y) + 36 + (i % 3) * 4, shadow: false });
     }
     for (let i = 0; i < 9; i++) {
       const x = tiles(3) + i * tiles(5.4) + hash2(i, 5, 7) * 20;

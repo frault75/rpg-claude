@@ -77,7 +77,7 @@ export class SeaGateScene implements Scene {
   ) {
     const st = (this.stage = new Stage(r));
     const set = dressSeaGate(r, st);
-    this.blocked.push(...set.blocked);
+    this.blocked.push(...set.blocked, ...this.stage.footprints());
     const gx = set.gx;
     // ---- people ----
     this.player = new Actor('isot', CHARACTERS.isot!, r.scene);

@@ -97,7 +97,7 @@ export const BELLTOWER: MapDef = {
     st.addLight(tiles(7), tiles(4), 30, 110, '#FFE0B0', 0.45);
     const blocked: Rect[] = [];
     BELLS.forEach((b, i) => {
-      st.addImage(rope(i), ROPE_X[i]!, WALL_Y + 10, { h: 2 });
+      st.addImage(rope(i), ROPE_X[i]!, WALL_Y + 10, { h: 2, solid: false });
       // Rusted plaques under each rope's hole, their names gone to the eye.
       const plaque = new PixelImage(28, 9);
       plaque.rect(0, 0, 28, 9, hex('#6A4A30'));

@@ -9,6 +9,7 @@
 import { BlanchwoodAmbience } from '../../audio/blanchwood';
 import { CHARACTERS } from '../../pixel/characters';
 import { ninefoldGate } from '../../world3d/blanchwood';
+import { relief } from '../../world3d/relief';
 import { tiles } from '../../world3d/stage';
 import type { MapContext, MapDef } from '../types';
 import { blanchedTree, setDepth, WOOD_GROUND, WOOD_SKY, woodLight } from './common';
@@ -21,11 +22,21 @@ const ROAD_Y = tiles(7.4);
 
 const waiting = (c: MapContext) => !c.cleared('f6');
 
+// The faded wood banks up behind the road; the gate stands at the road's level, the bank
+// rising behind it.
+const HEIGHTS = relief(W, H, [
+  { at: [0, 0, 18, 4], h: 2, ragged: 's' },
+  { at: [26, 0, 4, 4], h: 2, ragged: 's' },
+  { at: [18, 0, 8, 2], h: 2 },
+  { at: [0, 0, W, 2], h: 3, ragged: 's' },
+], 41);
+
 export const GATEHOUSE: MapDef = {
   id: 'gate',
   card: { title: { en: 'Ninefold Gate', fr: 'La porte de Ninefold' }, line: { en: 'Half of it already forgotten', fr: 'À moitié oubliée déjà' } },
   walkable: 'vd',
   ground: GROUND,
+  heights: HEIGHTS,
   bounds: { minX: tiles(13.4), maxX: tiles(W - 13.4), minY: tiles(6.4), maxY: tiles(6.4) },
   camera: { h: 4 },
   ambience: () => new BlanchwoodAmbience({ depth: () => 0.62 }),
@@ -34,9 +45,9 @@ export const GATEHOUSE: MapDef = {
   spawns: { west: { x: tiles(1.6), y: ROAD_Y, dir: 'right' } },
   build(r, st) {
     woodLight(r, 0.62);
-    st.ground({ ground: GROUND, heights: GROUND.map((row) => '0'.repeat(row.length)), seed: 41, palette: WOOD_GROUND });
+    st.ground({ ground: GROUND, heights: HEIGHTS, seed: 41, palette: WOOD_GROUND });
     st.addSky({ ...WOOD_SKY }, 200);
-    st.addArt(ninefoldGate(), GATE[0], GATE[1]);
+    st.addArt(ninefoldGate(), GATE[0], GATE[1], { solid: false });
     for (let i = 0; i < 6; i++) st.addImage(blanchedTree(i + 71, 0.35 + i * 0.07), tiles(2 + i * 2.6), tiles(2.6) + (i % 2) * 10);
     for (let i = 0; i < 4; i++) st.addImage(blanchedTree(i + 81, 0.5 + i * 0.08), tiles(4 + i * 6), tiles(11.8));
     st.addEmitter({ kind: 'mote', area: [0, 0, tiles(W), tiles(H)], heights: [2, 50], count: 26, color: '#F8F4EC', size: 1.4, intensity: 0.35 }, 29);

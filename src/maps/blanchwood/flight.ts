@@ -12,6 +12,7 @@ import { fizzleSound } from '../../audio/battleSfx';
 import { hash2 } from '../../engine/noise';
 import { hex, PixelImage, ramp } from '../../pixel/pixel';
 import type { Billboard } from '../../world3d/billboard';
+import { relief } from '../../world3d/relief';
 import { tiles } from '../../world3d/stage';
 import type { MapContext, MapDef, Rect } from '../types';
 import { blanchedTree, blanchingGround, setDepth, WOOD_GROUND, WOOD_SKY, woodLight } from './common';
@@ -73,11 +74,18 @@ let trees: TreeAt[] = [];
 let front = WAVE_START;
 let chaseT = 0;
 
+// The path runs at the foot of a bank, the wood above it.
+const HEIGHTS = relief(W, H, [
+  { at: [0, 0, W, 3], h: 2, ragged: 's' },
+  { at: [0, 0, W, 1], h: 3 },
+], 47);
+
 export const FLIGHT: MapDef = {
   id: 'flight',
   card: { title: { en: 'The Blanchwood', fr: 'La Blanchewood' }, line: { en: 'The Blanching', fr: 'Le Blanchiment' } },
   walkable: '.dv',
   ground: GROUND,
+  heights: HEIGHTS,
   bounds: { minX: tiles(13.4), maxX: tiles(W - 13.4), minY: tiles(5), maxY: tiles(5) },
   camera: { h: 4, lookAhead: 6 },
   ambience: () => new BlanchwoodAmbience({ depth: () => Math.min(1, 0.4 + chaseT / 30) }),
@@ -86,7 +94,7 @@ export const FLIGHT: MapDef = {
   spawns: { start: { x: START[0], y: START[1], dir: 'right' } },
   build(r, st) {
     woodLight(r, 0.45);
-    st.ground({ ground: GROUND, heights: GROUND.map((row) => '0'.repeat(row.length)), seed: 47, palette: WOOD_GROUND });
+    st.ground({ ground: GROUND, heights: HEIGHTS, seed: 47, palette: WOOD_GROUND });
     st.addSky({ ...WOOD_SKY }, 200);
     trees = [];
     for (let i = 0; i < 26; i++) {
@@ -105,7 +113,7 @@ export const FLIGHT: MapDef = {
       trees.push({ b, x: l[0] });
       blocked.push(l);
     });
-    wave = st.addImage(waveImage(), WAVE_START - 130, tiles(H) + 4, { shadow: false });
+    wave = st.addImage(waveImage(), WAVE_START - 130, tiles(H) + 4, { shadow: false, solid: false });
     wave.glow = 1;
     return { blocked };
   },

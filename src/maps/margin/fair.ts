@@ -14,6 +14,7 @@ import { ghostWords } from '../../pixel/underwriting';
 import { session } from '../../engine/session';
 import type { Billboard } from '../../world3d/billboard';
 import { goldBar, goose, hen, ivy } from '../../world3d/margin';
+import { relief } from '../../world3d/relief';
 import { tiles } from '../../world3d/stage';
 import type { MapContext, MapDef, NpcDef } from '../types';
 import { acanthusRow, MARGIN_GROUND, MARGIN_SKY, marginLight, pageAbove } from './common';
@@ -29,11 +30,19 @@ const ninefolder = (id: string, x: number, y: number, fray: number, spec = CHARA
 
 let guards: Billboard[] = [];
 
+// The gold stands up on its gesso behind the fair; the Court's alcove keeps the ground's level.
+const HEIGHTS = relief(W, H, [
+  { at: [0, 0, 36, 3], h: 2, ragged: 's' },
+  { at: [36, 0, 10, 2], h: 2 },
+  { at: [0, 0, W, 1], h: 3 },
+], 77);
+
 export const FAIR: MapDef = {
   id: 'fair',
   card: { title: { en: 'The Margin', fr: 'La Marge' }, line: { en: 'The Drollery Fair', fr: 'La foire aux drôleries' } },
   walkable: 'o',
   ground: GROUND,
+  heights: HEIGHTS,
   bounds: { minX: tiles(13.4), maxX: tiles(W - 13.4), minY: tiles(6.4), maxY: tiles(9.6) },
   camera: { h: 4 },
   ambience: () => new MarginAmbience(),
@@ -42,13 +51,13 @@ export const FAIR: MapDef = {
   spawns: { west: { x: tiles(1.6), y: tiles(8), dir: 'right' } },
   build(r, st) {
     marginLight(r);
-    st.ground({ ground: GROUND, heights: GROUND.map((row) => '0'.repeat(row.length)), seed: 77, palette: MARGIN_GROUND });
+    st.ground({ ground: GROUND, heights: HEIGHTS, seed: 77, palette: MARGIN_GROUND });
     st.addSky({ ...MARGIN_SKY }, 220);
     pageAbove(st, tiles(W));
     acanthusRow(st, 0, tiles(W), tiles(2.2), 21, 84);
     acanthusRow(st, tiles(1), tiles(W), tiles(16.4), 27, 120, 0.9);
     for (let x = 0; x < tiles(W); x += 120) st.addImage(goldBar(110, 14, x), x + 55, tiles(1.2));
-    for (let x = tiles(4); x < tiles(W); x += 150) st.addImage(ivy(80, x), x, tiles(13.4));
+    for (let x = tiles(4); x < tiles(W); x += 150) st.addImage(ivy(80, x), x, tiles(13.4), { solid: false });
     // The Abbot's congregation of geese, in rows before his pulpit.
     for (let i = 0; i < 7; i++) st.addImage(goose(i), PULPIT[0] - 30 + (i % 4) * 18, PULPIT[1] + 22 + Math.floor(i / 4) * 14, { flip: false });
     st.addImage(goldBar(30, 10, 9), PULPIT[0], PULPIT[1] + 6, { h: 0 });

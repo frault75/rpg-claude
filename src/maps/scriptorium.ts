@@ -58,7 +58,8 @@ export const SCRIPTORIUM: MapDef = {
   ambience: () => new EbbNightAmbience(),
   checkpoint: true,
   spawns: {
-    start: { x: ISOT_DESK[0], y: ISOT_DESK[1] - 9, dir: 'down' },
+    // Behind her desk, clear of it (its footprint starts 9 pixels up).
+    start: { x: ISOT_DESK[0], y: ISOT_DESK[1] - 12, dir: 'down' },
     door: { x: DOOR_X, y: WALL_Y + 14, dir: 'down' },
   },
   build(r, st) {

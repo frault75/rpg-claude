@@ -106,6 +106,10 @@ export interface GroundPalette {
   /** Burnished gold leaf, tooled with punchwork (the Margin). */
   gold: string;
   flowers: readonly string[];
+  /** What hangs over the top of a cliff face and lies on its ledges (grass, unless snow). */
+  cliffTop?: string;
+  /** How much of a cliff face it covers, 0 (a lip and a few ledges) to 1 (a snowy bank). */
+  cliffCover?: number;
 }
 
 export const GROUND_DEFAULT: GroundPalette = {
@@ -497,9 +501,9 @@ function plank(x: number, y: number, seed: number, wood: readonly RGBA[], noise:
 
 /** Cliff faces: a jumble of boulders, each lit on its upper left, with dark crevices, moss
  * on the ledges and grass hanging over the top. */
-function cliffPixel(x: number, y: number, fromTop: number, toFoot: number, noise: Noise2D, rock: readonly RGBA[], grass: readonly RGBA[], seed: number): RGBA {
-  // Grass overhang: ragged drips at the top of the face.
-  const drip = 1 + Math.floor(hash2(x, 0, seed + 21) * 3) + (hash2(Math.floor(x / 3), 1, seed) > 0.6 ? 2 : 0);
+function cliffPixel(x: number, y: number, fromTop: number, toFoot: number, noise: Noise2D, rock: readonly RGBA[], grass: readonly RGBA[], seed: number, cover = 0): RGBA {
+  // Grass overhang: ragged drips at the top of the face (deeper under snow).
+  const drip = 1 + Math.floor(hash2(x, 0, seed + 21) * 3) + (hash2(Math.floor(x / 3), 1, seed) > 0.6 ? 2 : 0) + Math.round(cover * (3 + noise.value(x / 9, 3) * 4));
   if (fromTop <= drip) return fromTop === drip ? grass[0]! : grass[fromTop <= 1 ? 3 : 2]!;
   const SX = 11;
   const SY = 7;
@@ -539,21 +543,22 @@ function cliffPixel(x: number, y: number, fromTop: number, toFoot: number, noise
   // Darker towards the foot and right under the overhang.
   if (fromTop <= drip + 2) t -= 1.3;
   if (toFoot < 8) t -= (8 - toFoot) * 0.18;
-  if (edge >= 0.09 && ly < -0.35 && noise.value(x / 6 + 70, y / 6) > 0.62) return grass[hash2(x, y, seed) > 0.5 ? 2 : 1]!;
+  // Moss (or snow) on the ledges: the tops of the stones.
+  if (edge >= 0.09 && ly < -0.35 + cover * 0.3 && noise.value(x / 6 + 70, y / 6) > 0.62 - cover * 0.3) return grass[hash2(x, y, seed) > 0.5 ? (cover ? 4 : 2) : cover ? 3 : 1]!;
   const f = Math.min(rock.length - 1, Math.max(0, t));
   const k = Math.floor(f);
   return f - k > bayer(x, y) && k + 1 < rock.length ? rock[k + 1]! : rock[k]!;
 }
 
 /**
- * A cliff face texture, w x h pixels: boulders lit from the upper left, grass hanging
- * over the top edge, darker towards the foot. Tiles horizontally well enough to repeat.
+ * A cliff face texture, w x h pixels: boulders lit from the upper left, grass (or snow)
+ * hanging over the top edge and lying on the ledges, darker towards the foot. Tiles horizontally well enough to repeat.
  */
 export function paintCliff(w: number, h: number, seed = 1, pal: GroundPalette = GROUND_DEFAULT): PixelImage {
   const img = new PixelImage(w, h);
   const noise = new Noise2D(seed);
   const rock = ramp(pal.rock, 6);
-  const grass = ramp(pal.grass, 6);
-  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) img.set(x, y, cliffPixel(x, y, y + 1, h - y, noise, rock, grass, seed));
+  const grass = ramp(pal.cliffTop ?? pal.grass, 6);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) img.set(x, y, cliffPixel(x, y, y + 1, h - y, noise, rock, grass, seed, pal.cliffCover ?? 0));
   return img;
 }

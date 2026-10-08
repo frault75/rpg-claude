@@ -10,6 +10,7 @@ import { WinterAmbience } from '../../audio/winter';
 import { CHARACTERS } from '../../pixel/characters';
 import { reeds } from '../../pixel/nature';
 import { hex, PixelImage } from '../../pixel/pixel';
+import { relief } from '../../world3d/relief';
 import { tiles } from '../../world3d/stage';
 import { bareTree } from '../../world3d/lychford';
 import { session } from '../../engine/session';
@@ -18,7 +19,12 @@ import { SNOW_GROUND, WINTER_NIGHT_SKY, winterNight } from './winter';
 
 const W = 34;
 const H = 13;
-const GROUND = Array.from({ length: H }, () => Array.from({ length: W }, (_, x) => (x < 4 || x >= 30 ? 'n' : 'i')).join(''));
+const GROUND = Array.from({ length: H }, (_, y) => Array.from({ length: W }, (_, x) => (x < 4 || x >= 30 || y < 2 ? 'n' : 'i')).join(''));
+// The far shore stands up out of the ice in two snowy steps, the reeds along its top.
+const HEIGHTS = relief(W, H, [
+  { at: [0, 0, W, 2], h: 1 },
+  { at: [0, 0, W, 1], h: 2 },
+], 99);
 
 /** The ford, as the stones run under the ice: a zig-zag from shore to shore. */
 const FORD: [number, number][] = [
@@ -68,6 +74,7 @@ export const MERE: MapDef = {
   card: { title: { en: 'Lychford', fr: 'Lychford' }, line: { en: 'The Frozen Mere', fr: 'La mare gelée' } },
   walkable: 'ni',
   ground: GROUND,
+  heights: HEIGHTS,
   bounds: { minX: tiles(13.4), maxX: tiles(W - 13.4), minY: tiles(6.4), maxY: tiles(6.4) },
   camera: { h: 4 },
   ambience: () => new WinterAmbience({ music: false }),
@@ -76,7 +83,7 @@ export const MERE: MapDef = {
   spawns: { shore: { x: tiles(2), y: tiles(6.5), dir: 'right' } },
   build(r, st) {
     winterNight(r);
-    st.ground({ ground: GROUND, heights: GROUND.map((row) => '0'.repeat(row.length)), seed: 99, palette: { ...SNOW_GROUND, snow: '#C8D0DC' } });
+    st.ground({ ground: GROUND, heights: HEIGHTS, seed: 99, palette: { ...SNOW_GROUND, snow: '#C8D0DC' } });
     st.addSky({ ...WINTER_NIGHT_SKY, moon: [240, 110] }, 200);
     const blocked: Rect[] = [];
     // The burning tower and the torches behind, on the village shore.
@@ -88,8 +95,8 @@ export const MERE: MapDef = {
     ] as const)
       st.addFlame(x, y, 22, { light: 70 });
     st.addEmitter({ kind: 'ember', area: [0, tiles(1), tiles(3), tiles(2)], heights: [40, 90], count: 18, color: '#FFA040', size: 1.6, intensity: 1.6 }, 3);
-    for (let i = 0; i < 8; i++) st.addImage(reeds(i, '#9A8A5A'), tiles(30.4 + (i % 3)), tiles(1 + i * 1.5));
-    for (let i = 0; i < 4; i++) st.addImage(reeds(i + 9, '#9A8A5A'), tiles(1 + (i % 2)), tiles(0.8 + i * 3.2));
+    for (let i = 0; i < 8; i++) st.addImage(reeds(i, '#9A8A5A'), tiles(30.4 + (i % 3)), tiles(1 + i * 1.5), { solid: false });
+    for (let i = 0; i < 4; i++) st.addImage(reeds(i + 9, '#9A8A5A'), tiles(1 + (i % 2)), tiles(0.8 + i * 3.2), { solid: false });
     st.addImage(bareTree(41, 1.1), tiles(32.6), tiles(3));
     st.addImage(bareTree(42, 0.9), tiles(32), tiles(11.6));
     st.addEmitter({ kind: 'glint', area: [tiles(4), 0, tiles(26), tiles(H)], heights: [0.5, 0.5], count: 6, color: '#E8F0FF', size: 1.4, intensity: 0.8 }, 9);

@@ -110,7 +110,7 @@ export class MapScene implements Scene {
     this.name = def.id;
     const st = (this.stage = new Stage(r));
     const set = def.build(r, st);
-    this.blocked.push(...set.blocked);
+    this.blocked.push(...set.blocked, ...st.footprints());
     this.posts.push(...(set.posts ?? []));
     const g = session.game;
     g.map = def.id;
@@ -158,7 +158,8 @@ export class MapScene implements Scene {
       const b = Billboard.fromImage(u.art, { glow: u.art, unlit: true, castShadow: false, anchor: u.flat ? [u.art.w / 2, u.art.h / 2] : [u.art.w / 2, u.art.h - 1] });
       b.x = u.x;
       b.y = u.y;
-      b.h = u.h;
+      // Heights of things and writing are above the ground they stand on.
+      b.h = this.stage.heightAt(u.x, u.y) + u.h;
       b.opacity = 0;
       b.visible = false;
       if (u.flat) b.mesh.rotation.x = -Math.PI / 2;
@@ -195,7 +196,13 @@ export class MapScene implements Scene {
 
   /** Can a figure stand at (x, y), coming from height h? */
   canStand(x: number, y: number, h = this.player.h, ignore?: Actor): boolean {
+    return this.obstruction(x, y, h, ignore) === 0;
+  }
+
+  /** How much is in the way of a figure at (x, y): 0 means it can stand there. */
+  private obstruction(x: number, y: number, h = this.player.h, ignore?: Actor): number {
     const d = this.def;
+    let n = 0;
     for (const [dx, dy] of [
       [0, 0],
       [-4, 0],
@@ -206,16 +213,16 @@ export class MapScene implements Scene {
       const px = x + dx;
       const py = y + dy;
       const ch = d.ground[Math.floor(py / TILE)]?.[Math.floor(px / TILE)] ?? ' ';
-      if (!d.walkable.includes(ch)) return false;
-      if (Math.abs(this.heightAt(px, py) - h) > 7) return false;
-      for (const [bx, by, bw, bd] of this.blocked) if (px >= bx && px < bx + bw && py >= by && py < by + bd) return false;
+      if (!d.walkable.includes(ch)) n++;
+      else if (Math.abs(this.heightAt(px, py) - h) > 7) n++;
+      else if (this.blocked.some(([bx, by, bw, bd]) => px >= bx && px < bx + bw && py >= by && py < by + bd)) n++;
     }
-    for (const [cx, cy, r] of this.posts) if (((x - cx) / r) ** 2 + ((y - cy) / (r * 0.6)) ** 2 < 1) return false;
+    for (const [cx, cy, r] of this.posts) if (((x - cx) / r) ** 2 + ((y - cy) / (r * 0.6)) ** 2 < 1) n++;
     for (const [id, a] of this.npcs) {
       if (a === ignore || !this.npcHere(id)) continue;
-      if (((x - a.x) / 9) ** 2 + ((y - a.y) / 5) ** 2 < 1) return false;
+      if (((x - a.x) / 9) ** 2 + ((y - a.y) / 5) ** 2 < 1) n++;
     }
-    return true;
+    return n;
   }
 
   private npcHere(id: string): boolean {
@@ -432,7 +439,7 @@ export class MapScene implements Scene {
     // A thing under the pointer: walk to it, then look.
     for (const th of this.def.things ?? []) {
       if (th.when && !th.when(this.ctx)) continue;
-      const s = this.r.mapToScreen(th.x, th.y, (th.h ?? 20) * 0.5);
+      const s = this.r.mapToScreen(th.x, th.y, this.heightAt(th.x, th.y) + (th.h ?? 20) * 0.5);
       if (Math.abs(s.x - x) < 36 && Math.abs(s.y - y) < 60) {
         this.goalThing = th.id;
         this.goal = this.findPath(th.x, th.y + 10) ?? this.findPath(th.x, th.y + 18);
@@ -494,8 +501,12 @@ export class MapScene implements Scene {
       const sp = p.speed * dt * Math.min(1, Math.hypot(mx, my) * 1.2);
       let dx = (mx / len) * sp;
       let dy = (my / len) * sp;
-      if (!this.canStand(p.x + dx, p.y)) dx = 0;
-      if (!this.canStand(p.x + dx, p.y + dy)) dy = 0;
+      // A figure caught in something (put there by a scene) may always step out of it,
+      // never further in.
+      const caught = this.obstruction(p.x, p.y);
+      const ok = (x: number, y: number) => (caught ? this.obstruction(x, y) <= caught : this.canStand(x, y));
+      if (!ok(p.x + dx, p.y)) dx = 0;
+      if (!ok(p.x + dx, p.y + dy)) dy = 0;
       if (dx || dy) p.step(dx, dy, dt);
       else {
         p.face(mx, my);
@@ -554,7 +565,7 @@ export class MapScene implements Scene {
     if (th) {
       this.marker.x = th.x;
       this.marker.y = th.y + 1;
-      this.marker.h = (th.h ?? 30) + 10 + Math.round(Math.sin(this.time * 5) * 1.5);
+      this.marker.h = this.heightAt(th.x, th.y) + (th.h ?? 30) + 10 + Math.round(Math.sin(this.time * 5) * 1.5);
       this.marker.sync();
     }
 
