@@ -1292,7 +1292,7 @@ All input becomes the same actions, so every screen works with keyboard, mouse, 
 | Confirm, talk, advance | Enter / Space / E | Left click | A, or tap | A |
 | Cancel, back | Backspace / X | — | B | B |
 | Pause menu | Escape / Tab | — | Menu button | Start |
-| Raking light | Hold R | Hold right button | — (§16) | Hold Y |
+| Raking light | Hold R | Hold right button | Hold the candle button | Hold Y |
 | Journal | J | — | — | Select |
 | Mute | M | — | — | — |
 
