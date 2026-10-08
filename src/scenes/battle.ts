@@ -1491,6 +1491,12 @@ export class BattleScene implements Scene {
     this.layoutBanderoles();
   }
 
+  /** Where the command window may stand, at its tallest so what avoids it doesn't hop between menus. */
+  private commandZone(): { x: number; y: number; w: number; h: number } {
+    const top = VIEW_H - 18 - commandHeight(6) * this.zw;
+    return { x: 18, y: top, w: COMMAND_W * this.zw, h: VIEW_H - top };
+  }
+
   /** The enemy name plates: where each one sits on screen. */
   private plates(): { id: string; x: number; y: number; w: number }[] {
     const out: { id: string; x: number; y: number; w: number }[] = [];
@@ -1508,10 +1514,9 @@ export class BattleScene implements Scene {
       out.push({ id: e.id, x: p.x - w / 2, y: p.y - ph + 2, w });
     }
     c.restore();
-    // Keep clear of the command window (at its tallest, so plates don't hop between menus):
-    // on a phone it is large enough to cover the front rank's plates.
-    const win = { x: 18, w: COMMAND_W * this.zw, top: VIEW_H - 18 - commandHeight(6) * this.zw };
-    for (const p of out) if (p.x < win.x + win.w && p.x + p.w > win.x && p.y + ph > win.top) p.y = win.top - ph - 2;
+    // Keep clear of the command window: on a phone it is large enough to cover the front rank's plates.
+    const win = this.commandZone();
+    for (const p of out) if (p.x < win.x + win.w && p.x + p.w > win.x && p.y + ph > win.y) p.y = win.y - ph - 2;
     // Close ranks put plates on top of each other: lift the one further back until clear.
     out.sort((a, b) => b.y - a.y);
     for (let i = 1; i < out.length; i++) {
@@ -1532,6 +1537,7 @@ export class BattleScene implements Scene {
     const BH = BANDEROLE_H * z;
     const PH = PLATE_H * z;
     const placed: { x: number; y: number; w: number; h: number }[] = this.plates().map((p) => ({ x: p.x - 6 * z, y: p.y - 4 * z, w: p.w + 12 * z, h: 26 * z }));
+    placed.push(this.commandZone());
     /** How much a banderole at (x, y) would cover what is already placed. */
     const overlap = (x: number, y: number) =>
       placed.reduce((sum, p) => sum + Math.max(0, Math.min(x + BW, p.x + p.w) - Math.max(x, p.x)) * Math.max(0, Math.min(y + BH - 6, p.y + p.h) - Math.max(y, p.y)), 0);
