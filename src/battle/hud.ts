@@ -19,10 +19,11 @@ export interface BanderoleLook {
   order: number;
   /** What it does, in a few words: "Looses an arrow". */
   text: string;
-  /** Whom it is aimed at: a place, a name, everyone (empty for itself). */
+  /** Whom it is aimed at, in plain words: "→ Isot (Rear)" (empty for itself). */
   aim: string;
-  /** What it deals, as the difficulty has it (0 for none). */
+  /** What it deals, as the difficulty has it (0 for none), and the word after it: "damage". */
   damage: number;
+  damageWord: string;
   /** A small line under the text: what else it does, "in 1", "waits". */
   note: string;
   hidden: boolean;
@@ -49,8 +50,11 @@ export function banderoleWidth(b: BanderoleLook): number {
     c.font = font;
     second += c.measureText(s).width;
   };
-  if (!b.hidden && b.aim) add(b.aim.toUpperCase(), `700 ${big ? 13 : 12}px ${SERIF}`);
-  if (!b.hidden && b.damage > 0) add(` ${b.damage}`, `800 ${big ? 17 : 16}px ${SERIF}`);
+  if (!b.hidden && b.aim) add(b.aim, `700 ${big ? 13 : 12}px ${SERIF}`);
+  if (!b.hidden && b.damage > 0) {
+    add(`  ·  ${b.damage}`, `800 ${big ? 17 : 16}px ${SERIF}`);
+    add(` ${b.damageWord}`, `600 ${big ? 13 : 12}px ${SERIF}`);
+  }
   if (b.note) add(`  ·  ${b.note}`, `italic 600 ${big ? 13 : 12}px ${SERIF}`);
   return Math.round(Math.max(150, Math.min(BANDEROLE_W, 54 + Math.max(deed, second) + 26)));
 }
@@ -131,11 +135,12 @@ export function drawBanderole(c: CanvasRenderingContext2D, w: number, h: number,
   while (fs > 13 && c.measureText(text).width > tw) c.font = `italic 600 ${--fs}px ${SERIF}`;
   const lines = c.measureText(text).width > tw ? wrap(c, text, tw).slice(0, 2) : [text];
   const lh = fs + 2;
-  type Part = { s: string; font: string; color: string };
+  /** `glued`: no dot before it (the word after a number: "4 damage"). */
+  type Part = { s: string; font: string; color: string; glued?: boolean };
   const sep: Part = { s: '  ·  ', font: `600 12px ${SERIF}`, color: '#8A6A44' };
   const head: Part[] = [];
-  if (!b.hidden && b.aim) head.push({ s: b.aim.toUpperCase(), font: `700 ${prefs.largeText ? 13 : 12}px ${SERIF}`, color: '#6A4A26' });
-  if (!b.hidden && b.damage > 0) head.push({ s: String(b.damage), font: `800 ${prefs.largeText ? 17 : 16}px ${SERIF}`, color: RED_INK });
+  if (!b.hidden && b.aim) head.push({ s: b.aim, font: `700 ${prefs.largeText ? 13 : 12}px ${SERIF}`, color: '#6A4A26' });
+  if (!b.hidden && b.damage > 0) head.push({ s: `${b.damage}\u00A0`, font: `800 ${prefs.largeText ? 17 : 16}px ${SERIF}`, color: RED_INK }, { s: b.damageWord, font: `600 ${prefs.largeText ? 13 : 12}px ${SERIF}`, color: '#6A4A26', glued: true });
   const width = (ps: Part[]) =>
     ps.reduce((sum, p) => {
       c.font = p.font;
@@ -144,11 +149,11 @@ export function drawBanderole(c: CanvasRenderingContext2D, w: number, h: number,
   let noteSize = prefs.largeText ? 13 : 12;
   const noteOf = (): Part => ({ s: b.note, font: `italic 600 ${noteSize}px ${SERIF}`, color: '#5A3C1C' });
   // The aim, the blow and the note on one line if they fit; else the note goes under them.
-  // The aim and its blow sit together ("REAR 4"); a dot sets off the rest.
+  // A dot between the aim, the blow and the rest; the number and its word stay together.
   const spaced = (ps: Part[]) => {
     const out: Part[] = [];
     ps.forEach((p, i) => {
-      if (i) out.push(ps[i - 1] === head[0] && p === head[1] ? { ...sep, s: ' ' } : sep);
+      if (i && !p.glued) out.push(sep);
       out.push(p);
     });
     return out;

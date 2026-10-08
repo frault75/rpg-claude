@@ -26,7 +26,7 @@ import {
   whoosh,
 } from '../audio/battleSfx';
 import { footstep, pageTurn, uiTick } from '../audio/sfx';
-import { aimOf } from '../battle/aim';
+import { aimLine } from '../battle/aim';
 import { ABILITIES, ENCOUNTERS, ENEMIES, PARTY_STATS } from '../battle/data';
 import { bell, midiToHz } from '../audio/instruments';
 import { Battle, type Refusal } from '../battle/engine';
@@ -1599,9 +1599,10 @@ export class BattleScene implements Scene {
 
   private intentText(it: Intent): string {
     if (!this.battle.shows(it)) return t('battle.hidden');
-    const aim = aimOf(this.battle, it);
-    const at = [aim ? tr(aim) : '', it.damage > 0 ? String(it.damage) : ''].filter(Boolean).join(' ');
-    return [tr(it.label), at, it.rule ? tr(it.rule) : ''].filter(Boolean).join(' — ');
+    const aim = aimLine(this.battle, it);
+    const at = [aim ? tr(aim) : '', it.damage > 0 ? `${it.damage} ${t(it.damage === 1 ? 'battle.damage1' : 'battle.damage')}` : ''].filter(Boolean).join(' · ');
+    const far = this.battle.tooFarBack(it) ? t('battle.tooFarBack') : '';
+    return [tr(it.label), at, far, it.rule ? tr(it.rule) : ''].filter(Boolean).join(' — ');
   }
 
   private chips(u: Unit): { text: string; color: string }[] {
@@ -1829,13 +1830,15 @@ export class BattleScene implements Scene {
   private lookOf(it: Intent, b: BanderoleState): BanderoleLook {
     const timing = it.waiting ? t('battle.waits') : it.countdown > 0 ? t('battle.in', { n: it.countdown }) : '';
     const rule = it.rule && this.battle.shows(it) ? tr(it.rule) : '';
-    const aim = aimOf(this.battle, it);
+    const far = this.battle.shows(it) && this.battle.tooFarBack(it) ? t('battle.tooFarBack') : '';
+    const aim = aimLine(this.battle, it);
     return {
       order: it.order,
       text: this.battle.shows(it) ? tr(it.label) : t('battle.hidden'),
       aim: aim ? tr(aim) : '',
       damage: it.damage,
-      note: [rule, timing].filter(Boolean).join(' · '),
+      damageWord: t(it.damage === 1 ? 'battle.damage1' : 'battle.damage'),
+      note: [far, rule, timing].filter(Boolean).join(' · '),
       hidden: !this.battle.shows(it),
       struck: b.struck,
       active: b.active || this.selectedIntent() === it.id || this.hoverIntent === it.id,

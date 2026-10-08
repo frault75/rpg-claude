@@ -255,12 +255,21 @@ export class Battle {
 
   /** The allies an intent would strike if it resolved now (for the target pips and lines). */
   aims(it: Intent): Unit[] {
+    return this.tooFarBack(it) ? [] : this.aimedAt(it);
+  }
+
+  /** The allies an intent is aimed at, whether or not its actor can reach them yet. */
+  aimedAt(it: Intent): Unit[] {
     if (it.cancelled || 'self' in it.target) return [];
     if ('unit' in it.target && this.unit(it.target.unit)?.side === 'enemy') return [];
-    const actor = this.unit(it.actor);
-    if (actor && it.reach === 'close' && this.rank(actor) > 1) return [];
     const ts = this.targetsOf(it);
     return it.reach === 'close' ? ts.filter((t) => t.place <= 1) : ts;
+  }
+
+  /** A blow struck hand to hand from behind the first rank: it lands only if those in front fall first. */
+  tooFarBack(it: Intent): boolean {
+    const actor = this.unit(it.actor);
+    return !!actor && it.reach === 'close' && this.rank(actor) > 1;
   }
 
   /** The abilities an ally knows in this battle. */
@@ -980,7 +989,7 @@ export class Battle {
       } else if (!ally.fallen) this.applyEffects(it, actor, ally);
       return;
     }
-    if (actor && it.reach === 'close' && this.rank(actor) > 1) {
+    if (this.tooFarBack(it)) {
       this.emit({ type: 'fizzle', intent: it.id, reason: 'reach' });
       return;
     }
