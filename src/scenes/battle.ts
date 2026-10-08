@@ -1508,6 +1508,10 @@ export class BattleScene implements Scene {
       out.push({ id: e.id, x: p.x - w / 2, y: p.y - ph + 2, w });
     }
     c.restore();
+    // Keep clear of the command window (at its tallest, so plates don't hop between menus):
+    // on a phone it is large enough to cover the front rank's plates.
+    const win = { x: 18, w: COMMAND_W * this.zw, top: VIEW_H - 18 - commandHeight(6) * this.zw };
+    for (const p of out) if (p.x < win.x + win.w && p.x + p.w > win.x && p.y + ph > win.top) p.y = win.top - ph - 2;
     // Close ranks put plates on top of each other: lift the one further back until clear.
     out.sort((a, b) => b.y - a.y);
     for (let i = 1; i < out.length; i++) {
