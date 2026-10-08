@@ -8,6 +8,7 @@
 import { session } from '../engine/session';
 import type { AudioEngine } from './engine';
 import { degreeToMidi, midiToHz, MODES, noiseSource } from './instruments';
+import { trim } from './mix';
 
 const FINAL = 55; // G3
 const EIGHTH = 60 / 92 / 3 * 1.5;
@@ -109,7 +110,7 @@ export class WinterAmbience {
     sd.gain.value = 260;
     sway.connect(sd).connect(bp.frequency);
     const wg = ctx.createGain();
-    wg.gain.value = 0.16;
+    wg.gain.value = 0.16 * trim('winter');
     wind.connect(bp).connect(wg).connect(engine.bus('ambience'));
     wind.start();
     sway.start();
@@ -120,7 +121,7 @@ export class WinterAmbience {
     });
     if (this.opts.music === false) return;
     const out = ctx.createGain();
-    out.gain.value = 1;
+    out.gain.value = trim('winter');
     out.connect(engine.bus('music'));
     const wet = ctx.createGain();
     wet.gain.value = 0.3;

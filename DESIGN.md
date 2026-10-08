@@ -1506,7 +1506,8 @@ Each milestone is playable and arrives as its own PR, with build and tests green
 | **Done** | Chapter V and the ending | Saint Ebb's at dawn: MERCY's first toll and the scraped half of the motto (C12); the Abbot's lodging and his Book of Hours; the cloister (F9, Gaudry's hammer); the nave, its bands of colour blanking one per toll; Brother and Sister (C13, Benison and Inscribe); Boss V, the Writing of FINIS (letters at the Rear, smudging, Falter, Forgotten, the Clean Page); Gold, Line by Line (C14) and the farewells; the epilogue page with every Lost Name found, in red; the last two Lost Names (Wat in the cloister, the Grey Year girl in the lodging, whom Isot names Ebba) |
 | **Done** | Journal and interludes | The Journal page and its J shortcut; the four interludes as illuminated pages on the desk by candlelight (historiated initial, vine border and bezants, a drollery at the foot, the prose inked in under a pen of light, solo psaltery and chant, a page turn into the chapter card) |
 | **Done** | Battle text on phones | On a small screen (a phone held sideways) the banderoles, name plates, incoming blows and numbers are shown up to 1.45× larger and the windows a little larger, sharp at their new size; the banderoles find room for themselves; larger text in the settings adds to it everywhere |
-| **Next** | Polish | A tuning and audio-mix pass |
+| **Done** | Audio mix | Every location's score measured through the master over 40 seconds of play and trimmed (src/audio/mix.ts): exploration within about 1 dB of −32 dB RMS (it was spread over 4 dB), battles 2 dB above, Wystan's vine and the deep Blanchwood quieter on purpose |
+| **Next** | Polish | Tuning the fights against a first playthrough |
 
 ---
 

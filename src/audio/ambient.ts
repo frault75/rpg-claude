@@ -7,6 +7,7 @@ import { Rng } from '../engine/rng';
 import { chantPhrase } from './chant';
 import type { AudioEngine } from './engine';
 import { bell, degreeToMidi, drone, MODES, noiseSource, sing } from './instruments';
+import { trim } from './mix';
 
 const FINAL = 50; // D3
 
@@ -15,6 +16,10 @@ export class EbbNightAmbience {
   private stops: (() => void)[] = [];
   private readonly rng = new Rng('ebb-night');
   private running = false;
+  /** The music, ambience and reverb sends, through this place's trim. */
+  private mus: GainNode | null = null;
+  private amb: GainNode | null = null;
+  private rev: GainNode | null = null;
 
   /** `music: false` keeps only the sea and the bell (under the battle music). */
   constructor(private readonly opts: { music?: boolean } = {}) {}
@@ -23,8 +28,15 @@ export class EbbNightAmbience {
     const ctx = engine.ctx;
     if (!ctx || this.running) return;
     this.running = true;
-    const music = engine.bus('music');
-    const amb = engine.bus('ambience');
+    const send = (to: AudioNode) => {
+      const g = ctx.createGain();
+      g.gain.value = trim('ebb');
+      g.connect(to);
+      return g;
+    };
+    const music = (this.mus = send(engine.bus('music')));
+    const amb = (this.amb = send(engine.bus('ambience')));
+    this.rev = send(engine.reverbIn);
 
     const withMusic = this.opts.music !== false;
     // Musical bed: a low drone on D and A.
@@ -65,13 +77,14 @@ export class EbbNightAmbience {
       const phrase = chantPhrase(this.rng);
       const beat = 0.95;
       let t = ctx.currentTime + 0.1;
-      const dry = engine.bus('music');
+      const dry = this.mus!;
+      const rev = this.rev!;
       for (const n of phrase) {
         const dur = n.beats * beat;
         const m = degreeToMidi(FINAL, MODES.dorian, n.degree);
         // Organum: the principal voice and a voice a fifth below, mostly into the reverb.
-        sing(ctx, engine.reverbIn, m, t, dur, 0.06);
-        sing(ctx, engine.reverbIn, m - 7, t, dur, 0.045);
+        sing(ctx, rev, m, t, dur, 0.06);
+        sing(ctx, rev, m - 7, t, dur, 0.045);
         sing(ctx, dry, m, t, dur, 0.018);
         t += dur;
       }
@@ -86,8 +99,8 @@ export class EbbNightAmbience {
       const ctx = engine.ctx;
       if (!ctx || !this.running) return;
       // Distant: quiet, mostly reverb.
-      bell(ctx, engine.reverbIn, 146.8, ctx.currentTime + 0.05, 0.22, 9);
-      bell(ctx, engine.bus('ambience'), 146.8, ctx.currentTime + 0.05, 0.04, 9);
+      bell(ctx, this.rev!, 146.8, ctx.currentTime + 0.05, 0.22, 9);
+      bell(ctx, this.amb!, 146.8, ctx.currentTime + 0.05, 0.04, 9);
       this.scheduleBell(engine, this.rng.range(34, 52));
     }, delay * 1000);
     this.timers.push(id);

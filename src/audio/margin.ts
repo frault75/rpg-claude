@@ -9,6 +9,7 @@ import { BOOK_MOTIF } from './chant';
 import { drum, psaltery, recorder } from './blanchwood';
 import type { AudioEngine } from './engine';
 import { degreeToMidi, drone, MODES, noiseBurst } from './instruments';
+import { trim } from './mix';
 
 const FINAL = 65; // F4
 const BEAT = 60 / 132;
@@ -39,6 +40,7 @@ export class MarginAmbience {
     if (!ctx || this.running) return;
     this.running = true;
     const out = ctx.createGain();
+    out.gain.value = trim(this.opts.vine ? 'vine' : 'margin');
     out.connect(engine.bus('music'));
     const wet = ctx.createGain();
     wet.gain.value = 0.35;
