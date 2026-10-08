@@ -2,6 +2,8 @@
 import { CHARACTERS, characterSheet, drawCharacter, FRAMES } from '../src/pixel/characters';
 import type { PixelImage } from '../src/pixel/pixel';
 import { drawPortrait, type Mood } from '../src/pixel/portraits';
+import { greatSnailArt, gryllusArt } from '../src/pixel/enemies';
+import { armarium, bench, candle, candleStand, coffer, lectern, psalter, stool, writingDesk } from '../src/pixel/furniture';
 
 const params = new URLSearchParams(location.search);
 const scale = Number(params.get('scale') ?? 5);
@@ -48,6 +50,33 @@ if (what === 'characters') {
   show(
     Object.values(CHARACTERS).map((c) => ({ img: characterSheet(c), label: c.id })),
     1,
+  );
+}
+if (what === 'enemies') {
+  const imgs = [];
+  for (const [label, art] of [
+    ['gryllus', gryllusArt()],
+    ['great snail', greatSnailArt()],
+  ] as const) {
+    imgs.push({ img: art.a, label });
+  }
+  show(imgs, 1);
+}
+if (what === 'furniture') {
+  show(
+    [
+      ['desk', writingDesk(1)],
+      ['empty desk', writingDesk(2, { empty: true })],
+      ['stool', stool()],
+      ['lectern', lectern()],
+      ['armarium', armarium()],
+      ['stand', candleStand()],
+      ['candle', candle()],
+      ['bench', bench()],
+      ['coffer', coffer()],
+      ['psalter', psalter()],
+    ].map(([label, p]) => ({ img: (p as { a: PixelImage }).a, label: label as string })),
+    5,
   );
 }
 (window as unknown as { ready: boolean }).ready = true;

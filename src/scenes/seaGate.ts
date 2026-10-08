@@ -12,7 +12,8 @@ import type { GameLight, WorldRenderer } from '../engine/diorama/renderer';
 import type { Input } from '../engine/input';
 import type { Scene } from '../engine/scene';
 import { session } from '../engine/session';
-import { tr } from '../i18n/i18n';
+import { t, tr } from '../i18n/i18n';
+import { waveSound } from '../audio/battleSfx';
 import { CHARACTERS } from '../pixel/characters';
 import { TILE } from '../pixel/terrain';
 import { dressSeaGate, GROUND, MAP_H, MAP_W, PLATEAU, WALKABLE } from '../maps/seaGateSet';
@@ -20,8 +21,21 @@ import { LocationCard, Letterbox } from '../ui/card';
 import { Dialogue } from '../ui/dialogue';
 import { UiLayer } from '../ui/ui';
 import { Director } from '../world/director';
+import { greatSnailArt } from '../pixel/enemies';
 import { Actor } from '../world3d/actor';
+import { Billboard, pixelTexture } from '../world3d/billboard';
 import { Stage, tiles } from '../world3d/stage';
+
+/** What the Sea Gate asks of the game around it. */
+export interface SeaGateHooks {
+  /** Start a fight; the game comes back here when it is over. */
+  battle?: (id: string) => void;
+  /** The chapter is over (for now, the end of what is built). */
+  end?: () => void;
+}
+
+/** Where on the causeway the Great Snail heaves itself out of the sea. */
+const SNAIL_Y = tiles(25.4);
 
 export class SeaGateScene implements Scene {
   readonly name = 'sea-gate';
@@ -46,10 +60,19 @@ export class SeaGateScene implements Scene {
   /** Where a click or tap asked the player to walk. */
   private goal: [number, number] | null = null;
 
+  private snail: Billboard | null = null;
+  private snailRise = -1;
+  /** People brought on for a cutscene. */
+  private readonly extras: Actor[] = [];
+  /** Fade to black for an interlude (0 = none). */
+  private fadeTo = 0;
+  private fadeT = 0;
+
   constructor(
     private readonly r: WorldRenderer,
     private readonly input: Input,
     private readonly audio: AudioEngine,
+    private readonly hooks: SeaGateHooks = {},
   ) {
     const st = (this.stage = new Stage(r));
     const set = dressSeaGate(r, st);
@@ -97,7 +120,139 @@ export class SeaGateScene implements Scene {
       }),
     );
     this.input.onGesture(() => this.ambience.start(this.audio));
-    void this.opening();
+    const g = session.game;
+    if (g.party.includes('whit')) void this.resume(g.cleared.includes('b1'));
+    else void this.opening();
+  }
+
+  /** Back on the causeway after the knight has joined: before the snail, or after it. */
+  private async resume(won: boolean): Promise<void> {
+    const p = this.player;
+    const hild = this.party[0]!;
+    const w = this.whit;
+    this.met = true;
+    this.party.push(w);
+    p.x = tiles(14.5);
+    p.y = won ? SNAIL_Y + 6 : tiles(23.6);
+    p.dir = 'down';
+    this.trail.length = 0;
+    for (let i = 0; i < 80; i++) this.trail.push([p.x, p.y - Math.min(i, 40) * 0.5]);
+    hild.x = w.x = p.x;
+    hild.y = p.y - 8;
+    w.y = p.y - 16;
+    w.h = 0;
+    this.director.take(p.x, p.y - 10, 0);
+    if (!won || session.game.flags.named) {
+      this.director.release();
+      return;
+    }
+    this.cutscene = true;
+    await this.director.wait(1.2);
+    await this.dialogue.say('knight', { en: 'It has gone back into the border. They always do.', fr: 'Il est retourné dans la bordure. Ils y retournent toujours.' });
+    p.dir = 'up';
+    await this.dialogue.say('isot', { en: 'Into the border? Like a drawing?', fr: 'Dans la bordure ? Comme un dessin ?' }, 'wry');
+    await this.dialogue.say('hild', { en: 'Nothing in Hollin dies any more, child. Not even the jokes. Come: Lychford is a day’s walk, and the tide is turning.', fr: 'Plus rien ne meurt en Hollin, petite. Pas même les plaisanteries. Viens : Lychford est à une journée de marche, et la marée tourne.' }, 'grave');
+    this.dialogue.close();
+    session.saves.save('auto', session.game);
+    await this.hook();
+  }
+
+  /** The hook (DESIGN.md §3.4.9): the Abbot at the gate, the tide between, a name. */
+  private async hook(): Promise<void> {
+    const d = this.director;
+    const p = this.player;
+    const w = this.whit;
+    const hild = this.party[0]!;
+    // Torches at the gate.
+    const gx = tiles(14.5);
+    const gy = tiles(18.2);
+    const aumery = new Actor('aumery', CHARACTERS.aumery!, this.r.scene);
+    const brothers = [-14, 14].map((dx) => {
+      const b = new Actor('brother', CHARACTERS.brother!, this.r.scene);
+      b.x = gx + dx;
+      b.y = gy - 6;
+      b.dir = 'down';
+      return b;
+    });
+    aumery.x = gx;
+    aumery.y = gy;
+    aumery.dir = 'down';
+    this.extras.push(aumery, ...brothers);
+    for (const b of brothers) this.stage.addFlame(b.x + 6, b.y + 1, 30, { light: 70, embers: true });
+    this.letterbox.target = 1;
+    d.take(this.r.view.x, this.r.view.y, this.r.view.h);
+    d.shake(2, 0.4);
+    p.emote('alarm');
+    for (const a of [p, hild, w]) a.dir = 'up';
+    await d.panTo(...d.clamp(gx, gy + 20), 1.8, 0);
+    await this.dialogue.say('aumery', { en: 'Isot! Come back across, child. The tide will have you otherwise.', fr: 'Isot ! Reviens, mon enfant. Sinon la marée te prendra.' });
+    aumery.emote('alarm', 2);
+    await d.wait(0.6);
+    await this.dialogue.say('aumery', { en: 'Not him.', fr: 'Pas lui.' });
+    await this.dialogue.say('aumery', { en: 'Not him.', fr: 'Pas lui.' });
+    await this.dialogue.say('brother', { en: 'Father Abbot?', fr: 'Père abbé ?' }, 'neutral', { en: 'Prior Gaudry', fr: 'Le prieur Gaudry' });
+    await this.dialogue.say('aumery', { en: 'Gaudry. Fetch me Lychford’s bell. It is the last.', fr: 'Gaudry. Rapporte-moi la cloche de Lychford. C’est la dernière.' });
+    waveSound(this.audio);
+    d.shake(3, 1.2);
+    await this.dialogue.narrate({ en: 'The tide comes in over the causeway between them, as it does every night, as if it had been waiting for this.', fr: 'La marée monte sur la chaussée entre eux, comme chaque nuit, comme si elle n’avait attendu que ça.' });
+    this.dialogue.close();
+    await d.panTo(...d.clamp(p.x, p.y - 10), 1.6, 0);
+    p.dir = 'up';
+    w.dir = 'down';
+    await this.dialogue.say('isot', { en: 'You need a name. Something they can’t scrape out.', fr: 'Il vous faut un nom. Quelque chose qu’ils ne pourront pas gratter.' }, 'grave');
+    await this.dialogue.say('knight', { en: 'I had one, I think. I put it down somewhere and forgot where.', fr: 'J’en avais un, je crois. Je l’ai posé quelque part et j’ai oublié où.' });
+    await this.dialogue.say('isot', { en: 'Then I’ll lend you one. Whit. For the white of you.', fr: 'Alors je vous en prête un. Whit. Pour votre blancheur.' }, 'warm');
+    await this.dialogue.narrate({ en: 'She writes it on his wrist in ink, small and steady, so that he won’t fade.', fr: 'Elle l’écrit sur son poignet à l’encre, petit et net, pour qu’il ne s’efface pas.' });
+    await this.dialogue.say('whit', { en: 'Whit.', fr: 'Whit.' });
+    await this.dialogue.say('whit', { en: 'Thank you.', fr: 'Merci.' });
+    hild.emote('silence', 2);
+    session.game.flags.named = true;
+    this.dialogue.close();
+    // Interlude I.
+    this.fadeTo = 1;
+    await d.wait(1.6);
+    await this.dialogue.narrate({ en: 'We crossed with the tide at our heels: a scribe, an anchoress who had not walked in ten years, and a knight who did not know his name.', fr: 'Nous avons traversé la marée aux talons : une scribe, une recluse qui n’avait pas marché depuis dix ans, et un chevalier qui ne connaissait pas son nom.' });
+    await this.dialogue.narrate({ en: 'I wrote WHIT on his wrist so that he would not fade, and he thanked me for it every hour until I asked him to stop, and then he thanked me for that.', fr: 'J’ai écrit WHIT sur son poignet pour qu’il ne s’efface pas, et il m’en a remerciée toutes les heures jusqu’à ce que je lui demande d’arrêter, et alors il m’a remerciée pour ça.' });
+    await this.dialogue.narrate({ en: 'I did not tell them what I had done. I am telling it now.', fr: 'Je ne leur ai pas dit ce que j’avais fait. Je le dis maintenant.' });
+    this.dialogue.close();
+    this.card.show(t('chapter.2'), t('chapter.2.name'));
+    await d.wait(4.2);
+    session.game.chapter = 2;
+    session.saves.save('auto', session.game);
+    await this.dialogue.narrate({ en: 'Chapter II is still being written. Thank you for reading this far.', fr: 'Le chapitre II est encore en cours d’écriture. Merci d’avoir lu jusqu’ici.' });
+    this.dialogue.close();
+    this.hooks.end?.();
+  }
+
+  /** The causeway heaves: the Great Snail of the Causeway, the oldest joke in the margin. */
+  private async snailRises(): Promise<void> {
+    const d = this.director;
+    const p = this.player;
+    this.cutscene = true;
+    this.goal = null;
+    const art = greatSnailArt();
+    const b = new Billboard(pixelTexture(art.a), art.w, art.h, { cols: art.a.w / art.w, rows: 1, anchor: art.anchor, emissive: pixelTexture(art.e) });
+    b.flip = true;
+    b.x = tiles(14.5);
+    b.y = SNAIL_Y + 66;
+    b.h = -70;
+    this.r.scene.add(b.mesh);
+    this.snail = b;
+    this.letterbox.target = 1;
+    d.take(this.r.view.x, this.r.view.y, this.r.view.h);
+    d.shake(5, 1.6);
+    p.emote('alarm');
+    for (const a of this.party) a.dir = 'down';
+    await d.panTo(...d.clamp(p.x, SNAIL_Y + 26), 1.4, 0);
+    this.snailRise = 0;
+    await d.wait(1.8);
+    await this.dialogue.narrate({ en: 'The causeway heaves. Something the size of a cart hauls itself out of the shallows, streaming, its horns up like lances.', fr: 'La chaussée se soulève. Une chose grande comme une charrette se hisse hors des hauts-fonds, ruisselante, les cornes dressées comme des lances.' });
+    await this.dialogue.say('isot', { en: 'That is a snail.', fr: 'C’est un escargot.' }, 'alarmed');
+    await this.dialogue.say('knight', { en: 'In the margins, knights fight snails. It is the oldest joke there is.', fr: 'Dans les marges, les chevaliers combattent des escargots. C’est la plus vieille plaisanterie qui soit.' });
+    await this.dialogue.say('hild', { en: 'And who wins, in the joke?', fr: 'Et qui gagne, dans la plaisanterie ?' }, 'stern');
+    await this.dialogue.say('knight', { en: 'The snail.', fr: 'L’escargot.' });
+    this.dialogue.close();
+    this.hooks.battle?.('b1');
   }
 
   private heightAt(x: number, y: number): number {
@@ -255,6 +410,14 @@ export class SeaGateScene implements Scene {
     this.candle.h = p.h + 12;
 
     if (free && !this.met && p.y > tiles(22.2)) void this.knight();
+    if (free && !this.snail && this.met && this.party.includes(this.whit) && !session.game.cleared.includes('b1') && p.y > SNAIL_Y && this.hooks.battle) void this.snailRises();
+    if (this.snail) {
+      if (this.snailRise >= 0) this.snailRise = Math.min(1, this.snailRise + dt / 1.6);
+      const k = 1 - Math.pow(1 - Math.max(0, this.snailRise), 3);
+      this.snail.h = -70 + 66 * k;
+      this.snail.setFrame(Math.floor(this.time / 0.32) % 4, 0);
+      this.snail.sync();
+    }
 
     this.director.update(dt);
     const [cx, cy] = this.director.active ? this.director.cam : this.director.clamp(p.x, p.y - 10);
@@ -263,7 +426,9 @@ export class SeaGateScene implements Scene {
     this.r.view.x = Math.round(cx);
     this.r.view.y = Math.round(cy);
     this.r.view.h = Math.round(this.camH);
-    this.r.screen.fade = Math.max(0, 1 - this.time / 2.2);
+    this.r.screen.fade = Math.max(this.fadeT, Math.max(0, 1 - this.time / 2.2));
+    this.fadeT += (this.fadeTo - this.fadeT) * Math.min(1, dt * 1.5);
+    for (const a of this.extras) a.update(dt);
     this.dialogue.update(dt);
     this.card.update(dt);
     this.letterbox.update(dt);
@@ -274,6 +439,10 @@ export class SeaGateScene implements Scene {
     this.player.sync();
     for (const a of this.party) a.sync();
     if (!this.party.includes(this.whit)) this.whit.sync();
+    for (const a of this.extras) {
+      a.h = this.heightAt(a.x, a.y);
+      a.sync();
+    }
     this.ui.sync();
   }
 
@@ -314,6 +483,8 @@ export class SeaGateScene implements Scene {
     this.ui.dispose();
     this.ambience.stop();
     this.stage.dispose();
+    this.snail?.dispose();
+    for (const a of this.extras) a.dispose();
     this.player.dispose();
     for (const a of this.party) a.dispose();
     if (!this.party.includes(this.whit)) this.whit.dispose();

@@ -1,0 +1,322 @@
+import { describe, expect, it } from 'vitest';
+import { CHAPTER_ONE_ABILITIES, type EncounterDef } from '../src/battle/data';
+import { Battle, type BattleSetup } from '../src/battle/engine';
+import type { AbilityId } from '../src/battle/types';
+import type { CharId } from '../src/story/state';
+
+const ALL: Record<CharId, AbilityId[]> = {
+  isot: ['penknife', 'gloss', 'strike', 'emend', 'rubric'],
+  hild: ['shove', 'shrive', 'immure', 'squint', 'benison'],
+  whit: ['lance', 'tally', 'vigil', 'read'],
+};
+
+function fight(encounter: BattleSetup['encounter'], party: CharId[], extra: Partial<BattleSetup> = {}): Battle {
+  const b = new Battle({ encounter, party, abilities: ALL, ...extra });
+  b.start();
+  return b;
+}
+
+const custom = (enemies: string[]): EncounterDef => ({ id: 'test', name: { en: 'Test', fr: 'Test' }, party: [], enemies, stage: 'test' });
+
+describe('the Omen', () => {
+  it('shows every enemy intent, numbered in order', () => {
+    const b = fight('f1', ['isot']);
+    expect(b.round).toBe(1);
+    expect(b.intents.map((i) => [i.actor, i.order, i.damage])).toEqual([
+      ['e0', 1, 2],
+      ['e1', 2, 2],
+    ]);
+    expect(b.intents[0]!.label.fr).toContain('Avant');
+  });
+
+  it('is the same puzzle every time', () => {
+    const run = () => {
+      const b = fight('f2', ['hild', 'isot'], { abilities: CHAPTER_ONE_ABILITIES });
+      for (let r = 0; r < 4; r++) {
+        b.act('hild', 'shove');
+        b.act('isot', 'penknife', { unit: b.standingEnemies()[0]!.id });
+        b.endTurn();
+      }
+      return JSON.stringify(b.events);
+    };
+    expect(run()).toBe(run());
+  });
+});
+
+describe('the party phase', () => {
+  it('resolves an action at once and lets it be undone', () => {
+    const b = fight('f1', ['isot']);
+    expect(b.act('isot', 'penknife', { unit: 'e0' })).toBe(true);
+    expect(b.unit('e0')!.hp).toBe(2);
+    expect(b.unit('isot')!.acted).toBe(true);
+    expect(b.act('isot', 'penknife', { unit: 'e0' })).toBe(false);
+    expect(b.check('isot', 'penknife', { unit: 'e0' })).toBe('acted');
+    expect(b.undo()).toBe(true);
+    expect(b.unit('e0')!.hp).toBe(4);
+    expect(b.unit('isot')!.acted).toBe(false);
+  });
+
+  it('allows one free Step a round, and a place-aimed blow hits whoever stands there', () => {
+    const b = fight('f1', ['hild', 'isot']);
+    expect(b.step(0, 1)).toBe(true);
+    expect(b.step(0, 1)).toBe(false);
+    expect(b.allyAt(0)!.id).toBe('isot');
+    b.endTurn();
+    expect(b.unit('isot')!.hp).toBe(12 - 4);
+    expect(b.unit('hild')!.hp).toBe(22);
+  });
+
+  it('Gloss adds 3 to the next damage, then wears off', () => {
+    const b = fight(custom(['brother']), ['isot', 'whit']);
+    b.act('isot', 'gloss', { unit: 'e0' });
+    b.act('whit', 'lance', { unit: 'e0' });
+    expect(b.unit('e0')!.hp).toBe(9 - 7);
+    expect(b.unit('e0')!.status.glossed).toBe(false);
+  });
+
+  it('Strike Through cancels an intent; it costs 2 Ink', () => {
+    const b = fight('f1', ['isot']);
+    expect(b.act('isot', 'strike', { intent: b.intents[0]!.id })).toBe(true);
+    expect(b.ink).toBe(0);
+    b.endTurn();
+    expect(b.unit('isot')!.hp).toBe(10);
+    expect(b.ink).toBe(1);
+    expect(b.check('isot', 'strike', { intent: b.intents[0]!.id })).toBe('ink');
+  });
+
+  it('Emend turns a blow onto another ally', () => {
+    const b = fight(custom(['gryllus']), ['isot', 'hild']);
+    b.act('isot', 'emend', { intent: b.intents[0]!.id, to: 'hild' });
+    b.endTurn();
+    expect(b.unit('isot')!.hp).toBe(12);
+    expect(b.unit('hild')!.hp).toBe(20);
+  });
+
+  it('Penance cannot be paid with the last point', () => {
+    const b = fight('f1', ['hild', 'isot']);
+    b.unit('hild')!.hp = 3;
+    expect(b.check('hild', 'shrive', { unit: 'isot' })).toBe('hp');
+    b.unit('hild')!.hp = 4;
+    expect(b.act('hild', 'shrive', { unit: 'hild' })).toBe(true);
+    expect(b.unit('hild')!.hp).toBe(7);
+  });
+
+  it('Shrive raises a fallen ally, who cannot act that round', () => {
+    const b = fight('f1', ['hild', 'isot']);
+    const isot = b.unit('isot')!;
+    isot.hp = 0;
+    isot.fallen = true;
+    expect(b.act('hild', 'shrive', { unit: 'isot' })).toBe(true);
+    expect(isot.fallen).toBe(false);
+    expect(isot.hp).toBe(6);
+    expect(b.check('isot', 'penknife', { unit: 'e0' })).toBe('acted');
+  });
+
+  it('Lance and Shove need the Front or Middle; Lance reaches the 1st or 2nd enemy', () => {
+    const b = fight(custom(['gryllus', 'gryllus', 'gryllus']), ['hild', 'isot', 'whit']);
+    expect(b.check('whit', 'lance', { unit: 'e0' })).toBe('from-front');
+    b.step(1, 2);
+    expect(b.check('whit', 'lance', { unit: 'e2' })).toBe('reach');
+    expect(b.check('whit', 'lance', { unit: 'e1' })).toBeNull();
+  });
+
+  it('Rubric doubles an ally’s next ability', () => {
+    const b = fight(custom(['wodewose']), ['whit', 'isot']);
+    b.act('isot', 'rubric', { unit: 'whit' });
+    b.act('whit', 'lance', { unit: 'e0' });
+    expect(b.unit('e0')!.hp).toBe(16 - 8);
+  });
+});
+
+describe('the enemy phase', () => {
+  it('a Close intent fizzles once its enemy is shoved out of reach', () => {
+    const b = fight(custom(['gryllus', 'gryllus', 'gryllus']), ['hild', 'isot']);
+    b.act('hild', 'shove');
+    expect(b.unit('e0')!.place).toBe(2);
+    b.endTurn();
+    // e1 and e2 now stand 1st and 2nd: two blows of 2 on the Front.
+    expect(b.unit('hild')!.hp).toBe(22 - 4);
+    expect(b.events.some((e) => e.type === 'fizzle' && e.reason === 'reach')).toBe(true);
+  });
+
+  it('a blow at a fallen place carries back to the next ally', () => {
+    const b = fight(custom(['gryllus']), ['isot', 'hild']);
+    const isot = b.unit('isot')!;
+    isot.hp = 0;
+    isot.fallen = true;
+    b.endTurn();
+    expect(b.unit('hild')!.hp).toBe(20);
+  });
+
+  it('Ward absorbs damage, and a Brother’s scouring strips it', () => {
+    const b = fight(custom(['gryllus']), ['hild'], { equipment: { hild: { relic: null, charm: 'anchorStone' } } });
+    expect(b.unit('hild')!.status.ward).toBe(2);
+    b.endTurn();
+    expect(b.unit('hild')!.hp).toBe(22);
+    expect(b.unit('hild')!.status.ward).toBe(0);
+  });
+
+  it('Immure makes an enemy’s intent wait a round', () => {
+    const b = fight(custom(['gryllus']), ['hild', 'isot']);
+    b.act('hild', 'immure', { unit: 'e0' });
+    expect(b.check('isot', 'penknife', { unit: 'e0' })).toBe('immured-target');
+    b.endTurn();
+    expect(b.unit('hild')!.hp).toBe(22 - 2);
+    expect(b.intents).toHaveLength(1);
+    expect(b.intents[0]!.label.en).toContain('Butts');
+    b.endTurn();
+    expect(b.unit('hild')!.hp).toBe(22 - 2 - 2);
+  });
+
+  it('Immure on an ally who has acted keeps them safe', () => {
+    const b = fight(custom(['gryllus']), ['isot', 'hild']);
+    b.act('isot', 'penknife', { unit: 'e0' });
+    b.act('hild', 'immure', { unit: 'isot' });
+    b.endTurn();
+    // The Front is walled in: the blow fizzles.
+    expect(b.unit('isot')!.hp).toBe(12);
+    expect(b.unit('hild')!.hp).toBe(22 - 2);
+  });
+
+  it('a wind-up strikes next round unless struck through', () => {
+    const b = fight(custom(['wodewose']), ['hild', 'isot']);
+    expect(b.intents[0]!.countdown).toBe(1);
+    b.endTurn();
+    expect(b.unit('hild')!.hp).toBe(22);
+    expect(b.intents[0]!.countdown).toBe(0);
+    b.endTurn();
+    expect(b.unit('hild')!.hp).toBe(22 - 9);
+
+    const c = fight(custom(['wodewose']), ['hild', 'isot']);
+    c.endTurn();
+    c.act('isot', 'strike', { intent: c.intents[0]!.id });
+    c.endTurn();
+    expect(c.unit('hild')!.hp).toBe(22);
+    expect(c.intents[0]!.label.en).toContain('Roars');
+  });
+
+  it('Vigil strikes the first attacker first; if it falls, its blow is lost', () => {
+    const b = fight(custom(['gryllus', 'gryllus']), ['whit', 'isot']);
+    b.act('whit', 'vigil');
+    b.endTurn();
+    expect(b.unit('e0')!.fallen).toBe(true);
+    expect(b.unit('whit')!.hp).toBe(18 - 2);
+  });
+
+  it('Squint shows next round’s intents', () => {
+    const b = fight('f2', ['hild', 'isot']);
+    b.act('hild', 'squint');
+    expect(b.preview!.map((i) => i.label.en)).toEqual(['Rasps at the Rear: Smudge', 'Rasps at the Rear: Smudge']);
+    b.endTurn();
+    expect(b.intents.map((i) => i.label.en)).toEqual(['Rasps at the Rear: Smudge', 'Rasps at the Rear: Smudge']);
+  });
+
+  it('Smudge makes Isot’s next Ink ability cost 1 more', () => {
+    const b = fight('f2', ['hild', 'isot', 'whit']);
+    b.endTurn();
+    b.step(1, 2);
+    b.endTurn();
+    expect(b.unit('isot')!.status.smudged).toBe(true);
+    expect(b.inkCost(b.unit('isot')!, 'strike')).toBe(3);
+  });
+
+  it('the party falls: defeat', () => {
+    const b = fight(custom(['wodewose']), ['isot']);
+    b.unit('isot')!.hp = 5;
+    b.endTurn();
+    b.endTurn();
+    expect(b.result).toBe('defeat');
+  });
+});
+
+describe('Boss I: the Great Snail', () => {
+  const party: CharId[] = ['whit', 'hild', 'isot'];
+
+  it('withdraws into its shell when it says so, and blows then deal 1', () => {
+    const b = fight('b1', party, { abilities: CHAPTER_ONE_ABILITIES });
+    b.endTurn();
+    expect(b.unit('e0')!.status.shelled).toBe(true);
+    b.act('whit', 'lance', { unit: 'e0' });
+    expect(b.unit('e0')!.hp).toBe(23);
+  });
+
+  it('striking through the withdrawal keeps it out of its shell', () => {
+    const b = fight('b1', party, { abilities: CHAPTER_ONE_ABILITIES });
+    b.endTurn();
+    const shell = b.intents.find((i) => i.label.en.startsWith('Withdraws'))!;
+    b.act('isot', 'strike', { intent: shell.id });
+    expect(b.unit('e0')!.status.shelled).toBe(false);
+  });
+
+  it('a Tally that runs out in its shell is wasted', () => {
+    const b = fight('b1', party, { abilities: CHAPTER_ONE_ABILITIES });
+    b.endTurn();
+    b.act('whit', 'tally', { unit: 'e0' });
+    b.endTurn();
+    b.act('whit', 'lance', { unit: 'e0' });
+    b.act('isot', 'penknife', { unit: 'e0' });
+    const reck = b.events.findIndex((e) => e.type === 'reckoning');
+    expect(reck).toBeGreaterThan(-1);
+    expect(b.events[reck + 1]).toMatchObject({ type: 'damage', unit: 'e0', amount: 1 });
+  });
+
+  it('falls in round 4 to a Tally timed for its horns', () => {
+    const b = fight('b1', party, { abilities: CHAPTER_ONE_ABILITIES });
+    const snail = b.unit('e0')!;
+    // Round 1: horns out. Gloss, then Lance for 7, Shove for 2.
+    b.act('isot', 'gloss', { unit: 'e0' });
+    b.act('whit', 'lance', { unit: 'e0' });
+    b.act('hild', 'shove');
+    expect(snail.hp).toBe(15);
+    b.endTurn();
+    expect(b.unit('whit')!.hp).toBe(13);
+    // Round 2: shelled. Heal, chip.
+    b.act('hild', 'shrive', { unit: 'whit' });
+    b.act('whit', 'lance', { unit: 'e0' });
+    b.act('isot', 'penknife', { unit: 'e0' });
+    expect(snail.hp).toBe(13);
+    b.endTurn();
+    // Round 3: the slime tide and the sea; strike through the slime, set the Tally.
+    expect(b.intents.map((i) => i.actor)).toEqual(['e0', 'env']);
+    b.act('isot', 'strike', { intent: b.intents[0]!.id });
+    b.act('whit', 'tally', { unit: 'e0' });
+    b.endTurn();
+    expect(snail.status.tally).toBe(2);
+    expect(snail.status.shelled).toBe(false);
+    // Round 4: horns out again. Two hits bring the Reckoning.
+    b.act('isot', 'gloss', { unit: 'e0' });
+    b.act('whit', 'lance', { unit: 'e0' });
+    b.act('hild', 'shove');
+    expect(b.result).toBe('victory');
+    expect(b.events.some((e) => e.type === 'reckoning' && e.amount === 7)).toBe(true);
+  });
+});
+
+describe('equipment', () => {
+  it('Lamp-black: Ink holds 4 but starts at 1', () => {
+    const b = fight('f1', ['isot'], { equipment: { isot: { relic: 'lampBlack', charm: null } } });
+    expect([b.ink, b.maxInk]).toEqual([1, 4]);
+  });
+
+  it('Ebb Shell softens only the first blow', () => {
+    const b = fight('f1', ['isot'], { equipment: { isot: { relic: null, charm: 'ebbShell' } } });
+    b.endTurn();
+    expect(b.unit('isot')!.hp).toBe(12 - 1 - 2);
+  });
+
+  it('Gentle Hand: more HP, Ink refills by 2', () => {
+    const b = fight('f1', ['isot'], { gentle: true });
+    expect(b.unit('isot')!.maxHp).toBe(18);
+    b.act('isot', 'strike', { intent: b.intents[0]!.id });
+    b.endTurn();
+    expect(b.ink).toBe(2);
+  });
+});
+
+describe('the battle music', () => {
+  it('fills every bar of the estampie exactly', async () => {
+    const { barLengths, OSTINATO } = await import('../src/audio/battleMusic');
+    expect(barLengths().every((n) => n === 6)).toBe(true);
+    expect(OSTINATO).toHaveLength(12);
+  });
+});

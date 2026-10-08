@@ -22,6 +22,7 @@ import { Water, type WaterColours } from './water';
 export const tiles = (n: number): number => n * TILE;
 
 let flameTex: { a: THREE.Texture; w: number; h: number; n: number } | null = null;
+let candleTex: { a: THREE.Texture; w: number; h: number; n: number } | null = null;
 
 export class Stage {
   readonly billboards: Billboard[] = [];
@@ -45,7 +46,8 @@ export class Stage {
     const t = buildTerrain(def);
     this.terrain = t;
     this.scene.add(t.group);
-    if (t.ground.shore.some((d) => d > 0)) {
+    // Only maps with open water get the sea; the void around a room stays dark.
+    if (def.ground.some((row) => row.includes('~')) && t.ground.shore.some((d) => d > 0)) {
       this.water = new Water(t.ground.shore, t.ground.w, t.ground.h, water);
       this.scene.add(this.water.mesh);
       this.r.mirrors.add(this.water);
@@ -161,6 +163,23 @@ export class Stage {
     this.addLight(x, y + 3, h + 6, opts.light ?? 80, '#FF9A48', 0.8, 'flame');
     if (opts.embers !== false) this.addEmitter({ kind: 'ember', area: [x - 2, y, 4, 1], heights: [h + 8, h + 11], count: 2.5, color: '#FFA040', size: 1.2, intensity: 1.6 }, Math.floor(x * 7 + y));
     return b;
+  }
+
+  /** A candle flame at (x, y), height h: small, steady, a warm pool of light. */
+  addCandle(x: number, y: number, h: number, light = 0.5, radius = 46): { flame: Billboard; light: GameLight } {
+    if (!candleTex) {
+      const f = flameSheet(4, 5, 8, 7);
+      candleTex = { a: pixelTexture(f.a), w: f.w, h: f.h, n: 4 };
+    }
+    const b = new Billboard(candleTex.a, candleTex.w, candleTex.h, { cols: candleTex.n, rows: 1, anchor: [candleTex.w / 2, candleTex.h - 1], unlit: true, castShadow: false });
+    b.x = x;
+    b.y = y;
+    b.h = h;
+    this.billboards.push(b);
+    this.flames.push({ b, phase: Math.random() * 4, speed: 6 + Math.random() * 2 });
+    this.scene.add(b.mesh);
+    const l = this.addLight(x, y + 2, h + 4, radius, '#FFB866', light, 'candle');
+    return { flame: b, light: l };
   }
 
   update(dt: number, time: number): void {

@@ -16,6 +16,9 @@ export class EbbNightAmbience {
   private readonly rng = new Rng('ebb-night');
   private running = false;
 
+  /** `music: false` keeps only the sea and the bell (under the battle music). */
+  constructor(private readonly opts: { music?: boolean } = {}) {}
+
   start(engine: AudioEngine): void {
     const ctx = engine.ctx;
     if (!ctx || this.running) return;
@@ -23,9 +26,12 @@ export class EbbNightAmbience {
     const music = engine.bus('music');
     const amb = engine.bus('ambience');
 
+    const withMusic = this.opts.music !== false;
     // Musical bed: a low drone on D and A.
-    const d = drone(ctx, music, [FINAL - 12, FINAL - 5], 0.035);
-    this.stops.push(() => d.stop());
+    if (withMusic) {
+      const d = drone(ctx, music, [FINAL - 12, FINAL - 5], 0.035);
+      this.stops.push(() => d.stop());
+    }
 
     // The sea: brown noise through a low-pass, swelling slowly like waves on the causeway.
     const sea = noiseSource(ctx, 4);
@@ -48,7 +54,7 @@ export class EbbNightAmbience {
       lfo.stop(ctx.currentTime + 4);
     });
 
-    this.scheduleChant(engine, 3);
+    if (withMusic) this.scheduleChant(engine, 3);
     this.scheduleBell(engine, 9);
   }
 

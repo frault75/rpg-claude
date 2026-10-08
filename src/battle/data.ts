@@ -1,5 +1,6 @@
 /** Abilities, enemies and encounters (DESIGN.md §4.6, §4.10, §4.11). */
 
+import type { LocalText } from '../i18n/i18n';
 import type { CharId } from '../story/state';
 import type { AbilityDef, AbilityId, IntentEffect, Target } from './types';
 
@@ -15,24 +16,25 @@ export const ABILITIES: Record<AbilityId, AbilityDef> = {
   squint: { id: 'squint', name: { en: 'Squint', fr: 'Hagioscope' }, owner: 'hild', target: 'none', text: { en: 'Reveal hidden intents, and next round’s.', fr: 'Révèle les intentions cachées, et celles du tour suivant.' } },
   benison: { id: 'benison', name: { en: 'Benison', fr: 'Bénédiction' }, owner: 'hild', target: 'none', oncePerBattle: true, text: { en: 'All allies regain 5 HP and gain Ward 3.', fr: 'Tous les alliés regagnent 5 PV et gagnent Garde 3.' } },
   lance: { id: 'lance', name: { en: 'Lance', fr: 'Lance' }, owner: 'whit', target: 'enemy', fromFront: true, reachEnemy: 2, text: { en: '4 damage to the 1st or 2nd enemy.', fr: '4 dégâts au 1er ou au 2e ennemi.' } },
-  tally: { id: 'tally', name: { en: 'Tally', fr: 'Décompte' }, owner: 'whit', target: 'enemy', text: { en: 'Set Tally 3: at 0, a Reckoning of 7.', fr: 'Pose un Décompte de 3 : à 0, un Compte rendu de 7.' } },
+  tally: { id: 'tally', name: { en: 'Tally', fr: 'Décompte' }, owner: 'whit', target: 'enemy', text: { en: 'Set Tally 3: at 0, a Reckoning of 7.', fr: 'Pose un Décompte de 3 : à 0, le Règlement inflige 7.' } },
   vigil: { id: 'vigil', name: { en: 'Vigil', fr: 'Veille' }, owner: 'whit', target: 'none', fromFront: true, text: { en: 'The first enemy to strike an ally is struck first, for 4.', fr: 'Le premier ennemi qui frappe un allié est frappé avant, pour 4.' } },
   read: { id: 'read', name: { en: 'Read Aloud', fr: 'Lire à voix haute' }, owner: 'whit', target: 'enemy', text: { en: 'End an enemy with 6 HP or fewer.', fr: 'Achève un ennemi à 6 PV ou moins.' } },
 };
 
-export const PARTY_STATS: Record<CharId, { name: string; hp: number }> = {
-  isot: { name: 'Isot', hp: 12 },
-  hild: { name: 'Hild', hp: 22 },
-  whit: { name: 'Whit', hp: 18 },
+export const PARTY_STATS: Record<CharId, { name: LocalText; hp: number }> = {
+  isot: { name: { en: 'Isot', fr: 'Isot' }, hp: 12 },
+  hild: { name: { en: 'Hild', fr: 'Hild' }, hp: 22 },
+  whit: { name: { en: 'Whit', fr: 'Whit' }, hp: 18 },
 };
 
 /** What an enemy means to do; the engine adds ids and order. */
 export interface IntentSpec {
-  label: string;
+  label: LocalText;
   target: Target;
   damage?: number;
   reach?: 'close' | 'far' | 'any';
   effects?: IntentEffect[];
+  /** A wind-up: it strikes after this many more rounds (shown "in n"). */
   countdown?: number;
 }
 
@@ -43,12 +45,12 @@ export interface BehaviourCtx {
   hp: number;
   maxHp: number;
   /** Standing allies of the enemy (other than itself), with their HP. */
-  allies: { id: string; name: string; hp: number; maxHp: number }[];
+  allies: { id: string; name: LocalText; hp: number; maxHp: number }[];
   rng: () => number;
 }
 
 export interface EnemyDef {
-  name: string;
+  name: LocalText;
   hp: number;
   size?: number;
   hidden?: boolean;
@@ -58,72 +60,82 @@ export interface EnemyDef {
 
 export const ENEMIES: Record<string, EnemyDef> = {
   gryllus: {
-    name: 'Gryllus',
+    name: { en: 'Gryllus', fr: 'Grylle' },
     hp: 4,
-    behave: () => [{ label: 'Butts the Front · 2', target: { place: 0 }, damage: 2, reach: 'close' }],
+    behave: () => [{ label: { en: 'Butts the Front · 2', fr: 'Cogne l’Avant · 2' }, target: { place: 0 }, damage: 2, reach: 'close' }],
   },
   brother: {
-    name: 'Pumice Brother',
+    name: { en: 'Pumice Brother', fr: 'Frère de la Ponce' },
     hp: 9,
     behave: (c) => {
       const hurt = c.allies.filter((a) => a.hp < a.maxHp).sort((a, b) => a.hp - b.hp)[0];
-      if (c.phase % 3 === 2 && hurt) return [{ label: `Holds the line: ${hurt.name} gains Ward 3`, target: { unit: hurt.id }, effects: [{ kind: 'wardAlly', amount: 3 }], reach: 'any' }];
-      if (c.phase % 2 === 0) return [{ label: 'Scours the Front · 3, strips Ward', target: { place: 0 }, damage: 3, reach: 'close', effects: [{ kind: 'stripWard' }] }];
-      return [{ label: 'Rasps at the Rear: Smudge', target: { place: 2 }, damage: 0, reach: 'far', effects: [{ kind: 'smudge' }] }];
+      if (c.phase % 3 === 2 && hurt)
+        return [
+          {
+            label: { en: `Holds the line: ${hurt.name.en} gains Ward 3`, fr: `Tient la ligne : ${hurt.name.fr} gagne Garde 3` },
+            target: { unit: hurt.id },
+            effects: [{ kind: 'wardAlly', amount: 3 }],
+            reach: 'any',
+          },
+        ];
+      if (c.phase % 2 === 0)
+        return [{ label: { en: 'Scours the Front · 3, strips Ward', fr: 'Récure l’Avant · 3, ôte la Garde' }, target: { place: 0 }, damage: 3, reach: 'close', effects: [{ kind: 'stripWard' }] }];
+      return [{ label: { en: 'Rasps at the Rear: Smudge', fr: 'Râpe l’Arrière : Bavure' }, target: { place: 2 }, damage: 0, reach: 'far', effects: [{ kind: 'smudge' }] }];
     },
   },
   hare: {
-    name: 'Marginal Hare',
+    name: { en: 'Marginal Hare', fr: 'Lièvre des marges' },
     hp: 5,
     behave: (c) =>
-      c.phase % 3 === 2 ? [{ label: 'Bounds to the back', target: { self: true }, effects: [{ kind: 'toBack' }], reach: 'any' }] : [{ label: 'Looses an arrow at the Rear · 3', target: { place: 2 }, damage: 3, reach: 'far' }],
+      c.phase % 3 === 2
+        ? [{ label: { en: 'Bounds to the back', fr: 'Bondit au fond' }, target: { self: true }, effects: [{ kind: 'toBack' }], reach: 'any' }]
+        : [{ label: { en: 'Looses an arrow at the Rear · 3', fr: 'Décoche une flèche sur l’Arrière · 3' }, target: { place: 2 }, damage: 3, reach: 'far' }],
   },
   babewyn: {
-    name: 'Babewyn',
+    name: { en: 'Babewyn', fr: 'Babouin' },
     hp: 10,
     behave: () => [
-      { label: 'Bites the Front · 3', target: { place: 0 }, damage: 3, reach: 'close' },
-      { label: 'Spits at the Middle · 2', target: { place: 1 }, damage: 2, reach: 'far' },
+      { label: { en: 'Bites the Front · 3', fr: 'Mord l’Avant · 3' }, target: { place: 0 }, damage: 3, reach: 'close' },
+      { label: { en: 'Spits at the Middle · 2', fr: 'Crache sur le Milieu · 2' }, target: { place: 1 }, damage: 2, reach: 'far' },
     ],
   },
   snail: {
-    name: 'Snail',
+    name: { en: 'Snail', fr: 'Escargot' },
     hp: 6,
     behave: (c) =>
       c.phase % 2 === 0
-        ? [{ label: 'Creeps: Front · 2', target: { place: 0 }, damage: 2, reach: 'close', effects: [{ kind: 'unshell' }] }]
-        : [{ label: 'Withdraws into its shell', target: { self: true }, effects: [{ kind: 'shell' }], reach: 'any' }],
+        ? [{ label: { en: 'Creeps: Front · 2', fr: 'Rampe : Avant · 2' }, target: { place: 0 }, damage: 2, reach: 'close', effects: [{ kind: 'unshell' }] }]
+        : [{ label: { en: 'Withdraws into its shell', fr: 'Rentre dans sa coquille' }, target: { self: true }, effects: [{ kind: 'shell' }], reach: 'any' }],
   },
   wodewose: {
-    name: 'Wodewose',
+    name: { en: 'Wodewose', fr: 'Homme sauvage' },
     hp: 16,
-    behave: (c) => {
-      const k = c.phase % 3;
-      if (k === 0) return [{ label: 'Gathers itself…', target: { place: 0 }, damage: 9, reach: 'close', countdown: 2 }];
-      if (k === 1) return [];
-      return [{ label: "Roars: the party's Ward is stripped", target: { all: true }, effects: [{ kind: 'stripWard' }], reach: 'any' }];
-    },
+    behave: (c) =>
+      c.phase % 2 === 0
+        ? [{ label: { en: 'Gathers itself to club the Front · 9', fr: 'Se ramasse pour assommer l’Avant · 9' }, target: { place: 0 }, damage: 9, reach: 'close', countdown: 1 }]
+        : [{ label: { en: 'Roars: the party’s Ward is stripped', fr: 'Rugit : la Garde du groupe tombe' }, target: { all: true }, effects: [{ kind: 'stripWard' }], reach: 'any' }],
   },
   greatSnail: {
-    name: 'The Great Snail',
+    name: { en: 'The Great Snail', fr: 'Le Grand Escargot' },
     hp: 24,
     size: 2,
     behave: (c) => {
       const k = c.phase % 3;
-      if (k === 0) return [{ label: 'Horns out: lashes the Front · 5', target: { place: 0 }, damage: 5, reach: 'close', effects: [{ kind: 'unshell' }] }];
+      if (k === 0)
+        return [{ label: { en: 'Horns out: lashes the Front · 5', fr: 'Cornes dehors : fouette l’Avant · 5' }, target: { place: 0 }, damage: 5, reach: 'close', effects: [{ kind: 'unshell' }] }];
       if (k === 1)
         return [
-          { label: 'Withdraws into its shell', target: { self: true }, effects: [{ kind: 'shell' }], reach: 'any' },
-          { label: 'Gathers the tide… (next: everyone · 3)', target: { self: true }, reach: 'any' },
+          { label: { en: 'Withdraws into its shell', fr: 'Rentre dans sa coquille' }, target: { self: true }, effects: [{ kind: 'shell' }], reach: 'any' },
+          { label: { en: 'Gathers the tide… (next: everyone · 3)', fr: 'Appelle la marée… (ensuite : tous · 3)' }, target: { self: true }, reach: 'any' },
         ];
-      return [{ label: 'Slime tide: drenches everyone · 3', target: { all: true }, damage: 3, reach: 'any' }];
+      return [{ label: { en: 'Slime tide: drenches everyone · 3', fr: 'Marée de bave : trempe tout le monde · 3' }, target: { all: true }, damage: 3, reach: 'any' }];
     },
   },
 };
 
 export interface EncounterDef {
   id: string;
-  name: string;
+  name: LocalText;
   party: CharId[];
   enemies: string[];
   /** An environment intent for a round, if any (the tide). */
@@ -133,15 +145,16 @@ export interface EncounterDef {
 }
 
 export const ENCOUNTERS: Record<string, EncounterDef> = {
-  f1: { id: 'f1', name: 'Grylli in the margin', party: ['isot'], enemies: ['gryllus', 'gryllus'], stage: 'scriptorium' },
-  f2: { id: 'f2', name: 'The Pumice Brothers', party: ['hild', 'isot'], enemies: ['brother', 'brother'], stage: 'cloister' },
+  f1: { id: 'f1', name: { en: 'Grylli in the margin', fr: 'Grylles dans la marge' }, party: ['isot'], enemies: ['gryllus', 'gryllus'], stage: 'scriptorium' },
+  f2: { id: 'f2', name: { en: 'The Pumice Brothers', fr: 'Les Frères de la Ponce' }, party: ['hild', 'isot'], enemies: ['brother', 'brother'], stage: 'cloister' },
   b1: {
     id: 'b1',
-    name: 'The Great Snail of the Causeway',
+    name: { en: 'The Great Snail of the Causeway', fr: 'Le Grand Escargot de la chaussée' },
     party: ['whit', 'hild', 'isot'],
     enemies: ['greatSnail'],
     stage: 'causeway',
-    env: (round) => (round % 3 === 0 ? { label: 'The tide: a wave breaks over the Front · 2', target: { place: 0 }, damage: 2, reach: 'any' } : null),
+    env: (round) =>
+      round % 3 === 0 ? { label: { en: 'The tide: a wave breaks over the Front · 2', fr: 'La marée : une vague brise sur l’Avant · 2' }, target: { place: 0 }, damage: 2, reach: 'any' } : null,
   },
 };
 
