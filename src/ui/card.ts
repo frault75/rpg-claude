@@ -162,7 +162,7 @@ export class Subtitles {
       c.font = `italic 27px ${SERIF}`;
       c.textAlign = 'center';
       c.textBaseline = 'middle';
-      const lines = wrapText(c, this.text, w - 60);
+      const lines = balanced(c, this.text, w - 60);
       lines.forEach((l, i) => {
         const y = h / 2 + (i - (lines.length - 1) / 2) * 34;
         c.fillStyle = 'rgba(0,0,0,0.85)';
@@ -190,6 +190,30 @@ export class Subtitles {
   dispose(): void {
     this.ui.remove(this.panel);
   }
+}
+
+/**
+ * Two lines of near-even length rather than a full line and a stray word under it: the
+ * split that makes the longer line shortest, as a typesetter would break a subtitle.
+ */
+function balanced(c: CanvasRenderingContext2D, text: string, max: number): string[] {
+  const lines = wrapText(c, text, max);
+  if (lines.length !== 2) return lines;
+  const words = text.split(' ');
+  let best = lines;
+  let bestW = Math.max(...lines.map((l) => c.measureText(l).width));
+  // A break after a comma or a full stop reads better than an even one mid-phrase.
+  for (let k = 1; k < words.length; k++) {
+    const a = words.slice(0, k).join(' ');
+    const b = words.slice(k).join(' ');
+    const wMax = Math.max(c.measureText(a).width, c.measureText(b).width);
+    const cost = wMax - (/[,;:.!?»]$/.test(words[k - 1]!) ? max * 0.14 : 0);
+    if (wMax <= max && cost < bestW) {
+      best = [a, b];
+      bestW = cost;
+    }
+  }
+  return best;
 }
 
 function wrapText(c: CanvasRenderingContext2D, text: string, max: number): string[] {

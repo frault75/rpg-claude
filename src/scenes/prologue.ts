@@ -32,20 +32,21 @@ const LINES = 13;
 /** The line the knife scrapes: Wystan's. */
 const SCRAPED = 10;
 
-const NAMES = [
-  'Aelfgifu of Lychford · Hamo the reeve · Wenna · Cole the thatcher',
-  'Agnes daughter of Agnes · Osric · Bertilde · the miller’s twins',
-  'Dunstan, sexton · Mildred · Hob · Godric of the fen road · Ida',
-  'Wystan, librarian · Eadgyth · Cenwalh, king · Ebba of the tide',
-  'Amabel · Sige · Leofric · Wulfhild · Tola · Edmund of Holmcaster',
-  'Hild of Saint Ebb’s · Aumery, abbot · Gaudry · Ermeline · Cuthwin',
-  'the woman with grey on her face · the child at the ford · Isot',
+/** The names on the Great Page, in the reader's language (the people of the story among them). */
+const NAMES: LocalText[] = [
+  { en: 'Aelfgifu of Lychford · Hamo the bellringer · Wenna · Cole the thatcher', fr: 'Aelfgifu de Lychford · Hamo le sonneur · Wenna · Cole le couvreur' },
+  { en: 'Agnes daughter of Agnes · Osric · Bertilde · the miller’s twins', fr: 'Agnès, fille d’Agnès · Osric · Bertilde · les jumeaux du meunier' },
+  { en: 'Dunstan, sexton · Mildred · Hob · Godric of the fen road · Ida', fr: 'Dunstan, fossoyeur · Mildred · Hob · Godric du chemin des marais · Ida' },
+  { en: 'Wystan, librarian · Eadgyth · Cenwalh, king · Ebba of the tide', fr: 'Wystan, bibliothécaire · Eadgyth · Cenwalh, roi · Ebba de la marée' },
+  { en: 'Amabel · Sige · Leofric · Wulfhild · Tola · Edmund of Holmcaster', fr: 'Amabel · Sige · Leofric · Wulfhild · Tola · Edmond de Holmcaster' },
+  { en: 'Hild of Saint Ebb’s · Aumery, abbot · Gaudry · Ermeline · Cuthwin', fr: 'Hild de Saint-Ebb · Aumery, abbé · Gaudry · Ermeline · Cuthwin' },
+  { en: 'the woman with grey on her face · the child at the ford · Isot', fr: 'la femme au visage gris · l’enfant du gué · Isot' },
 ];
 
 const LINES_TEXT: LocalText[] = [
   { en: 'Before the first name, the last word.', fr: 'Avant le premier nom, le dernier mot.' },
   { en: 'In Hollin every soul is written, and the writing is kept at Saint Ebb’s, where the sea comes twice a day.', fr: 'En Hollin, chaque âme est écrite, et l’écrit est gardé à Saint-Ebb, où la mer monte deux fois par jour.' },
-  { en: 'Ten winters ago the Grey Sweat came, and on the worst night of it, it stopped. No one in Hollin has died since. We call it the Mercy.', fr: 'Il y a dix hivers vint la Suette grise, et la pire nuit, elle cessa. Personne en Hollin n’est mort depuis. Nous appelons cela la Miséricorde.' },
+  { en: 'Ten winters ago the Grey Sweat came, and on the worst night of it, it stopped. No one in Hollin has died since. We call it the Mercy.', fr: 'Il y a dix hivers vint la Suette grise ; et la nuit où elle fut la plus cruelle, elle cessa. Depuis, personne en Hollin n’est mort. Nous appelons cela la Miséricorde.' },
   { en: 'I was nine. I gave thanks for it every morning of my life.', fr: 'J’avais neuf ans. J’en ai rendu grâce chaque matin de ma vie.' },
   { en: 'This is the true account of how the Mercy ended, set down in my hand over the old one.', fr: 'Voici le vrai récit de la fin de la Miséricorde, écrit de ma main par-dessus l’ancien.' },
 ];
@@ -278,7 +279,7 @@ export class PrologueScene implements Scene {
       const k = Math.min(1, Math.max(0, this.lines - i));
       if (k <= 0) continue;
       const y = this.lineY(row);
-      const text = NAMES[row % NAMES.length]!;
+      const text = tr(NAMES[row % NAMES.length]!);
       c.save();
       c.beginPath();
       c.rect(60, y - 26, (W - 120) * k, 34);
@@ -365,7 +366,8 @@ export class PrologueScene implements Scene {
     this.reader.update(dt);
     this.reader.sprite.opacity = this.readerOn;
     // The Reader is light itself: it glows white.
-    this.reader.sprite.flash = 0.75 * this.readerOn;
+    // Pale, not blinding: the figure must read as someone, hood and robe, against the page.
+    this.reader.sprite.flash = 0.18 * this.readerOn;
     this.director.update(dt);
     const [cx, cy, ch] = this.director.cam;
     const v = this.r.view;

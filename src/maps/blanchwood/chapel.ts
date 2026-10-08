@@ -11,7 +11,7 @@ import { bell, midiToHz } from '../../audio/instruments';
 import { BlanchwoodAmbience } from '../../audio/blanchwood';
 import { uiTick } from '../../audio/sfx';
 import { session } from '../../engine/session';
-import { textImage } from '../../pixel/font';
+import { localTextImage } from '../../pixel/font';
 import { bench, candleStand, coffer } from '../../pixel/furniture';
 import { hex, PixelImage, ramp } from '../../pixel/pixel';
 import { GROUND_DEFAULT } from '../../pixel/terrain';
@@ -171,7 +171,7 @@ export const CHAPEL: MapDef = {
       panels[f] = st.addImage(muralPanel(f), SLOT_X[i]!, WALL_Y + 1, { h: 16, shadow: false });
     });
     // The inscription under the mural, in the chapel’s single vermilion.
-    const words = textImage(['FROM THE HIGHEST TO THE LEAST', 'THE DANCE GOES DOWN'], hex('#D8483A'));
+    const words = localTextImage([{ en: 'FROM THE HIGHEST TO THE LEAST', fr: 'DU PLUS GRAND AU PLUS PETIT' }, { en: 'THE DANCE GOES DOWN', fr: 'LA DANSE DESCEND' }], hex('#D8483A'))();
     st.addImage(words, tiles(W / 2), WALL_Y + 1, { h: 1, shadow: false, glow: words });
     // Pews for a congregation of nine thousand that never came back.
     for (const [x, y] of [

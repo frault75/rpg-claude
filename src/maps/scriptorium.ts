@@ -178,7 +178,7 @@ export const SCRIPTORIUM: MapDef = {
           title: { en: 'Psalter, flyleaf', fr: 'Psautier, page de garde' },
           lines: [
             { text: 'Liber psalmorum.', red: true },
-            { text: 'Isot. Thank you for the knife. Don’t keep my name; keep your hand steady. W.', scraped: true },
+            { text: { en: 'Isot. Thank you for the knife. Don’t keep my name; keep your hand steady. W.', fr: 'Isot. Merci pour le canif. Ne garde pas mon nom ; garde ta main sûre. W.' }, scraped: true },
             { text: 'Domine, refugium factus es nobis.' },
           ],
           read: async (cc) => {
@@ -220,12 +220,12 @@ export const SCRIPTORIUM: MapDef = {
         await c.page({
           title: { en: 'The Book of Names · Saint Ebb’s', fr: 'Le Livre des Noms · Saint-Ebb' },
           lines: [
-            { text: 'Aumery, abbot of this house.', red: true },
-            { text: 'Gaudry, prior.' },
-            { text: 'Cuthwin, brother, of the scriptorium.' },
-            { text: 'Wystan, brother, librarian.', scraped: true },
-            { text: 'Ermeline, sister, of the infirmary.' },
-            { text: 'Isot, scribe, a foundling of Lychford.' },
+            { text: { en: 'Aumery, abbot of this house.', fr: 'Aumery, abbé de cette maison.' }, red: true },
+            { text: { en: 'Gaudry, prior.', fr: 'Gaudry, prieur.' } },
+            { text: { en: 'Cuthwin, brother, of the scriptorium.', fr: 'Cuthwin, frère, du scriptorium.' } },
+            { text: { en: 'Wystan, brother, librarian.', fr: 'Wystan, frère, bibliothécaire.' }, scraped: true },
+            { text: { en: 'Ermeline, sister, of the infirmary.', fr: 'Ermeline, sœur, de l’infirmerie.' } },
+            { text: { en: 'Isot, scribe, a foundling of Lychford.', fr: 'Isot, scribe, enfant trouvée de Lychford.' } },
           ],
           read: async (cc) => {
             cc.set('readWystan');

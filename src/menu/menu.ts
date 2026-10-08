@@ -92,10 +92,16 @@ export class Menu {
     return this.isOpen;
   }
 
-  /** Open on a list of entries (the pause menu, or the title screen's settings). */
-  show(entries: Entry[], startPage?: number): void {
+  /**
+   * Open on a list of entries (the pause menu, or the title screen's settings). `compact`
+   * is for a single short page (a choice, the credits): a window as tall as its words,
+   * centred, its text a little larger, instead of the full-screen frame.
+   */
+  show(entries: Entry[], startPage?: number, opts: { compact?: boolean } = {}): void {
     this.entries = entries;
     this.isOpen = true;
+    this.compact = !!opts.compact;
+    this.root.classList.toggle('compact', this.compact);
     this.root.classList.add('open');
     this.sideIndex = startPage ?? 0;
     this.stack = [];
@@ -121,10 +127,16 @@ export class Menu {
   layout(box?: { x: number; y: number; w: number; h: number }): void {
     const b = box ?? this.box ?? { x: 0, y: 0, w: window.innerWidth, h: window.innerHeight };
     this.box = b;
-    Object.assign(this.frame.style, { left: `${b.x}px`, top: `${b.y}px`, width: `${b.w}px`, height: `${b.h}px`, fontSize: `${Math.max(12, (b.h / 720) * 19)}px` });
+    if (this.compact) {
+      const w = Math.min(b.w * 0.86, b.h * 1.3);
+      Object.assign(this.frame.style, { left: `${b.x + (b.w - w) / 2}px`, top: `${b.y + b.h / 2}px`, width: `${w}px`, height: '', maxHeight: `${b.h}px`, fontSize: `${Math.max(13, (b.h / 720) * 22)}px` });
+      return;
+    }
+    Object.assign(this.frame.style, { left: `${b.x}px`, top: `${b.y}px`, width: `${b.w}px`, height: `${b.h}px`, maxHeight: '', fontSize: `${Math.max(12, (b.h / 720) * 19)}px` });
   }
 
   private box: { x: number; y: number; w: number; h: number } | null = null;
+  private compact = false;
 
   private enter(i: number): void {
     const e = this.entries[i];

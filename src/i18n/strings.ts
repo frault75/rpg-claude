@@ -567,10 +567,10 @@ registerStrings('fr', {
 });
 
 registerStrings('en', {
-  'page.help': 'Hold {rake} to tilt the candle · {confirm} to close',
+  'page.help': 'Hold {rake} to read by raking light · {confirm} to close',
   'map.look': 'Look',
 });
 registerStrings('fr', {
-  'page.help': 'Maintenez {rake} pour incliner la bougie · {confirm} pour fermer',
+  'page.help': 'Maintenez {rake} pour lire à la lumière rasante · {confirm} pour fermer',
   'map.look': 'Regarder',
 });

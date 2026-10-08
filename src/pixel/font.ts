@@ -3,6 +3,7 @@
  * headstone, the names of bells on their plaques. Pure, so it draws without a canvas.
  */
 
+import { lang, type LocalText } from '../i18n/i18n';
 import { PixelImage, type RGBA } from './pixel';
 
 const GLYPHS: Record<string, string> = {
@@ -35,6 +36,7 @@ const GLYPHS: Record<string, string> = {
   Z: '111001010100111',
   "'": '010010000000000',
   ',': '000000000010100',
+  '-': '000000111000000',
   '.': '000000000000010',
   ' ': '000000000000000',
   '·': '000000010000000',
@@ -69,4 +71,9 @@ export function textImage(lines: string[], color: RGBA, pad = 1): PixelImage {
   const img = new PixelImage(w, h);
   lines.forEach((l, i) => drawText(img, l, pad + Math.floor((w - pad * 2 - textWidth(l)) / 2), pad + i * 7, color));
   return img;
+}
+
+/** Words cut or painted in the world, in the player's language, drawn when they are first seen. */
+export function localTextImage(lines: LocalText[], color: RGBA, pad = 1): () => PixelImage {
+  return () => textImage(lines.map((l) => l[lang()]), color, pad);
 }

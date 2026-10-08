@@ -408,7 +408,7 @@ export class MapScene implements Scene {
 
   private openPage(def: PageDef): Promise<void> {
     this.pageView?.dispose();
-    this.pageView = new PageView(this.ui, tr(def.title), def.lines);
+    this.pageView = new PageView(this.ui, tr(def.title), def.lines.map((l) => ({ ...l, text: typeof l.text === 'string' ? l.text : tr(l.text) })));
     uiTick(this.audio, true);
     return new Promise((resolve) => {
       let said = false;

@@ -69,6 +69,13 @@ export const MENU_CSS = /* css */ `
 #menu .lost { font-size: 0.92em; line-height: 1.35; }
 #menu .lost.none { font-style: italic; letter-spacing: 0.04em; }
 #menu .slot { color: #C9A040; font-variant: small-caps; width: 5em; flex: none; }
+#menu.compact .frame { transform: translateY(-50%); padding: 0; }
+#menu.compact .content { padding: 1.3em 1.6em 1.1em; overflow-y: auto; max-height: 100%; }
+#menu.compact h2 { text-align: center; margin-bottom: 0.3em; }
+#menu.compact .help { text-align: center; margin-bottom: 1em; }
+#menu.compact .row { padding-top: 0.55em; padding-bottom: 0.55em; }
+#menu.compact .row.static { justify-content: center; text-align: center; line-height: 1.5; }
+#menu.compact .item-text { margin-top: 0.15em; line-height: 1.35; }
 `;
 
 /** The gold manicule (a pointing hand), as an inline SVG. */

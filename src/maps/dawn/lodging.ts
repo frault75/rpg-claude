@@ -7,7 +7,6 @@
  */
 
 import { EbbNightAmbience } from '../../audio/ambient';
-import { tr } from '../../i18n/i18n';
 import { bench, candle, coffer, pallet, writingDesk } from '../../pixel/furniture';
 import { GROUND_DEFAULT } from '../../pixel/terrain';
 import { ghostText } from '../../pixel/underwriting';
@@ -62,9 +61,9 @@ export const LODGING: MapDef = {
           lines: [
             { text: 'Hild. Hild. Hild. Hild. Hild. Hild. Hild.', red: true },
             { text: 'Hild. Hild. Hild. Hild. Hild. Hild. Hild. Hild.' },
-            { text: tr({ en: '(a leaf sketched: the Book, every page scraped clean, one name left)', fr: '(une feuille esquissée : le Livre, chaque page grattée, un seul nom restant)' }) },
+            { text: { en: '(a leaf sketched: the Book, every page scraped clean, one name left)', fr: '(une feuille esquissée : le Livre, chaque page grattée, un seul nom restant)' } },
             { text: 'Hild.', red: true },
-            { text: tr({ en: 'Forgive me. I could not be the one left.', fr: 'Pardonne-moi. Je ne pouvais pas être celui qui reste.' }), scraped: true },
+            { text: { en: 'Forgive me. I could not be the one left.', fr: 'Pardonne-moi. Je ne pouvais pas être celui qui reste.' }, scraped: true },
           ],
           read: async (cc) => {
             cc.set('aumeryForgive');

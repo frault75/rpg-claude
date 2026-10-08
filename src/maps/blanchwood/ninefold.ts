@@ -11,7 +11,7 @@ import { BlanchwoodAmbience } from '../../audio/blanchwood';
 import { fizzleSound } from '../../audio/battleSfx';
 import { hash2 } from '../../engine/noise';
 import { session } from '../../engine/session';
-import { textImage } from '../../pixel/font';
+import { localTextImage } from '../../pixel/font';
 import { ashlar, newArt } from '../../pixel/buildings';
 import { hex } from '../../pixel/pixel';
 import { blanch, ghostFacade, ghostStreet, pathStone, SEPIA } from '../../world3d/blanchwood';
@@ -90,7 +90,7 @@ const WORDS: Underwriting[] = [
     x: tiles(6),
     y: tiles(6.6),
     h: 14,
-    art: textImage(['NINEFOLD', 'OF THE NINE GATES'], GHOST),
+    art: localTextImage([{ en: 'NINEFOLD', fr: 'NINEFOLD' }, { en: 'OF THE NINE GATES', fr: 'AUX NEUF PORTES' }], GHOST),
     revealed: async (c) => {
       await c.say('isot', { en: '“Ninefold, of the nine gates.” There was a city here. A whole city, and the wood grew over the page where it was written.', fr: '« Ninefold, aux neuf portes. » Il y avait une ville ici. Toute une ville, et le bois a poussé sur la page où elle était écrite.' }, 'alarmed');
     },
@@ -100,7 +100,7 @@ const WORDS: Underwriting[] = [
     x: tiles(13),
     y: tiles(3.2),
     h: 14,
-    art: textImage(['BAKERS ROW'], GHOST),
+    art: localTextImage([{ en: 'BAKERS ROW', fr: 'RUE DES BOULANGERS' }], GHOST),
     revealed: async (c) => {
       await c.say('whit', { en: 'Bakers’ Row. I think I can smell bread. No. I think I remember smelling bread.', fr: 'La rue des Boulangers. Je crois sentir le pain. Non. Je crois me souvenir d’avoir senti le pain.' });
     },
@@ -110,7 +110,7 @@ const WORDS: Underwriting[] = [
     x: tiles(21),
     y: tiles(9.8),
     h: 14,
-    art: textImage(['THEY CAME WITH', 'THE PUMICE AT DAWN'], GHOST),
+    art: localTextImage([{ en: 'THEY CAME WITH', fr: 'ILS VINRENT AVEC' }, { en: 'THE PUMICE AT DAWN', fr: "LA PONCE A L'AUBE" }], GHOST),
     revealed: async (c) => {
       await c.say('hild', { en: 'The Pumice Order. They were made to scrape forgeries out of the Book. Then a city rebelled, and they decided it was a forgery. Ebba’s Pumice, end to end.', fr: 'L’ordre de la Ponce. On l’a fondé pour gratter les faux dans le Livre. Puis une ville s’est révoltée, et ils ont décidé que c’était un faux. La Ponce d’Ebba, d’un bout à l’autre.' }, 'grave');
     },
@@ -120,7 +120,7 @@ const WORDS: Underwriting[] = [
     x: tiles(29),
     y: tiles(5.2),
     h: 14,
-    art: textImage(['NINE THOUSAND', 'AND NOT ONE NAME LEFT'], GHOST),
+    art: localTextImage([{ en: 'NINE THOUSAND', fr: 'NEUF MILLE' }, { en: 'AND NOT ONE NAME LEFT', fr: 'ET PAS UN NOM RESTE' }], GHOST),
     revealed: async (c) => {
       await c.say('isot', { en: 'Nine thousand. Wystan used to say a page can’t be blank, only scraped.', fr: 'Neuf mille. Wystan disait qu’une page ne peut pas être blanche, seulement grattée.' }, 'sad');
     },
@@ -130,7 +130,7 @@ const WORDS: Underwriting[] = [
     x: tiles(36),
     y: tiles(7.2),
     h: 14,
-    art: textImage(['READER', 'REMEMBER US'], hex('#B8302A', 235)),
+    art: localTextImage([{ en: 'READER', fr: 'LECTEUR' }, { en: 'REMEMBER US', fr: 'SOUVIENS-TOI DE NOUS' }], hex('#B8302A', 235)),
     revealed: async (c) => {
       await c.say('isot', { en: 'In red chalk. A Glossator’s hand. “Reader, remember us.”', fr: 'À la craie rouge. Une main de Glossateur. « Lecteur, souviens-toi de nous. »' });
       await c.say('hild', { en: 'There’s a chapel past the gate. The Reader’s house. No Keeper ever dared scrape it.', fr: 'Il y a une chapelle passé la porte. La maison du Lecteur. Aucun Gardien n’a jamais osé la gratter.' }, 'grave');
@@ -141,8 +141,8 @@ const WORDS: Underwriting[] = [
 /** The hermit's ruin: two walls and a hearth, and the cache of a Glossator. */
 const HERMIT: [number, number] = [tiles(21.6), tiles(1.6)];
 const NAMES: Underwriting[] = [
-  { id: 'name-maud', x: HERMIT[0] - 10, y: HERMIT[1] + 4, h: 10, art: textImage(['MAUD OF THE MILL'], GHOST), lostName: 'maud' },
-  { id: 'name-gervase', x: HERMIT[0] + 14, y: HERMIT[1] + 4, h: 18, art: textImage(['GERVASE', 'A PEDLAR OF RIBBONS'], GHOST), lostName: 'gervase' },
+  { id: 'name-maud', x: HERMIT[0] - 10, y: HERMIT[1] + 4, h: 10, art: localTextImage([{ en: 'MAUD OF THE MILL', fr: 'MAUD DU MOULIN' }], GHOST), lostName: 'maud' },
+  { id: 'name-gervase', x: HERMIT[0] + 14, y: HERMIT[1] + 4, h: 18, art: localTextImage([{ en: 'GERVASE', fr: 'GERVASE' }, { en: 'A PEDLAR OF RIBBONS', fr: 'COLPORTEUR DE RUBANS' }], GHOST), lostName: 'gervase' },
 ];
 
 let lastHeld: [number, number] = ROADS[0]![0]!;

@@ -182,7 +182,8 @@ export interface MapContext {
 /** A page seen close up: lines of writing, some scraped, read by tilting the candle. */
 export interface PageDef {
   title: LocalText;
-  lines: { text: string; scraped?: boolean; red?: boolean }[];
+  /** Latin stays a plain string; anything the reader should understand is a LocalText. */
+  lines: { text: string | LocalText; scraped?: boolean; red?: boolean }[];
   /** Said once the scraped writing has been read. */
   read?: (c: MapContext) => Promise<void>;
 }
