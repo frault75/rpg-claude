@@ -92,3 +92,55 @@ describe('the Lost Names', () => {
     expect(MOTTO.join(' ')).toBe('WHAT IS WRITTEN IS HELD');
   });
 });
+
+describe('the interludes', () => {
+  it('there are four, one between each pair of chapters, each leading to a real spawn', async () => {
+    const { INTERLUDES } = await import('../src/story/interludes');
+    expect(Object.keys(INTERLUDES).map(Number)).toEqual([1, 2, 3, 4]);
+    for (const [n, it] of Object.entries(INTERLUDES)) {
+      expect(it.chapter.n).toBe(Number(n) + 1);
+      const map = MAPS[it.next.map];
+      expect(map, `interlude ${n} → ${it.next.map}`).toBeDefined();
+      expect(map!.spawns[it.next.spawn], `interlude ${n} → ${it.next.map}.${it.next.spawn}`).toBeDefined();
+      for (const p of it.prose) expect(p.en.length * p.fr.length).toBeGreaterThan(0);
+    }
+  });
+
+  it('the initial is the first letter of the prose, accents and all', async () => {
+    const { splitInitial } = await import('../src/story/interludes');
+    expect(splitInitial('We crossed')).toEqual(['W', 'e crossed']);
+    expect(splitInitial('À Lychford')).toEqual(['À', ' Lychford']);
+  });
+});
+
+describe('the journal', () => {
+  it('has words for every map, in both languages', async () => {
+    const { JOURNAL_MAPS, objective } = await import('../src/story/journal');
+    const { newGame } = await import('../src/story/state');
+    for (const id of [...Object.keys(MAPS), 'seaGate']) {
+      expect(JOURNAL_MAPS, id).toContain(id);
+      const g = newGame();
+      g.map = id;
+      const o = objective(g);
+      expect(o.en.length * o.fr.length, id).toBeGreaterThan(0);
+      expect(o.en, id).not.toBe('Onward.');
+    }
+  });
+
+  it('follows the story on a map: the cell before and after Hild asks', async () => {
+    const { objective } = await import('../src/story/journal');
+    const { newGame } = await import('../src/story/state');
+    const g = newGame();
+    g.map = 'cell';
+    const before = objective(g).en;
+    g.flags.hildAsked = true;
+    expect(objective(g).en).not.toBe(before);
+    g.flags.finished = true;
+    expect(objective(g).en).toMatch(/Book of Names/);
+  });
+
+  it('names every chapter', async () => {
+    const { chapterTitle } = await import('../src/story/journal');
+    expect([1, 2, 3, 4, 5, 6].map((n) => chapterTitle(n).title.en)).toEqual(['Chapter I', 'Chapter II', 'Chapter III', 'Chapter IV', 'Chapter V', 'Explicit']);
+  });
+});

@@ -34,6 +34,8 @@ import { Stage } from '../world3d/stage';
 export interface MapHooks {
   battle(id: string, back: { map: string; x: number; y: number; dir: Dir }): void;
   goto(map: string, spawn: string): void;
+  /** Close the chapter: the interlude page, then the next chapter's first map. */
+  interlude(n: number): void;
 }
 
 /** How a map is entered: at a named spawn, or at a point (after a fight). */
@@ -350,6 +352,10 @@ export class MapScene implements Scene {
       goto: (map, spawn) => {
         this.leaving = true;
         this.hooks.goto(map, spawn);
+      },
+      interlude: (n) => {
+        this.leaving = true;
+        this.hooks.interlude(n);
       },
       save: () => session.saves.save('auto', g()),
       learn: async (who, ability) => {

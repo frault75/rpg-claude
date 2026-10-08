@@ -1,0 +1,106 @@
+/**
+ * The Journal (DESIGN.md §10.7): what to do next, in Isot's words, worked out from where
+ * the party is and what has happened there; and the chapter it belongs to.
+ */
+
+import type { LocalText } from '../i18n/i18n';
+import { INTERLUDES } from './interludes';
+import type { GameState } from './state';
+
+export function chapterTitle(n: number): { title: LocalText; name: LocalText } {
+  if (n <= 1) return { title: { en: 'Chapter I', fr: 'Chapitre I' }, name: { en: 'The Scraping', fr: 'Le Grattage' } };
+  const it = Object.values(INTERLUDES).find((i) => i.chapter.n === n);
+  if (it) return { title: it.chapter.title, name: it.chapter.name };
+  return { title: { en: 'Explicit', fr: 'Explicit' }, name: { en: 'Here ends the Book of the Mercy', fr: 'Ici finit le Livre de la Miséricorde' } };
+}
+
+type Rule = [when: (g: GameState) => boolean, say: LocalText];
+
+const flag = (g: GameState, f: string) => !!g.flags[f];
+const won = (g: GameState, id: string) => g.cleared.includes(id);
+
+/** For each map, the first rule that holds says what to do; the last has no condition. */
+const BY_MAP: Record<string, Rule[]> = {
+  scriptorium: [
+    [(g) => !won(g, 'f1'), { en: 'A line has been scraped from the Book tonight. If I tilt my candle over the page, the vellum may remember what was there.', fr: 'Une ligne a été grattée du Livre cette nuit. Si j’incline ma bougie sur la page, le vélin se souviendra peut-être de ce qui y était écrit.' }],
+    [() => true, { en: 'The Abbot has found the scraped line, and my penknife. At the dawn bell I am to be scraped.', fr: 'L’abbé a trouvé la ligne grattée, et mon canif. À la cloche de l’aube, je dois être grattée.' }],
+  ],
+  cell: [
+    [(g) => !flag(g, 'hildAsked'), { en: 'Locked in the penitent’s cell until dawn. Someone is breathing on the other side of the squint.', fr: 'Enfermée dans la cellule du pénitent jusqu’à l’aube. Quelqu’un respire de l’autre côté de l’hagioscope.' }],
+    [(g) => !flag(g, 'hildJoined'), { en: 'This wall was a doorway once; the candle shows the arch. The anchoress says she can open it.', fr: 'Ce mur était une porte autrefois ; la bougie en montre l’arche. La recluse dit qu’elle peut l’ouvrir.' }],
+    [() => true, { en: 'Out, before the Brothers come back with the key.', fr: 'Dehors, avant que les Frères ne reviennent avec la clé.' }],
+  ],
+  cloister: [
+    [(g) => !won(g, 'f2'), { en: 'Pumice Brothers in the cloister. We have to get past them.', fr: 'Des Frères de la Ponce dans le cloître. Il faut passer.' }],
+    [() => true, { en: 'There used to be a stair down to the Sea Gate. Someone painted over the door; the candle will find it on the wall.', fr: 'Il y avait un escalier vers la Porte de la Mer. Quelqu’un a peint par-dessus la porte ; la bougie la retrouvera sur le mur.' }],
+  ],
+  seaGate: [[() => true, { en: 'Down the causeway, before the tide closes it.', fr: 'Descendre la chaussée, avant que la marée ne la ferme.' }]],
+  lane: [
+    [(g) => !won(g, 'f3'), { en: 'Lychford Lane. At the end of it is the village where no one has died in ten years.', fr: 'Le chemin de Lychford. Au bout, le village où personne n’est mort depuis dix ans.' }],
+    [() => true, { en: 'On into Lychford.', fr: 'Continuer jusqu’à Lychford.' }],
+  ],
+  village: [
+    [(g) => flag(g, 'raidDone'), { en: 'Gaudry’s torches are coming across the snow for the bell. Make for the mere.', fr: 'Les torches de Gaudry traversent la neige pour la cloche. Gagner la mare gelée.' }],
+    [(g) => won(g, 'b2'), { en: 'The play has ended. Something is wrong on the road from the Abbey.', fr: 'La pièce est finie. Quelque chose ne va pas sur la route de l’Abbaye.' }],
+    [(g) => flag(g, 'bellRung'), { en: 'The mummers are on the green, and the play still has no ending.', fr: 'Les mimes sont sur la place, et la pièce n’a toujours pas de fin.' }],
+    [() => true, { en: 'The passing bell in the tower has not rung in ten years, and Whit keeps looking up at it. The way is through the churchyard.', fr: 'Le glas de la tour n’a pas sonné depuis dix ans, et Whit ne cesse de lever les yeux vers lui. On y passe par le cimetière.' }],
+  ],
+  churchyard: [
+    [(g) => flag(g, 'bellRung'), { en: 'Back to the village green.', fr: 'Retourner sur la place du village.' }],
+    [(g) => !won(g, 'f4'), { en: 'No grave here is newer than ten years. The tower is beyond the lych-gate.', fr: 'Aucune tombe ici n’a moins de dix ans. La tour est derrière le porche.' }],
+    [() => true, { en: 'Up into the bell tower.', fr: 'Monter dans le clocher.' }],
+  ],
+  belltower: [
+    [(g) => !flag(g, 'bellRung'), { en: 'Ring the passing bell. The children’s skipping rhyme gives the order of the ropes.', fr: 'Sonner le glas. La comptine des enfants donne l’ordre des cordes.' }],
+    [() => true, { en: 'The bell has spoken. Down to the village.', fr: 'La cloche a parlé. Redescendre au village.' }],
+  ],
+  mere: [[() => true, { en: 'Across the frozen mere. The old ford is still under the ice; the candle shows where it holds.', fr: 'Traverser la mare gelée. Le vieux gué est encore sous la glace ; la bougie montre où elle tient.' }]],
+  wood: [[() => true, { en: 'The Blanchwood loses its colour as we go. The chapel where they prayed to the Reader is past Ninefold.', fr: 'La Blanchewood perd ses couleurs à mesure qu’on avance. La chapelle où l’on priait le Lecteur est au-delà de Ninefold.' }]],
+  ninefold: [[() => true, { en: 'The road has faded to bare vellum. The candle shows where it used to run.', fr: 'La route s’est effacée jusqu’au vélin nu. La bougie montre où elle passait.' }]],
+  gate: [
+    [(g) => !won(g, 'f6'), { en: 'Gaudry and Ermeline are waiting at Ninefold Gate.', fr: 'Gaudry et Ermeline attendent à la porte de Ninefold.' }],
+    [() => true, { en: 'Ermeline is scraping the wood behind us. Run for the chapel.', fr: 'Ermeline gratte la forêt derrière nous. Courir jusqu’à la chapelle.' }],
+  ],
+  flight: [[() => true, { en: 'Run. The blank is coming through the trees.', fr: 'Courir. Le blanc arrive à travers les arbres.' }]],
+  chapel: [
+    [(g) => !flag(g, 'muralRestored'), { en: 'On the chapel wall every living figure is led by a Death, and the order is wrong. Put the dance right.', fr: 'Sur le mur de la chapelle, chaque vivant est mené par une Mort, et l’ordre est faux. Remettre la danse en ordre.' }],
+    [() => true, { en: 'The ossuary stair is open. Down.', fr: 'L’escalier de l’ossuaire est ouvert. Descendre.' }],
+  ],
+  ossuary: [[() => true, { en: 'The dancers are waiting for the one who should lead them.', fr: 'Les danseurs attendent celui qui devrait les mener.' }]],
+  edge: [[() => true, { en: 'The world runs out at the edge of the page. Below it is the Margin.', fr: 'Le monde s’arrête au bord de la page. En dessous, il y a la Marge.' }]],
+  ivy: [
+    [(g) => !won(g, 'f7'), { en: 'Something white is sitting on the Ivy Gate, watching us.', fr: 'Quelque chose de blanc est perché sur la porte du Lierre, et nous regarde.' }],
+    [() => true, { en: 'The arches are labelled with catchwords. Read in the right order, they make a sentence.', fr: 'Les arches portent des réclames. Lues dans le bon ordre, elles font une phrase.' }],
+  ],
+  fair: [
+    [(g) => flag(g, 'amabelScraped') && !flag(g, 'amabelFound'), { en: 'The Drollery Fair. There is a little brown hen here who keeps looking at me.', fr: 'La foire aux drôleries. Il y a ici une petite poule brune qui ne cesse de me regarder.' }],
+    [() => true, { en: 'The Abbot of Unreason says the old ape on the vine knows the way down.', fr: 'L’Abbé de Déraison dit que le vieux singe de la vigne connaît le chemin du fond.' }],
+  ],
+  vine: [[() => true, { en: 'Wystan is on the vine.', fr: 'Wystan est sur la vigne.' }]],
+  inkwell: [[() => true, { en: 'The Ink-Well, at the bottom of the Margin, where every scraped name drains.', fr: 'Le Puits d’encre, au fond de la Marge, où s’écoule chaque nom gratté.' }]],
+  dawnScriptorium: [[() => true, { en: 'MERCY has tolled once. The lectern is bare: he has taken the Book into the church. His lodging is off the cloister.', fr: 'MERCY a sonné une fois. Le lutrin est vide : il a porté le Livre dans l’église. Son logis donne sur le cloître.' }]],
+  lodging: [
+    [(g) => !flag(g, 'hoursSeen'), { en: 'The Abbot’s lodging. His Book of Hours is open on the desk.', fr: 'Le logis de l’abbé. Son livre d’heures est ouvert sur le pupitre.' }],
+    [() => true, { en: 'To the church, through the cloister.', fr: 'À l’église, par le cloître.' }],
+  ],
+  dawnCloister: [
+    [(g) => !won(g, 'f9'), { en: 'Gaudry holds the garth between us and the church.', fr: 'Gaudry tient le préau entre nous et l’église.' }],
+    [() => true, { en: 'The church door is open.', fr: 'La porte de l’église est ouverte.' }],
+  ],
+  nave: [
+    [(g) => flag(g, 'ended'), { en: 'Finis.', fr: 'Finis.' }],
+    [(g) => !won(g, 'b5'), { en: 'Up the nave to the high altar, ahead of the tolls.', fr: 'Remonter la nef jusqu’au maître-autel, avant les glas.' }],
+    [() => true, { en: 'Read them. All of them.', fr: 'Les lire. Tous.' }],
+  ],
+};
+
+/** The current objective, in Isot's words. */
+export function objective(g: GameState): LocalText {
+  if (g.flags.finished) return { en: 'I keep the Book of Names now, and I leave room at the end of each line.', fr: 'Je tiens le Livre des Noms, à présent, et je laisse de la place au bout de chaque ligne.' };
+  const rules = BY_MAP[g.map];
+  const hit = rules?.find(([when]) => when(g));
+  return hit ? hit[1] : { en: 'Onward.', fr: 'En avant.' };
+}
+
+/** Every map the Journal knows, for the tests. */
+export const JOURNAL_MAPS = Object.keys(BY_MAP);

@@ -20,7 +20,7 @@ import { CHARACTERS } from '../../pixel/characters';
 import { candleStand, coffer, lectern } from '../../pixel/furniture';
 import { hex, PixelImage, ramp } from '../../pixel/pixel';
 import { GROUND_DEFAULT } from '../../pixel/terrain';
-import { LOST_NAMES } from '../../story/lostNames';
+import { lostNameText } from '../../story/lostNames';
 import type { Billboard } from '../../world3d/billboard';
 import { tiles } from '../../world3d/stage';
 import { backWall, dawnInterior, FLOOR, sideWall } from '../interior';
@@ -307,8 +307,7 @@ async function goldLineByLine(c: MapContext): Promise<void> {
   c.close();
   await c.narrate({ en: 'Aumery asked to be walled into Hild’s empty anchorhold, and was. Isot, Keeper of the Book, writes Ninefold back into it a street a day, from Ermeline’s litany and the Glossators’ Underbooks.', fr: 'Aumery demanda à être muré dans la réclusoire vide de Hild, et le fut. Isot, Gardienne du Livre, y réécrit Ninefold une rue par jour, d’après la litanie d’Ermeline et les Underbooks des Glossateurs.' });
   // The last page of her chronicle, with every Lost Name found in red in its margin.
-  const ebba = { en: 'Ebba of Lychford, born in the Grey Year, written at last in a margin.', fr: 'Ebba de Lychford, née l’Année grise, écrite enfin dans une marge.' };
-  const names = g.lostNames.map((id) => ({ text: tr(id === 'girl' && g.flags.girlNamed ? ebba : LOST_NAMES[id]!), red: true }));
+  const names = g.lostNames.map((id) => ({ text: tr(lostNameText(id, g)), red: true }));
   await c.page({
     title: { en: 'Epilogue. Explicit.', fr: 'Épilogue. Explicit.' },
     lines: [

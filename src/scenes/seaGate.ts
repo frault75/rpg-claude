@@ -12,7 +12,7 @@ import type { GameLight, WorldRenderer } from '../engine/diorama/renderer';
 import type { Input } from '../engine/input';
 import type { Scene } from '../engine/scene';
 import { session } from '../engine/session';
-import { t, tr } from '../i18n/i18n';
+import { tr } from '../i18n/i18n';
 import { waveSound } from '../audio/battleSfx';
 import { CHARACTERS } from '../pixel/characters';
 import { TILE } from '../pixel/terrain';
@@ -208,17 +208,8 @@ export class SeaGateScene implements Scene {
     hild.emote('silence', 2);
     session.game.flags.named = true;
     this.dialogue.close();
-    // Interlude I.
-    this.fadeTo = 1;
-    await d.wait(1.6);
-    await this.dialogue.narrate({ en: 'We crossed with the tide at our heels: a scribe, an anchoress who had not walked in ten years, and a knight who did not know his name.', fr: 'Nous avons traversé la marée aux talons : une scribe, une recluse qui n’avait pas marché depuis dix ans, et un chevalier qui ne connaissait pas son nom.' });
-    await this.dialogue.narrate({ en: 'I wrote WHIT on his wrist so that he would not fade, and he thanked me for it every hour until I asked him to stop, and then he thanked me for that.', fr: 'J’ai écrit WHIT sur son poignet pour qu’il ne s’efface pas, et il m’en a remerciée toutes les heures jusqu’à ce que je lui demande d’arrêter, et alors il m’a remerciée pour ça.' });
-    await this.dialogue.narrate({ en: 'I did not tell them what I had done. I am telling it now.', fr: 'Je ne leur ai pas dit ce que j’avais fait. Je le dis maintenant.' });
-    this.dialogue.close();
-    this.card.show(t('chapter.2'), t('chapter.2.name'));
-    await d.wait(4.2);
+    // Interlude I follows, then Chapter II.
     session.game.chapter = 2;
-    this.dialogue.close();
     this.hooks.end?.();
   }
 

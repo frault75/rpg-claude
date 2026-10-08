@@ -10,6 +10,8 @@ import type { SettingsStore } from '../engine/settings';
 import { detectLanguage, LANGUAGE_NAMES, LANGUAGES, t, tr } from '../i18n/i18n';
 import { CHARACTERS } from '../pixel/characters';
 import { drawPortrait } from '../pixel/portraits';
+import { chapterTitle, objective } from '../story/journal';
+import { LOST_NAMES, lostNameText } from '../story/lostNames';
 import type { CharId, GameState } from '../story/state';
 import { buttonRow, el, infoRow, type Menu, type Page, type Row, selectRow, sepRow, sliderRow, toggleRow } from './menu';
 
@@ -83,6 +85,36 @@ export function partyPage(d: MenuDeps): Page {
         box.append(info);
         rows.push({ el: box, focus: false });
       }
+      return rows;
+    },
+  };
+}
+
+/** The Journal: the chapter, what to do next in Isot's words, and the Lost Names found. */
+export function journalPage(d: MenuDeps): Page {
+  return {
+    title: () => t('menu.journal'),
+    help: () => {
+      const ch = chapterTitle(d.game().chapter);
+      return `${tr(ch.title)} · ${tr(ch.name)}`;
+    },
+    rows: () => {
+      const g = d.game();
+      const rows: Row[] = [];
+      rows.push(infoRow(`<span class="quest-k">${t('journal.now')}</span>`, 'static'));
+      rows.push(infoRow(`<span class="quest">${tr(objective(g))}</span>`, 'static'));
+      rows.push(sepRow());
+      const ids = Object.keys(LOST_NAMES);
+      const found = ids.filter((id) => g.lostNames.includes(id));
+      rows.push(infoRow(`<span class="label">${t('journal.names')}</span><span class="value">${found.length} / ${ids.length}</span>`, 'static'));
+      for (const id of ids) {
+        const has = g.lostNames.includes(id);
+        const text = has ? tr(lostNameText(id, g)) : t('journal.unfound');
+        rows.push(infoRow(`<i class="gem" style="background:${has ? '#B0302A' : 'transparent'}"></i><span class="lost${has ? '' : ' none'}">${text}</span>`, `static${has ? '' : ' dim'}`));
+      }
+      rows.push(sepRow());
+      const m = Math.floor(g.playTime / 60);
+      rows.push(infoRow(`<span class="label">${t('journal.played')}</span><span class="value">${Math.floor(m / 60)} h ${String(m % 60).padStart(2, '0')}</span>`, 'static'));
       return rows;
     },
   };

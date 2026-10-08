@@ -196,10 +196,6 @@ async function finis(c: MapContext): Promise<void> {
   await c.say('hild', { en: 'You haven’t seen where the forgotten go.', fr: 'Tu n’as pas vu où vont les oubliés.' }, 'grave');
   await c.narrate({ en: 'They step off the page.', fr: 'Ils sortent de la page.' });
   c.close();
-  await c.narrate({ en: 'Every book I ever copied ended with the same word. I wrote it ten thousand times and never once looked at it.', fr: 'Chaque livre que j’ai copié finissait par le même mot. Je l’ai écrit dix mille fois sans jamais le regarder.' });
-  await c.narrate({ en: 'He had been walking beside us for four days, and he had said thank you for every one of them.', fr: 'Il marchait à nos côtés depuis quatre jours, et il avait dit merci pour chacun d’eux.' });
-  c.card({ en: 'Chapter IV', fr: 'Chapitre IV' }, { en: 'The Margin', fr: 'La Marge' });
-  await c.wait(4);
   session.game.chapter = 4;
-  c.goto('edge', 'start');
+  c.interlude(3);
 }

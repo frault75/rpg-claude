@@ -411,7 +411,7 @@ export class PrologueScene implements Scene {
 }
 
 /** A wax candle in a pewter holder. */
-function candleImage(): PixelImage {
+export function candleImage(): PixelImage {
   const img = new PixelImage(12, 22);
   const wax = ramp('#EFE6D2', 4);
   const pewter = ramp('#8A8C94', 4);

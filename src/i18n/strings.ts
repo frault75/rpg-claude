@@ -9,6 +9,10 @@ registerStrings('en', {
   'menu.party': 'Party',
   'menu.equipment': 'Equipment',
   'menu.journal': 'Journal',
+  'journal.now': 'Now',
+  'journal.names': 'Lost Names',
+  'journal.unfound': 'A name not yet read.',
+  'journal.played': 'Time played',
   'menu.settings': 'Settings',
   'menu.save': 'Save',
   'menu.title': 'Return to title',
@@ -116,6 +120,10 @@ registerStrings('fr', {
   'menu.party': 'Équipe',
   'menu.equipment': 'Équipement',
   'menu.journal': 'Journal',
+  'journal.now': 'À présent',
+  'journal.names': 'Noms perdus',
+  'journal.unfound': 'Un nom pas encore lu.',
+  'journal.played': 'Temps de jeu',
   'menu.settings': 'Paramètres',
   'menu.save': 'Sauvegarder',
   'menu.title': "Retour à l'écran titre",
@@ -218,6 +226,7 @@ registerStrings('fr', {
 
 registerStrings('en', {
   'prologue.skip': 'Skip: Esc / B',
+  'interlude.turn': 'Turn the page',
   'chapter.1': 'Chapter I',
   'chapter.1.name': 'The Scraping',
   'chapter.2': 'Chapter II',
@@ -225,6 +234,7 @@ registerStrings('en', {
 });
 registerStrings('fr', {
   'prologue.skip': 'Passer : Échap / B',
+  'interlude.turn': 'Tourner la page',
   'chapter.1': 'Chapitre I',
   'chapter.1.name': 'Le Grattage',
   'chapter.2': 'Chapitre II',

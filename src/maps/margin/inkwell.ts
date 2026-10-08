@@ -4,7 +4,8 @@
  * scraping at the bright word at its bottom; the ink rises, swallows her, and opens a
  * hundred eyes made of letters (B4). Afterwards one bright word lies in the drained well,
  * Isot fills her inkhorn with it, pulls Ermeline out and writes her name on her wrist.
- * The hook: nine tolls at dawn, then nothing. Out through the margin of Wystan's psalter.
+ * The hook: nine tolls at dawn, then nothing. Out through the margin of Wystan's psalter,
+ * and Interlude IV.
  */
 
 import { bell, midiToHz } from '../../audio/instruments';
@@ -107,10 +108,6 @@ async function afterTheBlot(c: MapContext): Promise<void> {
   await c.say('hild', { en: 'Every margin borders a book. Somewhere up there is the margin of Wystan’s psalter, and Wystan’s psalter is in the scriptorium.', fr: 'Chaque marge borde un livre. Quelque part là-haut, il y a la marge du psautier de Wystan, et le psautier de Wystan est au scriptorium.' }, 'stern');
   await c.narrate({ en: 'They climb a bar of gold, up and up, and out through the margin of an old psalter, into the scriptorium of Saint Ebb’s an hour before dawn.', fr: 'Ils grimpent une barre d’or, toujours plus haut, et sortent par la marge d’un vieux psautier, dans le scriptorium de Saint-Ebb, une heure avant l’aube.' });
   c.close();
-  await c.narrate({ en: 'The forgotten did not want to come home. They wanted to be finished.', fr: 'Les oubliés ne voulaient pas rentrer. Ils voulaient être finis.' });
-  await c.narrate({ en: 'I had scraped a man out of the world and called it kindness; now I carried his ending in my inkhorn, and the Abbey was waking up.', fr: 'J’avais gratté un homme hors du monde en appelant cela de la bonté ; à présent je portais sa fin dans ma corne d’encre, et l’Abbaye s’éveillait.' });
-  c.card({ en: 'Chapter V', fr: 'Chapitre V' }, { en: 'The Writing', fr: 'L’Écriture' });
-  await c.wait(4);
   session.game.chapter = 5;
-  c.goto('dawnScriptorium', 'psalter');
+  c.interlude(4);
 }

@@ -18,13 +18,15 @@ import { type Settings, TEXT_SPEEDS } from './engine/settings';
 import { TouchControls } from './engine/touch';
 import { detectLanguage, setLang, t } from './i18n/i18n';
 import { Menu } from './menu/menu';
-import { equipmentPage, type MenuDeps, partyPage, settingsPage } from './menu/pages';
+import { equipmentPage, journalPage, type MenuDeps, partyPage, settingsPage } from './menu/pages';
 import { MAPS } from './maps/index';
 import { BattleScene } from './scenes/battle';
 import { type Arrival, MapScene } from './scenes/map';
+import { InterludeScene } from './scenes/interlude';
 import { PrologueScene } from './scenes/prologue';
 import { SeaGateScene } from './scenes/seaGate';
 import { TitleScene } from './scenes/title';
+import { INTERLUDES } from './story/interludes';
 import { newGame } from './story/state';
 
 function boot(): void {
@@ -97,7 +99,7 @@ function boot(): void {
     session.game.map = 'seaGate';
     session.saves.save('auto', session.game);
     return new SeaGateScene(renderer, input, audio, {
-      end: () => transition(() => mapScene('lane', { spawn: 'start' }), 2.4),
+      end: () => transition(() => interlude(1), 2.4),
       battle: (id) =>
         transition(
           () =>
@@ -117,6 +119,7 @@ function boot(): void {
     if (!def) throw new Error(`unknown map ${id}`);
     return new MapScene(renderer, input, audio, def, arrival, {
       goto: (map, spawn) => transition(() => mapScene(map, { spawn }), 0.8),
+      interlude: (n) => transition(() => interlude(n), 1.8),
       battle: (fight, back) =>
         transition(
           () =>
@@ -128,6 +131,12 @@ function boot(): void {
         ),
     });
   };
+  /** A page of Isot's chronicle between chapters, then the next chapter's first map. */
+  const interlude = (n: number): Scene =>
+    new InterludeScene(renderer, input, audio, n, () => {
+      const next = INTERLUDES[n]!.next;
+      transition(() => mapScene(next.map, { spawn: next.spawn }), 1.2);
+    });
   const prologue = (): Scene => new PrologueScene(renderer, input, audio, () => transition(() => mapScene('scriptorium', { spawn: 'start' }), 0.6));
   const toTitle = (): Scene => {
     const title: TitleScene = new TitleScene(renderer, input, audio, {
@@ -267,11 +276,20 @@ function boot(): void {
     startGame();
     session.game.party = ['isot', 'hild'];
     scene = seaGate();
+  } else if (params.get('scene') === 'interlude') {
+    const n = Number(params.get('n') ?? 1);
+    if (n >= 4) chapterFour();
+    else if (n >= 3) chapterThree();
+    else if (n >= 2) chapterTwo();
+    else startGame();
+    session.game.chapter = n + 1;
+    scene = interlude(n);
   } else if (params.get('scene') === 'prologue') {
     startGame();
     scene = prologue();
   } else scene = toTitle();
-  const openPause = () => {
+  /** The pause menu; `start` opens straight onto one of its pages (the Journal, from J). */
+  const openPause = (start?: number) => {
     input.frozen = true;
     menu.onClose = pauseClosed;
     menu.layout(renderer.viewport);
@@ -279,6 +297,7 @@ function boot(): void {
       { label: () => t('menu.resume'), run: () => menu.close() },
       { label: () => t('menu.party'), page: () => partyPage(deps) },
       { label: () => t('menu.equipment'), page: () => equipmentPage(deps) },
+      { label: () => t('menu.journal'), page: () => journalPage(deps) },
       { label: () => t('menu.settings'), page: () => settingsPage(deps) },
       {
         label: () => t('menu.save'),
@@ -302,8 +321,9 @@ function boot(): void {
           ],
         }),
       },
-    ]);
+    ], start);
   };
+  const JOURNAL = 3;
   const pauseClosed = () => {
     input.frozen = false;
   };
@@ -311,6 +331,10 @@ function boot(): void {
     if (menu.open) return menu.handle(a);
     if (a === 'menu' && scene.pausable !== false) {
       openPause();
+      return true;
+    }
+    if (a === 'journal' && scene.pausable !== false) {
+      openPause(JOURNAL);
       return true;
     }
     return false;
@@ -328,6 +352,7 @@ function boot(): void {
       // Jump anywhere the story reaches.
       { label: '→ title', run: () => transition(toTitle, 0.3) },
       { label: '→ prologue', run: () => transition(() => (startGame(), prologue()), 0.3) },
+      ...[1, 2, 3, 4].map((n) => ({ label: `→ interlude ${['I', 'II', 'III', 'IV'][n - 1]}`, run: () => transition(() => interlude(n), 0.3) })),
       { label: '→ scriptorium', run: () => transition(() => (startGame(), mapScene('scriptorium', { spawn: 'start' })), 0.3) },
       { label: '→ sea gate', run: () => transition(() => (startGame(), (session.game.party = ['isot', 'hild']), seaGate()), 0.3) },
       { label: '→ lychford', run: () => transition(() => (chapterTwo(), mapScene('lane', { spawn: 'start' })), 0.3) },
