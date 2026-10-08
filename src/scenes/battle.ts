@@ -349,15 +349,7 @@ export class BattleScene implements Scene {
       emendAnywhere: !!g.flags.emendUpgraded,
       seed: 7,
     });
-    for (const u of this.battle.units) {
-      const f = new Figure(u.id, u.side, u.kind, this.r.scene);
-      const [x, y] = this.home(u, u.place);
-      f.hx = f.x = x;
-      f.hy = f.y = y;
-      f.alpha = u.side === 'enemy' ? 0 : 1;
-      f.alphaTarget = f.alpha;
-      this.figures.set(u.id, f);
-    }
+    for (const u of this.battle.units) this.ensureFigure(u);
     this.cursor = 0;
     this.jobs.length = 0;
     this.job = null;
@@ -413,10 +405,25 @@ export class BattleScene implements Scene {
     return this.set.enemies[Math.min(3, place)]!;
   }
 
+  /** A figure for a unit, made the first time it is needed (Blotlets rise mid-battle). */
+  private ensureFigure(u: Unit): Figure {
+    let f = this.figures.get(u.id);
+    if (f) return f;
+    f = new Figure(u.id, u.side, u.kind, this.r.scene);
+    const [x, y] = this.home(u, u.place);
+    f.hx = f.x = x;
+    f.hy = f.y = y;
+    f.alpha = u.side === 'enemy' ? 0 : 1;
+    f.alphaTarget = f.alpha;
+    this.figures.set(u.id, f);
+    return f;
+  }
+
   /** Make the screen show the engine's state as it is now. */
   private resync(): void {
     const b = this.battle;
     for (const u of b.units) {
+      this.ensureFigure(u);
       this.shown.hp.set(u.id, u.hp);
       this.shown.place.set(u.id, u.place);
       this.shown.fallen.set(u.id, u.fallen);
@@ -832,6 +839,22 @@ export class BattleScene implements Scene {
         });
         break;
       case 'spawn':
+        this.queue({
+          dur: 0.5,
+          start: () => {
+            const u = this.battle.unit(e.unit);
+            if (!u) return;
+            this.shown.hp.set(u.id, u.maxHp);
+            this.shown.place.set(u.id, u.place);
+            this.shown.fallen.set(u.id, false);
+            const f = this.ensureFigure(u);
+            f.alphaTarget = 1;
+            this.burst(f, '#3A3450', 40);
+            this.popup(u.id, t('battle.rises'), 'word');
+            whoosh(a);
+            this.overlayDirty = true;
+          },
+        });
         break;
     }
   }

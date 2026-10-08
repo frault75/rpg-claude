@@ -65,7 +65,8 @@ interface Snapshot {
   squinted: number;
   preview: Intent[] | null;
   revivals: number;
-  emptyPlace: boolean;
+  phases: string[];
+  nextUnit: number;
   eventsLen: number;
 }
 
@@ -100,8 +101,10 @@ export class Battle {
   private readonly fighting: ReadonlySet<CharId>;
   /** A tune was called: every dancer plans twice next round. */
   private tuned = false;
-  /** The Danse Macabre's Leader is at half: the followers' blows pass through Whit. */
-  private emptyPlace = false;
+  /** Phase changes so far (the Rasure, Ermeline freed). */
+  phases = new Set<string>();
+  /** For naming units that rise mid-battle (Blotlets). */
+  private nextUnit = 0;
   private nextIntentId = 1;
 
   constructor(setup: BattleSetup) {
@@ -138,6 +141,7 @@ export class Battle {
       this.units.push({ id: `e${i}`, side: 'enemy', kind, name: e.name, hp: e.hp, maxHp: e.hp, place, size, status: st, fallen: false, acted: false, phase: 0, hiddenIntents: !!e.hidden });
       place += size;
     });
+    this.nextUnit = this.def.enemies.length;
   }
 
   /** Is this ally fighting, and wearing this item? */
@@ -241,7 +245,7 @@ export class Battle {
       }
     }
     this.tuned = false;
-    const env = this.def.env?.(this.round);
+    const env = this.def.env?.(this.round, this.phases);
     if (env) this.intents.push(this.makeIntent('env', env));
     this.intents.forEach((it, i) => (it.order = i + 1));
     this.emit({ type: 'omen', intents: this.intents.map((i) => i.id) });
@@ -293,9 +297,10 @@ export class Battle {
     const def = ENEMIES[e.kind]!;
     const allies = this.standingEnemies()
       .filter((o) => o !== e)
-      .map((o) => ({ id: o.id, kind: o.kind, name: o.name, hp: o.hp, maxHp: o.maxHp }));
+      .map((o) => ({ id: o.id, kind: o.kind, name: o.name, hp: o.hp, maxHp: o.maxHp, place: o.place }));
     const fallen = this.enemies.filter((o) => o !== e && o.fallen).map((o) => ({ id: o.id, kind: o.kind, name: o.name }));
-    return def.behave({ round, phase: e.phase, hp: e.hp, maxHp: e.maxHp, allies, fallen, rng });
+    const party = this.party.filter((u) => !u.fallen).map((u) => ({ id: u.id, name: u.name, hp: u.hp, maxHp: u.maxHp, place: u.place }));
+    return def.behave({ round, phase: e.phase, hp: e.hp, maxHp: e.maxHp, place: e.place, allies, party, fallen, rng });
   }
 
   private makeIntent(actor: string, s: IntentSpec): Intent {
@@ -352,7 +357,8 @@ export class Battle {
       squinted: this.squinted,
       preview: this.preview,
       revivals: this.revivals,
-      emptyPlace: this.emptyPlace,
+      phases: [...this.phases],
+      nextUnit: this.nextUnit,
       eventsLen: this.events.length,
     });
   }
@@ -376,7 +382,8 @@ export class Battle {
     this.squinted = s.squinted;
     this.preview = s.preview;
     this.revivals = s.revivals;
-    this.emptyPlace = s.emptyPlace;
+    this.phases = new Set(s.phases);
+    this.nextUnit = s.nextUnit;
     this.events.length = s.eventsLen;
     this.result = 'ongoing';
     return true;
@@ -457,6 +464,12 @@ export class Battle {
         const it = this.intents.find((i) => i.id === target.intent);
         if (!it || it.cancelled) return 'target';
         if (ability === 'emend') {
+          // Ermeline's stroke at the inkhorn can be turned too: onto an enemy, to free her.
+          if (it.effects.some((e) => e.kind === 'drain')) {
+            const to = target.to ? this.unit(target.to) : undefined;
+            if (!this.emendAnywhere || !to || to.side !== 'enemy' || to.fallen || to.status.immured) return 'target';
+            break;
+          }
           if (!('place' in it.target || 'unit' in it.target) || it.damage <= 0) return 'not-single';
           const to = target.to ? this.unit(target.to) : undefined;
           if (!to || to.fallen) return 'target';
@@ -515,6 +528,11 @@ export class Battle {
     switch (ability) {
       case 'penknife': {
         const bonus = this.wears('isot', 'wystansPumice') && t!.status.glossed ? 1 : 0;
+        // A Blotlet is ink: the penknife fills her pen.
+        if (ENEMIES[t!.kind]?.inkwell && this.ink < this.maxInk) {
+          this.ink++;
+          this.emit({ type: 'ink', amount: 1 });
+        }
         this.hurt(t!, 2 * x + bonus, u.id);
         break;
       }
@@ -672,6 +690,17 @@ export class Battle {
     this.emit({ type: 'intent', intent: it.id, actor: it.actor });
     if (it.effects.some((e) => e.kind === 'turn')) this.turnDance();
     if (it.effects.some((e) => e.kind === 'tune')) this.tuned = true;
+    if (it.effects.some((e) => e.kind === 'drain')) {
+      if (it.turned) {
+        this.phases.add('ermelineFree');
+        this.emit({ type: 'phase', title: { en: 'Ermeline Is Free', fr: 'Ermeline est libre' }, line: { en: 'Her stroke turned, she lets go of the inkhorn and surfaces, gasping.', fr: 'Son geste détourné, elle lâche la corne d’encre et remonte, haletante.' } });
+      } else if (this.ink > 0) {
+        this.ink--;
+        this.emit({ type: 'ink', amount: -1 });
+      }
+      return;
+    }
+    for (const e of it.effects) if (e.kind === 'spawn' && actor) this.spawn(e.enemy, actor);
     if ('self' in it.target) {
       if (actor) this.applyEffects(it, actor, actor);
       return;
@@ -780,7 +809,7 @@ export class Battle {
     // Blows from the party pass through the hollow; after the Empty Place, the dance spares Whit.
     const from = this.unit(source);
     const byParty = from?.side === 'party' || source === 'reckoning';
-    if ((u.status.hollow && byParty) || (this.emptyPlace && u.id === 'whit' && from?.status.hollow)) {
+    if ((u.status.hollow && byParty) || (this.phases.has('emptyPlace') && u.id === 'whit' && from?.status.hollow)) {
       this.emit({ type: 'pass', unit: u.id });
       return;
     }
@@ -798,6 +827,9 @@ export class Battle {
     const absorbed = Math.min(u.status.ward, a);
     u.status.ward -= absorbed;
     a -= absorbed;
+    // A big enough hit splits off a piece of the Blot.
+    const splits = u.side === 'enemy' ? ENEMIES[u.kind]?.splits : undefined;
+    if (splits && byParty && a >= splits.at) this.spawn(splits.into, u);
     if (u.status.readOnly) a = Math.min(a, u.hp - 1);
     u.hp -= a;
     this.emit({ type: 'damage', unit: u.id, amount: a, absorbed, source });
@@ -805,14 +837,12 @@ export class Battle {
       this.fell(u, false);
       return;
     }
-    if (!this.emptyPlace && ENEMIES[u.kind]?.leads && u.side === 'enemy' && u.hp * 2 <= u.maxHp) {
-      this.emptyPlace = true;
-      this.emit({
-        type: 'phase',
-        title: { en: 'The Empty Place', fr: 'La place vide' },
-        line: { en: 'The ring turns toward Whit: the followers’ blows pass through him.', fr: 'La ronde se tourne vers Whit : les coups des suivants le traversent.' },
-      });
+    const ph = u.side === 'enemy' ? ENEMIES[u.kind]?.phaseAt : undefined;
+    if (ph && u.hp <= ph.hp && !this.phases.has(ph.id)) {
+      this.phases.add(ph.id);
+      this.emit({ type: 'phase', title: ph.title, line: ph.line });
     }
+
     if (a > 0 && u.status.tally !== null && source !== 'reckoning') {
       u.status.tally--;
       if (u.status.tally <= 0) this.reckon(u);
@@ -845,15 +875,31 @@ export class Battle {
     u.status.tally = null;
     u.status.ward = 0;
     this.emit({ type: 'fall', unit: u.id });
-    // The one who leads falls, and the dance ends.
+    // The one who leads falls, and everything bound to it falls too.
     if (u.side === 'enemy' && ENEMIES[u.kind]?.leads)
       for (const o of this.enemies)
-        if (!o.fallen && o.status.hollow) {
+        if (!o.fallen && ENEMIES[o.kind]?.bound) {
           o.hp = 0;
           o.fallen = true;
           this.emit({ type: 'fall', unit: o.id });
         }
     this.checkEnd();
+  }
+
+  /** A new enemy rises into the empty place nearest `near` (there are four places). */
+  private spawn(kind: string, near: Unit): void {
+    const def = ENEMIES[kind];
+    if (!def) return;
+    const taken = new Set<number>();
+    for (const o of this.standingEnemies()) for (let k = 0; k < o.size; k++) taken.add(o.place + k);
+    const free = [0, 1, 2, 3].filter((p) => !taken.has(p)).sort((a, b) => Math.abs(a - near.place) - Math.abs(b - near.place) || b - a)[0];
+    if (free === undefined) return;
+    const st = freshStatuses();
+    st.readOnly = !!def.readOnly;
+    st.hollow = !!def.hollow;
+    const u: Unit = { id: `e${this.nextUnit++}`, side: 'enemy', kind, name: def.name, hp: def.hp, maxHp: def.hp, place: free, size: def.size ?? 1, status: st, fallen: false, acted: true, phase: 0, hiddenIntents: !!def.hidden };
+    this.units.push(u);
+    this.emit({ type: 'spawn', unit: u.id });
   }
 
   /** The dance turns: every standing enemy moves one place back, and the last comes to the front. */

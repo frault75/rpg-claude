@@ -476,6 +476,210 @@ export function babewynArt(seed = 9): EnemyArt {
   );
 }
 
+// ---------------------------------------------------------------------------------------
+// The Blot: every scraped name drained down to the Ink-Well, woken up. A hundred eyes made of
+// letters open and close in it. Its Blotlets are drops of the same ink.
+
+const LETTER_EYES = ['A', 'E', 'O', 'R', 'S', 'M', 'N', 'I'];
+
+function blotFrame(bob: number, rise: number, seed: number): { a: PixelImage; e: PixelImage } {
+  const W = 64;
+  const H = 52;
+  const img = new PixelImage(W, H);
+  const glow = new PixelImage(W, H);
+  const ink = ramp('#1C1A2E', 5);
+  const noise = new Noise2D(seed);
+  const cy = 30 - rise + bob;
+  // The mass: a heap of ink, wider at the foot, with drips and a glossy crown.
+  for (let y = 4; y < H; y++)
+    for (let x = 0; x < W; x++) {
+      const nx = (x + 0.5 - W / 2) / (24 + (y - cy) * 0.35);
+      const ny = (y + 0.5 - cy) / 22;
+      const wob = (noise.value(x / 6, y / 6 + bob) - 0.5) * 0.35;
+      if (nx * nx + ny * ny > 1 + wob && y < H - 3) continue;
+      if (y >= H - 3 && Math.abs(x + 0.5 - W / 2) > 29 - (H - y) * 2) continue;
+      let t = 0.6 + sphere(Math.max(-1, Math.min(1, nx)), Math.max(-1, Math.min(1, ny))) * 3.4;
+      if (hash2(x, y >> 1, seed) > 0.96) t += 1.2;
+      img.set(x, y, tone(ink, t, x, y));
+    }
+  // Drips running down.
+  for (const dx of [-14, -3, 9, 18]) {
+    const x = W / 2 + dx;
+    for (let y = cy + 6; y < H - 1; y++) if (img.alpha(x, y) > 0) img.set(x, y, ink[0]!);
+  }
+  // Eyes made of letters, pale and glowing, scattered over it.
+  const letter = (ch: string, x: number, y: number) => {
+    const shapes: Record<string, string[]> = {
+      A: ['.#.', '#.#', '###'],
+      E: ['##', '#.', '##'],
+      O: ['.#.', '#.#', '.#.'],
+      R: ['##', '##', '#.'],
+      S: ['.#', '#.', '#.'],
+      M: ['#.#', '###', '#.#'],
+      N: ['#.#', '##.', '#.#'],
+      I: ['#', '#', '#'],
+    };
+    (shapes[ch] ?? shapes.O!).forEach((row, j) =>
+      [...row].forEach((c, i) => {
+        if (c !== '#') return;
+        img.set(x + i, y + j, hex('#EDE3CC'));
+        glow.set(x + i, y + j, hex('#C8B890'));
+      }),
+    );
+  };
+  for (let i = 0; i < 9; i++) {
+    const x = Math.round(W / 2 - 18 + hash2(i, 1, seed) * 34);
+    const y = Math.round(cy - 14 + hash2(i, 2, seed) * 24);
+    if (img.alpha(x, y) > 0 && img.alpha(x + 2, y + 2) > 0 && (bob + i) % 4 !== 0) letter(LETTER_EYES[i % LETTER_EYES.length]!, x, y);
+  }
+  img.outline(null);
+  return { a: img, e: glow };
+}
+
+export function blotArt(seed = 13): EnemyArt {
+  return sheetOf([blotFrame(0, 0, seed), blotFrame(1, 0, seed), blotFrame(2, 0, seed), blotFrame(1, 0, seed), blotFrame(0, 6, seed)], { idle: [0, 1, 2, 3], lunge: [4] }, [32, 51]);
+}
+
+function blotletFrame(bob: number, seed: number): { a: PixelImage; e: PixelImage } {
+  const img = new PixelImage(20, 18);
+  const glow = new PixelImage(20, 18);
+  const ink = ramp('#22203A', 5);
+  img.ellipse(10, 12 - bob * 0.5, 7, 5.4 + bob * 0.4, (x, y, nx, ny) => tone(ink, 0.6 + sphere(nx, ny) * 3.6, x, y));
+  img.set(10, 5 - bob, ink[2]!);
+  img.set(10, 6 - bob, ink[1]!);
+  for (const ex of [7, 12]) {
+    img.set(ex, 11, hex('#EDE3CC'));
+    glow.set(ex, 11, hex('#B8A880'));
+  }
+  img.outline(null);
+  void seed;
+  return { a: img, e: glow };
+}
+
+export function blotletArt(seed = 14): EnemyArt {
+  return sheetOf([blotletFrame(0, seed), blotletFrame(1, seed), blotletFrame(2, seed), blotletFrame(1, seed), blotletFrame(3, seed)], { idle: [0, 1, 2, 3], lunge: [4] }, [10, 17]);
+}
+
+// ---------------------------------------------------------------------------------------
+// The caladrius: the white bird of the bestiaries, which looks away from the dying.
+
+function caladriusFrame(wing: number, look: boolean): { a: PixelImage; e: PixelImage } {
+  const img = new PixelImage(30, 32);
+  const glow = new PixelImage(30, 32);
+  const white = ramp('#F2EEE6', 5, 0.6);
+  const gold = ramp('#D8A838', 4);
+  // Legs.
+  img.vline(13, 24, 31, gold[1]!);
+  img.vline(17, 24, 31, gold[1]!);
+  img.hline(11, 14, 31, gold[2]!);
+  img.hline(16, 19, 31, gold[2]!);
+  // Body, neck and head; it looks away (left) when it means to.
+  img.ellipse(15, 20, 8, 5.6, (x, y, nx, ny) => tone(white, 1 + sphere(nx, ny) * 3.6, x, y));
+  const hx = look ? 9 : 21;
+  img.line(look ? 12 : 18, 16, hx, 9, white[3]!);
+  img.line(look ? 13 : 17, 16, hx + (look ? 1 : -1), 9, white[2]!);
+  img.ellipse(hx, 8, 3, 2.6, (x, y, nx, ny) => tone(white, 1.4 + sphere(nx, ny) * 3, x, y));
+  img.hline(look ? hx - 6 : hx + 2, look ? hx - 2 : hx + 6, 8, gold[3]!);
+  const eye = look ? hx - 1 : hx + 1;
+  img.set(eye, 7, hex('#2A2030'));
+  glow.set(eye, 7, hex('#6A5AA0'));
+  // The wing, raised or folded.
+  img.poly(
+    [
+      [9, 18],
+      [22, 17 - wing * 5],
+      [24, 21 - wing * 3],
+      [12, 23],
+    ],
+    (x) => tone(white, 2.6 - (x - 9) * 0.08, x, 20),
+  );
+  // Tail.
+  img.poly(
+    [
+      [7, 20],
+      [2, 24],
+      [8, 23],
+    ],
+    white[1]!,
+  );
+  img.outline(null);
+  return { a: img, e: glow };
+}
+
+export function caladriusArt(): EnemyArt {
+  return sheetOf([caladriusFrame(0, false), caladriusFrame(1, false), caladriusFrame(1, false), caladriusFrame(0, false), caladriusFrame(2, true)], { idle: [0, 1, 2, 3], lunge: [4] }, [15, 31]);
+}
+
+// ---------------------------------------------------------------------------------------
+// The bishop-fish: a fish stood up on its tail in a mitre and a cope, blessing.
+
+function bishopFishFrame(bob: number, bless: boolean): { a: PixelImage; e: PixelImage } {
+  const W = 28;
+  const H = 46;
+  const img = new PixelImage(W, H);
+  const glow = new PixelImage(W, H);
+  const scale = ramp('#4A8A84', 5);
+  const cope = ramp('#B8322A', 5);
+  const gold = ramp('#D8A838', 4);
+  // Tail fins at the foot.
+  img.poly(
+    [
+      [8, 45],
+      [14, 38],
+      [20, 45],
+    ],
+    scale[1]!,
+  );
+  // The body, upright, scaled; a cope over the shoulders.
+  img.ellipse(14, 26 + bob, 8, 13, (x, y, nx, ny) => tone(scale, 1 + sphere(nx, ny) * 3.4 + ((x + y * 2) % 5 === 0 ? -0.6 : 0), x, y));
+  img.poly(
+    [
+      [5, 20 + bob],
+      [23, 20 + bob],
+      [25, 36 + bob],
+      [3, 36 + bob],
+    ],
+    (x) => tone(cope, 2.8 - (x - 3) * 0.1, x, 28),
+  );
+  img.vline(14, 20 + bob, 36 + bob, gold[3]!);
+  // A round fish face, a gaping mouth, a goggle eye.
+  img.ellipse(17, 14 + bob, 3, 3, hex('#F2EEE6'));
+  img.set(18, 14 + bob, hex('#1A1410'));
+  glow.set(18, 14 + bob, hex('#5A6A8A'));
+  img.ellipse(21, 18 + bob, 1.6, 2.2, hex('#5A1A20'));
+  // The mitre.
+  img.poly(
+    [
+      [8, 10 + bob],
+      [20, 10 + bob],
+      [18, 2 + bob],
+      [14, -1 + bob],
+      [10, 2 + bob],
+    ],
+    (x) => tone(ramp('#F2EDE2', 5), 3.4 - (x - 8) * 0.12, x, 4),
+  );
+  img.hline(8, 19, 9 + bob, gold[2]!);
+  img.vline(14, 0 + bob, 9 + bob, gold[3]!);
+  // A fin raised in blessing.
+  if (bless) {
+    img.poly(
+      [
+        [22, 24 + bob],
+        [27, 15 + bob],
+        [25, 25 + bob],
+      ],
+      scale[3]!,
+    );
+    glow.ellipse(26, 15 + bob, 2, 2, hex('#C8B060'));
+  }
+  img.outline(null);
+  return { a: img, e: glow };
+}
+
+export function bishopFishArt(): EnemyArt {
+  return sheetOf([bishopFishFrame(0, false), bishopFishFrame(1, false), bishopFishFrame(1, false), bishopFishFrame(0, false), bishopFishFrame(0, true)], { idle: [0, 1, 2, 3], lunge: [4] }, [14, 45]);
+}
+
 /** The art for an enemy kind, or null for those drawn as people (the Brothers). */
 export function enemyArt(kind: string): EnemyArt | null {
   switch (kind) {
@@ -487,7 +691,24 @@ export function enemyArt(kind: string): EnemyArt | null {
       return hareArt();
     case 'babewyn':
       return babewynArt();
+    case 'blot':
+      return blotArt();
+    case 'blotlet':
+      return blotletArt();
+    case 'caladrius':
+      return caladriusArt();
+    case 'bishopFish':
+      return bishopFishArt();
     default:
       return null;
   }
+}
+
+/** The first frame of an enemy's sheet, to stand it in the world before a fight. */
+export function enemyStill(kind: string): PixelImage | null {
+  const art = enemyArt(kind);
+  if (!art) return null;
+  const img = new PixelImage(art.w, art.h);
+  for (let y = 0; y < art.h; y++) for (let x = 0; x < art.w; x++) img.set(x, y, art.a.get(x, y));
+  return img;
 }

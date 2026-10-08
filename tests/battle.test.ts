@@ -576,3 +576,137 @@ describe('the Blanchwood music', () => {
     expect(count(1)).toBeGreaterThan(300);
   });
 });
+
+describe('the Ivy Gate: the caladrius', () => {
+  const party: CharId[] = ['whit', 'hild', 'isot'];
+
+  it('looks away from the weakest ally, who takes double damage this round', () => {
+    const b = fight('f7', party);
+    const look = b.intents.find((i) => i.effects.some((e) => e.kind === 'doom'))!;
+    expect(look.target).toEqual({ unit: 'isot' });
+    expect(b.unit('isot')!.status.doomed).toBe(true);
+    b.endTurn();
+    // Two arrows at the Rear, each doubled: 12 − 6 − 6.
+    expect(b.unit('isot')!.fallen).toBe(true);
+  });
+
+  it('stepping the marked ally out of the Rear dodges the arrows aimed there', () => {
+    const b = fight('f7', party);
+    b.step(1, 2);
+    b.endTurn();
+    expect(b.unit('isot')!.hp).toBe(12);
+    expect(b.unit('hild')!.hp).toBe(22 - 6);
+  });
+
+  it('Read Aloud ends it outright: 6 HP is within reach', () => {
+    const b = fight('f7', party);
+    const bird = b.enemies.find((e) => e.kind === 'caladrius')!;
+    expect(b.act('whit', 'read', { unit: bird.id })).toBe(true);
+    expect(bird.fallen).toBe(true);
+    expect(bird.status.doomed).toBe(false);
+  });
+});
+
+describe('Boss IV: the Blot', () => {
+  const party: CharId[] = ['whit', 'hild', 'isot'];
+  const blot = (b: Battle) => b.enemies.find((e) => e.kind === 'blot')!;
+  const blotlets = (b: Battle) => b.enemies.filter((e) => e.kind === 'blotlet' && !e.fallen);
+
+  it('big hits split off Blotlets; small ones do not', () => {
+    const b = fight('b4', party);
+    b.act('isot', 'penknife', { unit: blot(b).id });
+    expect(blotlets(b)).toHaveLength(1);
+    b.act('whit', 'lance', { unit: blot(b).id });
+    expect(blotlets(b)).toHaveLength(2);
+    expect(b.events.some((e) => e.type === 'spawn')).toBe(true);
+    expect(blot(b).hp).toBe(24);
+  });
+
+  it('ink does not die: damage leaves it at 1, and only Read Aloud ends it', () => {
+    const b = fight('b4', party);
+    blot(b).hp = 3;
+    b.act('whit', 'lance', { unit: blot(b).id });
+    expect(blot(b).hp).toBe(1);
+    expect(blot(b).fallen).toBe(false);
+    expect(b.act('isot', 'penknife', { unit: blotlets(b)[0]!.id })).toBe(true);
+    b.endTurn();
+    expect(b.act('whit', 'read', { unit: blot(b).id })).toBe(true);
+    expect(b.result).toBe('victory');
+    expect(b.enemies.every((e) => e.fallen)).toBe(true);
+  });
+
+  it('the Penknife on a Blotlet fills her pen', () => {
+    const b = fight('b4', party);
+    const ink = b.ink;
+    b.act('isot', 'penknife', { unit: blotlets(b)[0]!.id });
+    expect(b.ink).toBe(ink + 1);
+  });
+
+  it('a Blotlet beside the Blot seeps back into it; one further off spatters the Rear', () => {
+    const b = fight('b4', party);
+    const seep = b.intents.find((i) => i.actor === blotlets(b)[0]!.id)!;
+    expect(seep.effects.some((e) => e.kind === 'heal')).toBe(true);
+    expect(seep.target).toEqual({ unit: blot(b).id });
+  });
+
+  it('can be won by small hits, harvested Ink, then Rubric and Read Aloud', () => {
+    const b = fight('b4', party, { emendAnywhere: true });
+    for (let r = 0; r < 12 && b.result === 'ongoing'; r++) {
+      const B = blot(b);
+      // Read it as soon as it can be read, doubled by Rubric if need be.
+      if (B.hp <= 12 && b.ink >= 1 && b.check('whit', 'read', { unit: B.id }) === 'too-strong') b.act('isot', 'rubric', { unit: 'whit' });
+      if (!b.check('whit', 'read', { unit: B.id })) {
+        b.act('whit', 'read', { unit: B.id });
+        break;
+      }
+      // Small hits only: the Penknife on the Blot, Shove at whatever is in front.
+      const lets = blotlets(b);
+      if (lets.length && b.ink < 2) b.act('isot', 'penknife', { unit: lets[0]!.id });
+      else if (!b.check('isot', 'penknife', { unit: B.id })) b.act('isot', 'penknife', { unit: B.id });
+      if (lets.length && !b.check('whit', 'lance', { unit: lets[0]!.id })) b.act('whit', 'lance', { unit: lets[0]!.id });
+      else if (!b.check('whit', 'tally', { unit: B.id }) && B.status.tally === null && B.hp > 14) b.act('whit', 'tally', { unit: B.id });
+      const low = [...b.party].filter((x) => !x.fallen).sort((x, y) => x.hp / x.maxHp - y.hp / y.maxHp)[0]!;
+      if (low.hp < low.maxHp * 0.6 && !b.check('hild', 'shrive', { unit: low.id })) b.act('hild', 'shrive', { unit: low.id });
+      else if (!b.check('hild', 'shove')) b.act('hild', 'shove');
+      if (b.result === 'ongoing') b.endTurn();
+    }
+    expect(b.result).toBe('victory');
+    expect(b.round).toBeLessThanOrEqual(12);
+  });
+
+  it('Rubric doubles Read Aloud’s reach to 12', () => {
+    const b = fight('b4', party);
+    blot(b).hp = 11;
+    expect(b.check('whit', 'read', { unit: blot(b).id })).toBe('too-strong');
+    b.act('isot', 'rubric', { unit: 'whit' });
+    expect(b.check('whit', 'read', { unit: blot(b).id })).toBeNull();
+  });
+
+  it('at 15 HP the Rasure: Ermeline drains an Ink a round until Emend turns her stroke', () => {
+    const b = fight('b4', party, { emendAnywhere: true });
+    blot(b).hp = 16;
+    b.act('isot', 'penknife', { unit: blot(b).id });
+    expect(b.phases.has('rasure')).toBe(true);
+    b.endTurn();
+    const drain = b.intents.find((i) => i.effects.some((e) => e.kind === 'drain'))!;
+    expect(drain).toBeDefined();
+    const before = b.ink;
+    b.endTurn();
+    // Drained one, refilled one at the round's end.
+    expect(b.ink).toBe(before);
+    const again = b.intents.find((i) => i.effects.some((e) => e.kind === 'drain'))!;
+    expect(b.check('isot', 'emend', { intent: again.id, to: blot(b).id })).toBeNull();
+    b.act('isot', 'emend', { intent: again.id, to: blot(b).id });
+    b.endTurn();
+    expect(b.phases.has('ermelineFree')).toBe(true);
+    expect(b.intents.some((i) => i.effects.some((e) => e.kind === 'drain'))).toBe(false);
+  });
+});
+
+describe('the Margin music', () => {
+  it('fills every bar of its tune exactly, and trades its notes between two instruments', async () => {
+    const { MARGIN_TUNE, hocket } = await import('../src/audio/margin');
+    for (const bar of MARGIN_TUNE) expect(bar.reduce((s, [, n]) => s + n, 0)).toBe(4);
+    expect([0, 1, 2, 3].map(hocket)).toEqual([0, 1, 0, 1]);
+  });
+});

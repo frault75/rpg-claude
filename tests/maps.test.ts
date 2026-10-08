@@ -82,5 +82,11 @@ describe('the Lost Names', () => {
     expect([...(where.cell ?? []), ...(where.cloister ?? [])]).toHaveLength(2);
     expect([...(where.village ?? []), ...(where.belltower ?? [])]).toHaveLength(2);
     expect(where.ninefold).toHaveLength(2);
+    expect(where.fair).toHaveLength(2);
+  });
+
+  it('the catchwords spell the Abbey motto', async () => {
+    const { MOTTO } = await import('../src/maps/margin/ivy');
+    expect(MOTTO.join(' ')).toBe('WHAT IS WRITTEN IS HELD');
   });
 });

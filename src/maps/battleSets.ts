@@ -23,6 +23,8 @@ import { wellHead } from '../pixel/furniture';
 import { blanch, ninefoldGate, outlineBird } from '../world3d/blanchwood';
 import { blanchedTree, setDepth, WOOD_GROUND, WOOD_SKY, woodLight } from './blanchwood/common';
 import { paintBones } from './blanchwood/ossuary';
+import { acanthusRow, MARGIN_GROUND, MARGIN_SKY, marginLight, pageAbove } from './margin/common';
+import { goldBar, goose, ivy as ivyRun } from '../world3d/margin';
 
 export interface BattleSet {
   /** Camera: where it looks and from what height. */
@@ -409,6 +411,27 @@ function ossuarySet(r: WorldRenderer, st: Stage): BattleSet {
   return { camera: { x: tiles(17), y: tiles(5.8), h: 36 }, enemies: TIGHT, party: PARTY_PLACES, seaward: [tiles(17), tiles(9)] };
 }
 
+/** The Margin (F7, F8) and the Ink-Well (B4): gold underfoot, acanthus, the page above. */
+function marginSet(kind: 'ivy' | 'fair' | 'inkwell', r: WorldRenderer, st: Stage): BattleSet {
+  marginLight(r, kind === 'inkwell' ? 0.55 : 0);
+  r.grade = { ...r.grade, focusBand: 60, focusRange: 220 };
+  const well = kind === 'inkwell';
+  const field = Array.from({ length: 11 }, (_, y) => Array.from({ length: 34 }, (_, x) => (well && Math.hypot((x + 0.5 - 13.6) / 1.7, y + 0.5 - 6.4) < 2.6 ? '~' : 'o')).join(''));
+  st.ground(
+    { ground: field, heights: field.map((row) => '0'.repeat(row.length)), seed: 67, palette: MARGIN_GROUND },
+    well ? { deep: '#08060E', mid: '#120E1E', shallow: '#221C34', ripple: '#3A3050', foam: '#5A4E70', glint: '#E8D8A8' } : undefined,
+  );
+  st.addSky({ ...MARGIN_SKY }, 220);
+  pageAbove(st, tiles(34));
+  acanthusRow(st, 0, tiles(34), tiles(2.6), kind === 'fair' ? 61 : 63, 78, 1.05);
+  acanthusRow(st, tiles(2), tiles(34), tiles(11.4), 69, 130, 0.85);
+  for (let x = 0; x < tiles(34); x += 90) st.addImage(goldBar(86, 14, x), x + 43, tiles(1.4));
+  if (kind === 'ivy') for (let x = tiles(3); x < tiles(34); x += 120) st.addImage(ivyRun(90, x), x, tiles(9.8));
+  if (kind === 'fair') for (let i = 0; i < 6; i++) st.addImage(goose(i), tiles(22 + i * 1.6), tiles(3.6) + (i % 2) * 8);
+  st.addEmitter({ kind: 'glint', area: [0, tiles(1), tiles(34), tiles(10)], heights: [2, 60], count: 26, color: '#FFF4C8', size: 1.6, intensity: 1.2 }, 29);
+  return { camera: { x: tiles(17), y: tiles(5.8), h: 36 }, enemies: TIGHT, party: PARTY_PLACES, seaward: [tiles(17), tiles(9)] };
+}
+
 /** Build the set for a battle's stage. */
 export function dressBattle(stage: string, r: WorldRenderer, st: Stage): BattleSet {
   switch (stage) {
@@ -425,6 +448,10 @@ export function dressBattle(stage: string, r: WorldRenderer, st: Stage): BattleS
       return blanchwoodSet(stage, r, st);
     case 'ossuary':
       return ossuarySet(r, st);
+    case 'ivy':
+    case 'fair':
+    case 'inkwell':
+      return marginSet(stage, r, st);
     default:
       return causeway(r, st);
   }

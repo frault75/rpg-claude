@@ -198,9 +198,11 @@ function boot(): void {
   };
   /** Ready to fight an encounter directly (debug menu, ?scene=battle): its chapter's party and abilities. */
   const fightState = (id: string): void => {
-    const ch3 = ['f5', 'f6', 'b3'].includes(id);
+    const ch4 = ['f7', 'f8', 'b4'].includes(id);
+    const ch3 = ['f5', 'f6', 'b3'].includes(id) || ch4;
     const ch2 = ['f3', 'f4', 'b2'].includes(id);
-    if (ch3) chapterThree();
+    if (ch4) chapterFour();
+    else if (ch3) chapterThree();
     else if (ch2) chapterTwo();
     else startGame();
     const g = session.game;
@@ -213,15 +215,29 @@ function boot(): void {
       learn('hild', 'immure');
       learn('whit', 'vigil');
     }
-    if (id === 'f6' || id === 'b3') learn('hild', 'squint');
-    if (id === 'b3') g.flags.emendUpgraded = true;
+    if (id === 'f6' || id === 'b3' || ch4) learn('hild', 'squint');
+    if (id === 'b3' || ch4) g.flags.emendUpgraded = true;
+    if (ch4) learn('whit', 'read');
+    if (id === 'b4') learn('isot', 'rubric');
+  };
+  /** The state at the start of chapter IV: the Blanchwood behind them, Whit able to read. */
+  const chapterFour = (): void => {
+    chapterThree();
+    const g = session.game;
+    g.cleared.push('f5', 'f6', 'b3');
+    g.chapter = 4;
+    g.abilities.hild.push('squint');
+    g.abilities.whit.push('read');
+    Object.assign(g.flags, { emendUpgraded: true, finisRead: true, muralRestored: true, escaped: true, blanchingBegun: true });
+    g.lostNames.push('maud', 'gervase');
   };
   const params = new URLSearchParams(location.search);
   const mapParam = params.get('map');
   if (mapParam && MAPS[mapParam]) {
     // ?chapter=2 or 3 starts with the whole party and what it knows by then.
     const chapter = Number(params.get('chapter') ?? 1);
-    if (chapter >= 3) chapterThree();
+    if (chapter >= 4) chapterFour();
+    else if (chapter >= 3) chapterThree();
     else if (chapter >= 2) chapterTwo();
     else startGame();
     scene = mapScene(mapParam, { spawn: params.get('spawn') ?? 'start' });
@@ -322,7 +338,8 @@ function boot(): void {
             return mapScene('chapel', { spawn: 'door' });
           }, 0.3),
       },
-      ...['f1', 'f2', 'b1', 'f3', 'f4', 'b2', 'f5', 'f6', 'b3'].map((id) => ({
+      { label: '→ the margin', run: () => transition(() => (chapterFour(), mapScene('edge', { spawn: 'start' })), 0.3) },
+      ...['f1', 'f2', 'b1', 'f3', 'f4', 'b2', 'f5', 'f6', 'b3', 'f7', 'f8', 'b4'].map((id) => ({
         label: `→ fight ${id}`,
         run: () =>
           transition(() => {

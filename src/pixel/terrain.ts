@@ -26,6 +26,7 @@ export type Terrain =
   | 'water'
   | 'ice'
   | 'vellum'
+  | 'gold'
   | 'void';
 
 export const TERRAIN_CHARS: Readonly<Record<string, Terrain>> = {
@@ -43,10 +44,11 @@ export const TERRAIN_CHARS: Readonly<Record<string, Terrain>> = {
   '~': 'water',
   i: 'ice',
   v: 'vellum',
+  o: 'gold',
   ' ': 'void',
 };
 
-export const KINDS: readonly Terrain[] = ['void', 'grass', 'meadow', 'dirt', 'sand', 'cobble', 'flag', 'wood', 'snow', 'rock', 'cliff', 'stairs', 'water', 'ice', 'vellum'];
+export const KINDS: readonly Terrain[] = ['void', 'grass', 'meadow', 'dirt', 'sand', 'cobble', 'flag', 'wood', 'snow', 'rock', 'cliff', 'stairs', 'water', 'ice', 'vellum', 'gold'];
 const KIND_ID = new Map(KINDS.map((k, i) => [k, i]));
 
 /** How far an edge wanders, in pixels (0 = crisp, for masonry and cliffs). */
@@ -66,6 +68,7 @@ const SOFT: Record<Terrain, number> = {
   water: 3.5,
   ice: 4,
   vellum: 6,
+  gold: 1,
 };
 
 /** Which terrain sits on top where two meet (higher casts a lip onto lower). */
@@ -74,6 +77,7 @@ const RANK: Record<Terrain, number> = {
   water: 0,
   ice: 1,
   vellum: 1,
+  gold: 2,
   sand: 1,
   dirt: 1,
   cobble: 2,
@@ -99,6 +103,8 @@ export interface GroundPalette {
   ice: string;
   /** Blank vellum, where the world has been scraped (Ninefold Blank). */
   vellum: string;
+  /** Burnished gold leaf, tooled with punchwork (the Margin). */
+  gold: string;
   flowers: readonly string[];
 }
 
@@ -112,6 +118,7 @@ export const GROUND_DEFAULT: GroundPalette = {
   rock: '#77726C',
   ice: '#62788E',
   vellum: '#EDE3CC',
+  gold: '#C9A23C',
   flowers: ['#F4F0E8', '#F2D24A', '#E58AA8', '#8AA8E8', '#C79AE0'],
 };
 
@@ -197,6 +204,7 @@ export function paintGround(layout: readonly string[], seed = 1, pal: GroundPale
     rock: ramp(pal.rock, 6),
     ice: ramp(pal.ice, 5, 0.7),
     vellum: ramp(pal.vellum, 5, 0.35),
+    gold: ramp(pal.gold, 6, 0.8),
     moss: ramp('#5E7A3A', 4),
   };
   const pick = (r: readonly RGBA[], t: number, x: number, y: number): RGBA => {
@@ -248,6 +256,17 @@ export function paintGround(layout: readonly string[], seed = 1, pal: GroundPale
           if (x % 96 === 8 && hash2(x, y >> 2, seed) > 0.25) t -= 1.1;
           if (hash2(x >> 3, y >> 2, seed + 9) > 0.985) t -= 0.9;
           c = pick(R.vellum, t, x, y);
+          break;
+        }
+        case 'gold': {
+          // Gold leaf, burnished in long strokes, tooled with rings of punched dots.
+          let t = 2.6 + Math.sin(x * 0.07 + y * 0.11 + noise.value(x / 20, y / 20) * 3) * 0.9 + (lo - 0.5) * 0.8;
+          const cx = (x % 24) - 12;
+          const cy = (y % 24) - 12;
+          const ring = Math.abs(Math.hypot(cx, cy) - 7) < 0.6 && (x + y) % 2 === 0;
+          if (ring || (x % 6 === 0 && y % 6 === 0)) t -= 1.6;
+          if (hi > 0.992) t += 1.5;
+          c = pick(R.gold, t, x, y);
           break;
         }
         case 'dirt': {

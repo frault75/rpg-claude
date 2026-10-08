@@ -1502,7 +1502,8 @@ Each milestone is playable and arrives as its own PR, with build and tests green
 | **Done** | Chapter I | Maps and scripts for the scriptorium, penitent's cell and cloister; F1 and F2 on their own stages; autosave at every checkpoint; the debug jump menu |
 | **Done** | Chapter II | Lychford: the lane (Emend, F3, the pilgrims), the village by day and by night (the rhyme, Dunstan, Amabel's choice), the churchyard (F4, Hild's grave, Immure), the bell-tower puzzle (C5), the Mummers' Play (B2, Vigil), the raid (C6), the frozen mere's ford and the hook; winter ambience and carol; the ice terrain |
 | **Done** | Chapter III | The Blanchwood (F5) draining to grisaille as you walk; Ninefold Blank's faded path, the city in sepia underwriting, and the hermit's two Lost Names; Ninefold Gate (Squint, F6 with sealed edicts); the Blanching chase (C7); the Danse Macabre mural (the Emend upgrade); the ossuary (B3), FINIS (C8), the forgiveness choice, Read Aloud; the Phrygian theme that forgets its notes; Lost Names for chapters I–III |
-| **Next** | Chapters IV–V | All maps, scripts, fights, bosses, puzzles and Lost Names, every location's music, palette and light; the journal |
+| **Done** | Chapter IV | The Edge (C9) off the page into the Margin; the Ivy Gate (F7, the caladrius's marked doom, Read Aloud); the catchword arches spelling WHAT · IS · WRITTEN · IS · HELD; the Drollery Fair, the Abbot of Unreason, Amabel as a hen, the optional F8 and two Lost Names; Wystan's Vine (C10, the confession choice, Rubric); the Fall of Names (C11, Whit's first promise); the Ink-Well (B4: Blotlets, harvested Ink, the Rasure); Ermeline written back; the F Lydian hocket; burnished gold ground with punchwork |
+| **Next** | Chapter V and the ending | The Writing at Saint Ebb's, F9, Boss V, the ending and epilogue; the journal |
 | **Then** | Ending | Ending and epilogue, interludes, a tuning and audio-mix pass |
 
 ---
