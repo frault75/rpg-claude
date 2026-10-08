@@ -6,6 +6,7 @@
 
 import type * as THREE from 'three';
 import { type Flicker, GameLight, type WorldRenderer } from '../engine/diorama/renderer';
+import { SY } from '../engine/diorama/space';
 import type { Art } from '../pixel/buildings';
 import type { PixelImage } from '../pixel/pixel';
 import { flameSheet } from '../pixel/props';
@@ -62,10 +63,12 @@ export class Stage {
     return this.sky;
   }
 
-  addBuilding(b: Builder): Builder {
+  /** Put up a building, standing `h` art pixels up (on a terrace, say). */
+  addBuilding(b: Builder, h = 0): Builder {
     this.buildings.push(b);
+    b.group.position.y += h * SY;
     this.scene.add(b.group);
-    for (const l of b.lights) this.addLight(l.x, l.y, l.h, l.r, l.color, l.intensity);
+    for (const l of b.lights) this.addLight(l.x, l.y, l.h + h, l.r, l.color, l.intensity);
     return b;
   }
 

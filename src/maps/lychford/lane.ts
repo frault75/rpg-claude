@@ -7,6 +7,7 @@
 import { CHARACTERS } from '../../pixel/characters';
 import { pineTree, reeds, rock } from '../../pixel/nature';
 import { stoneCross } from '../../pixel/props';
+import { relief } from '../../world3d/relief';
 import { tiles } from '../../world3d/stage';
 import { bareTree, snowHedge } from '../../world3d/lychford';
 import { WinterAmbience } from '../../audio/winter';
@@ -33,11 +34,21 @@ const GROUND = [
 
 const LANE_Y = tiles(7);
 
+// A sunken lane: a snowy bank behind the hedge and the fen rising beyond it, cut where a
+// field track climbs out through the gateway.
+const HEIGHTS = relief(W, GROUND.length, [
+  { at: [0, 0, 17, 5], h: 2, ragged: 's' },
+  { at: [20, 0, 20, 5], h: 2, ragged: 's' },
+  { at: [17, 0, 3, 2], h: 2 },
+  { at: [0, 0, 40, 2], h: 3, ragged: 's' },
+], 71);
+
 export const LANE: MapDef = {
   id: 'lane',
   card: { title: { en: 'Lychford', fr: 'Lychford' }, line: { en: 'The Lane, at Midwinter', fr: 'Le chemin, à la mi-hiver' } },
   walkable: 'dn',
   ground: GROUND,
+  heights: HEIGHTS,
   bounds: { minX: tiles(13.4), maxX: tiles(W - 13.4), minY: tiles(6.4), maxY: tiles(6.4) },
   camera: { h: 4 },
   ambience: () => new WinterAmbience(),
@@ -49,7 +60,7 @@ export const LANE: MapDef = {
   },
   build(r, st) {
     winterDay(r);
-    st.ground({ ground: GROUND, heights: GROUND.map((row) => '0'.repeat(row.length)), seed: 71, palette: SNOW_GROUND });
+    st.ground({ ground: GROUND, heights: HEIGHTS, seed: 71, palette: SNOW_GROUND });
     st.addSky({ ...WINTER_SKY }, 200);
     const blocked: Rect[] = [];
     // Hedges along the lane, broken by gateways; a hedge close to the camera, soft.

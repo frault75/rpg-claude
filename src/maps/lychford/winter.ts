@@ -7,7 +7,7 @@ import type { WorldRenderer } from '../../engine/diorama/renderer';
 import { GROUND_DEFAULT, type GroundPalette } from '../../pixel/terrain';
 import type { SkyDef } from '../../world3d/sky';
 
-export const SNOW_GROUND: GroundPalette = { ...GROUND_DEFAULT, snow: '#DCE2EC', dirt: '#B0A494', grass: '#6A7A5A', stone: '#9A948A', sand: '#C8BCA0' };
+export const SNOW_GROUND: GroundPalette = { ...GROUND_DEFAULT, snow: '#DCE2EC', dirt: '#B0A494', grass: '#6A7A5A', stone: '#9A948A', sand: '#C8BCA0', rock: '#8C8A90', cliffTop: '#E4EAF2', cliffCover: 1 };
 
 export const WINTER_SKY: SkyDef = { top: '#7A9AC8', horizon: '#F0D8C0', moon: null, stars: 0, clouds: 0.9, cloudColor: '#E8E4EC' };
 export const WINTER_NIGHT_SKY: SkyDef = { top: '#050818', horizon: '#26345E', moon: [120, 120], moonR: 9, moonColor: '#FFF4D6', stars: 1, clouds: 0.5, cloudColor: '#3A4A78' };

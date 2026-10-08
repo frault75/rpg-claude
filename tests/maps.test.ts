@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { ENCOUNTERS } from '../src/battle/data';
 import { MAPS } from '../src/maps/index';
 import { TILE } from '../src/pixel/terrain';
+import { TerrainModel } from '../src/world3d/terrain';
+import { relief } from '../src/world3d/relief';
 
 describe('the maps', () => {
   for (const [id, m] of Object.entries(MAPS)) {
@@ -31,6 +33,78 @@ describe('the maps', () => {
       }
     });
   }
+
+  // The relief must never strand anything: walking in 4-pixel steps, as a figure climbs
+  // (at most 7 pixels at a time), everything a map offers is reached from one of its entrances.
+  for (const [id, m] of Object.entries(MAPS)) {
+    it(`${id}: the relief leaves everything within walking reach`, () => {
+      const model = new TerrainModel({ ground: m.ground, heights: m.heights ?? [], seed: 1 });
+      const cols = m.ground[0]!.length * (TILE / 4);
+      const rows = m.ground.length * (TILE / 4);
+      const at = (cx: number, cy: number) => [cx * 4 + 2, cy * 4 + 2] as const;
+      const walk = (cx: number, cy: number) => cx >= 0 && cy >= 0 && cx < cols && cy < rows && m.walkable.includes(m.ground[Math.floor((cy * 4) / TILE)]![Math.floor((cx * 4) / TILE)]!);
+      const seen = new Int32Array(cols * rows).fill(-1);
+      const spawns = Object.entries(m.spawns);
+      spawns.forEach(([, s], k) => {
+        const start = [Math.floor(s.x / 4), Math.floor(s.y / 4)] as const;
+        if (seen[start[1] * cols + start[0]]! >= 0) return;
+        const stack: (readonly [number, number])[] = [start];
+        seen[start[1] * cols + start[0]] = k;
+        while (stack.length) {
+          const [cx, cy] = stack.pop()!;
+          const h = model.heightAt(...at(cx, cy));
+          for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
+            const nx = cx + dx;
+            const ny = cy + dy;
+            if (!walk(nx, ny) || seen[ny * cols + nx]! >= 0) continue;
+            if (Math.abs(model.heightAt(...at(nx, ny)) - h) > 7) continue;
+            seen[ny * cols + nx] = k;
+            stack.push([nx, ny]);
+          }
+        }
+      });
+      const reached = (x: number, y: number, r = 0) => {
+        for (let cy = Math.floor((y - r) / 4); cy <= Math.floor((y + r) / 4); cy++)
+          for (let cx = Math.floor((x - r) / 4); cx <= Math.floor((x + r) / 4); cx++) if (cx >= 0 && cy >= 0 && cx < cols && cy < rows && seen[cy * cols + cx]! >= 0) return true;
+        return false;
+      };
+      const inside = (rect: readonly number[]) => {
+        for (let y = rect[1]!; y < rect[1]! + rect[3]!; y += 4) for (let x = rect[0]!; x < rect[0]! + rect[2]!; x += 4) if (reached(x, y)) return true;
+        return false;
+      };
+      const w = m.ground[0]!.length * TILE;
+      const h = m.ground.length * TILE;
+      for (const n of m.npcs ?? []) if (n.x > 0 && n.y > 0 && n.x < w && n.y < h) expect(reached(n.x, n.y, 14), `npc ${n.id}`).toBe(true);
+      for (const t of m.things ?? []) expect(reached(t.x, t.y, t.reach ?? 24), `thing ${t.id}`).toBe(true);
+      for (const e of m.exits ?? []) expect(inside(e.rect), `exit to ${e.to}`).toBe(true);
+      for (const z of m.zones ?? []) expect(inside(z.rect), `zone ${z.id}`).toBe(true);
+      for (const u of m.underwriting ?? []) expect(reached(u.x, u.y, 70), `underwriting ${u.id}`).toBe(true);
+      // No entrance is a ledge of its own: each leads somewhere to go or something to do.
+      for (const [name, s] of spawns) {
+        const k = seen[Math.floor(s.y / 4) * cols + Math.floor(s.x / 4)];
+        const mine = (x: number, y: number, r = 0) => {
+          for (let cy = Math.floor((y - r) / 4); cy <= Math.floor((y + r) / 4); cy++)
+            for (let cx = Math.floor((x - r) / 4); cx <= Math.floor((x + r) / 4); cx++) if (cx >= 0 && cy >= 0 && cx < cols && cy < rows && seen[cy * cols + cx] === k) return true;
+          return false;
+        };
+        const leads =
+          (m.exits ?? []).some((e) => mine(e.rect[0] + e.rect[2] / 2, e.rect[1] + e.rect[3] / 2, Math.max(e.rect[2], e.rect[3]))) ||
+          (m.zones ?? []).some((z) => mine(z.rect[0] + z.rect[2] / 2, z.rect[1] + z.rect[3] / 2, Math.max(z.rect[2], z.rect[3]) / 2)) ||
+          (m.things ?? []).some((t) => mine(t.x, t.y, t.reach ?? 24)) ||
+          spawns.some(([other, o]) => other !== name && mine(o.x, o.y));
+        expect(leads, `spawn ${name}`).toBe(true);
+      }
+    });
+  }
+
+  it('relief lifts its rectangles, and a ragged edge only ever pulls back', () => {
+    const r = relief(6, 4, [{ at: [0, 0, 6, 2], h: 2, ragged: 's' }, { at: [4, 0, 2, 1], h: 5 }], 3);
+    expect(r).toHaveLength(4);
+    expect(r[0]).toBe('222255');
+    expect(r[1]!.split('').every((c) => c === '2' || c === '0')).toBe(true);
+    expect(r[2]).toBe('000000');
+    expect(r[3]).toBe('000000');
+  });
 
   it('the fights of chapter I have their own stages', () => {
     expect(ENCOUNTERS.f1!.stage).toBe('scriptorium');
