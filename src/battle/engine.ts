@@ -952,7 +952,7 @@ export class Battle {
       if (this.letters > 0) {
         this.letters = 0;
         this.emit({ type: 'letter', count: 0, lost: true });
-        this.emit({ type: 'phase', title: { en: 'Scraped Clean', fr: 'Gratté net' }, line: { en: 'The pumice takes every letter. Begin again: F.', fr: 'La ponce emporte toutes les lettres. Reprendre : F.' } });
+        this.emit({ type: 'phase', title: { en: 'Scraped Clean', fr: 'Gratté à blanc' }, line: { en: 'The pumice takes every letter. Begin again: F.', fr: 'La ponce emporte toutes les lettres. Reprendre : F.' } });
       }
       return;
     }
@@ -961,7 +961,7 @@ export class Battle {
     if (it.effects.some((e) => e.kind === 'drain')) {
       if (it.turned) {
         this.phases.add('ermelineFree');
-        this.emit({ type: 'phase', title: { en: 'Ermeline Is Free', fr: 'Ermeline est libre' }, line: { en: 'Her stroke turned, she lets go of the inkhorn and surfaces, gasping.', fr: 'Son geste détourné, elle lâche la corne d’encre et remonte, haletante.' } });
+        this.emit({ type: 'phase', title: { en: 'Ermeline Is Free', fr: 'Ermeline est libre' }, line: { en: 'Her stroke turned, she lets go of the inkhorn and surfaces, gasping.', fr: 'Son geste détourné, elle lâche l’encrier et remonte, haletante.' } });
       } else if (this.ink > 0) {
         this.ink--;
         this.emit({ type: 'ink', amount: -1 });

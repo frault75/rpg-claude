@@ -120,7 +120,7 @@ const WORDS: Underwriting[] = [
     x: tiles(29),
     y: tiles(5.2),
     h: 14,
-    art: localTextImage([{ en: 'NINE THOUSAND', fr: 'NEUF MILLE' }, { en: 'AND NOT ONE NAME LEFT', fr: 'ET PAS UN NOM RESTE' }], GHOST),
+    art: localTextImage([{ en: 'NINE THOUSAND', fr: 'NEUF MILLE' }, { en: 'AND NOT ONE NAME LEFT', fr: 'ET PLUS UN SEUL NOM' }], GHOST),
     revealed: async (c) => {
       await c.say('isot', { en: 'Nine thousand. Wystan used to say a page can’t be blank, only scraped.', fr: 'Neuf mille. Wystan disait qu’une page ne peut pas être blanche, seulement grattée.' }, 'sad');
     },

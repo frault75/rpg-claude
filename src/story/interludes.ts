@@ -30,8 +30,8 @@ export const INTERLUDES: Record<number, Interlude> = {
     scene: 'causeway',
     drollery: 'greatSnail',
     prose: [
-      { en: 'We crossed with the tide at our heels: a scribe, an anchoress who had not walked in ten years, and a knight who did not know his name.', fr: 'Nous avons traversé la marée aux talons : une scribe, une recluse qui n’avait pas marché depuis dix ans, et un chevalier qui ne connaissait pas son nom.' },
-      { en: 'I wrote WHIT on his wrist so that he would not fade, and he thanked me for it every hour until I asked him to stop, and then he thanked me for that.', fr: 'J’ai écrit WHIT sur son poignet pour qu’il ne s’efface pas, et il m’en a remerciée toutes les heures jusqu’à ce que je lui demande d’arrêter, et alors il m’a remerciée pour ça.' },
+      { en: 'We crossed with the tide at our heels: a scribe, an anchoress who had not walked in ten years, and a knight who did not know his name.', fr: 'Nous avons traversé, la marée sur les talons : une scribe, une recluse qui n’avait pas marché depuis dix ans, et un chevalier qui ne connaissait pas son nom.' },
+      { en: 'I wrote WHIT on his wrist so that he would not fade, and he thanked me for it every hour until I asked him to stop, and then he thanked me for that.', fr: 'Je lui ai écrit WHIT sur le poignet pour qu’il ne s’efface pas, et il m’en a remerciée toutes les heures jusqu’à ce que je lui demande d’arrêter, et alors il m’a remerciée pour ça.' },
       { en: 'I did not tell them what I had done. I am telling it now.', fr: 'Je ne leur ai pas dit ce que j’avais fait. Je le dis maintenant.' },
     ],
     chapter: { n: 2, title: { en: 'Chapter II', fr: 'Chapitre II' }, name: { en: 'The Village Without Graves', fr: 'Le village sans tombes' } },
@@ -65,7 +65,7 @@ export const INTERLUDES: Record<number, Interlude> = {
     drollery: 'caladrius',
     prose: [
       { en: 'In the Margin, a whole city forgotten for a hundred and fifty years asked us for one thing: an ending.', fr: 'Dans la Marge, toute une ville oubliée depuis cent cinquante ans nous a demandé une seule chose : une fin.' },
-      { en: 'I had scraped a man out of the world and called it kindness; now I carried his ending in my inkhorn, and the Abbey was waking up.', fr: 'J’avais gratté un homme hors du monde en appelant cela de la bonté ; à présent je portais sa fin dans ma corne d’encre, et l’Abbaye s’éveillait.' },
+      { en: 'I had scraped a man out of the world and called it kindness; now I carried his ending in my inkhorn, and the Abbey was waking up.', fr: 'J’avais gratté un homme hors du monde en appelant cela de la bonté ; à présent je portais sa fin dans mon encrier, et l’Abbaye s’éveillait.' },
     ],
     chapter: { n: 5, title: { en: 'Chapter V', fr: 'Chapitre V' }, name: { en: 'The Writing', fr: 'L’Écriture' } },
     next: { map: 'dawnScriptorium', spawn: 'psalter' },

@@ -163,7 +163,7 @@ async function theFarShore(c: MapContext): Promise<void> {
   c.letterbox(true);
   await c.wait(0.4);
   c.shake(2, 0.5);
-  await c.narrate({ en: 'Out of the reeds rise archers in fen-green, a dozen of them, bows drawn past the party at the torches on the far shore.', fr: 'Des roseaux se lèvent des archers vêtus de vert de marais, une douzaine, arcs bandés vers les torches de l’autre rive.' });
+  await c.narrate({ en: 'Out of the reeds rise archers in fen-green, a dozen of them, bows drawn past the party at the torches on the far shore.', fr: 'Une douzaine d’archers vêtus de vert surgissent des roseaux, arcs bandés vers les torches de l’autre rive.' });
   await c.say('eadgyth', { en: 'Run, scribe. I’ll cover your back.', fr: 'Cours, scribe. Je couvre tes arrières.' });
   await c.narrate({ en: 'Arrows go over the ice. The torches stop at the water’s edge, and then go back.', fr: 'Des flèches passent au-dessus de la glace. Les torches s’arrêtent au bord, puis s’en retournent.' });
   await c.say('eadgyth', { en: 'Eadgyth, of Holmcaster. My father has been dying on his throne for ten years, and I can’t be crowned while he lives.', fr: 'Eadgyth, de Holmcaster. Mon père se meurt sur son trône depuis dix ans, et je ne peux pas être couronnée tant qu’il vit.' });

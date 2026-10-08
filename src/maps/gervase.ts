@@ -68,7 +68,7 @@ async function onTheLane(c: MapContext): Promise<void> {
 }
 
 async function atTheWoodsEdge(c: MapContext): Promise<void> {
-  await c.narrate({ en: 'The pedlar again, at the edge of the white wood. The colour has gone out of his ribbons, and a little out of him.', fr: 'Le colporteur encore, à la lisière du bois blanc. La couleur a quitté ses rubans, et elle l’a un peu quitté, lui aussi.' });
+  await c.narrate({ en: 'The pedlar again, at the edge of the white wood. The colour has gone out of his ribbons, and a little out of him.', fr: 'Encore le colporteur, à la lisière du Bois-Blanc. La couleur a quitté ses rubans, et elle l’a un peu quitté, lui aussi.' });
   await c.say('pedlar', { en: 'I came the other way round. I always do. Every road twice: once to sell, and once to see how the ribbons were worn.', fr: 'Je suis venu par l’autre côté. Toujours. Chaque route deux fois : une pour vendre, une pour voir comment on porte les rubans.' });
   await c.say('isot', { en: 'You look… paler.', fr: 'Vous avez l’air… plus pâle.' }, 'alarmed');
   await c.say('pedlar', { en: 'The wood does that. It forgets what it’s looking at. Buy something quickly, before it forgets me.', fr: 'Le bois fait ça. Il oublie ce qu’il regarde. Achetez vite, avant qu’il m’oublie.' });

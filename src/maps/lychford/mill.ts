@@ -164,7 +164,7 @@ async function ralf(c: MapContext): Promise<void> {
     await c.narrate({ en: 'A man is up on the mill roof, laying new reed over old. He works like someone who has done it all his life.', fr: 'Un homme est sur le toit du moulin, il pose du roseau neuf sur l’ancien. Il travaille comme quelqu’un qui a fait ça toute sa vie.' });
     await c.say('ralf', { en: 'Mind the ladder! Don’t touch it. I can’t abide the thing. Never could.', fr: 'Attention à l’échelle ! N’y touchez pas. Je ne supporte pas ce machin. Jamais pu.' });
     await c.say('isot', { en: 'Then how do you get down?', fr: 'Alors comment vous redescendez ?' });
-    await c.say('ralf', { en: 'I don’t, much. I go up at first light, and it’s dark before I can make myself come down. My hands know thatching. I don’t know who taught them.', fr: 'Pas souvent. Je monte au point du jour, et il fait nuit avant que j’arrive à me décider à redescendre. Mes mains savent couvrir un toit. Je ne sais pas qui le leur a appris.' });
+    await c.say('ralf', { en: 'I don’t, much. I go up at first light, and it’s dark before I can make myself come down. My hands know thatching. I don’t know who taught them.', fr: 'Pas souvent. Je monte au point du jour, et la nuit tombe avant que je me décide à redescendre. Mes mains savent couvrir un toit. Je ne sais pas qui le leur a appris.' });
     await c.say('hild', { en: 'Somebody did.', fr: 'Quelqu’un, pourtant.' }, 'grave');
   } else if (!g.lostNames.includes('edda')) {
     await c.say('ralf', { en: 'Still here. The roof’s nearly sound. It’s always nearly sound.', fr: 'Toujours là. Le toit est presque étanche. Il est toujours presque étanche.' });
@@ -183,6 +183,6 @@ async function ralf(c: MapContext): Promise<void> {
   c.flash(0.3);
   if (ralfOnRoof) ralfOnRoof.visible = false;
   await c.narrate({ en: 'He comes down the ladder without looking at it, sits on the bottom rung, and weeps the way a roof lets go after a thaw: all at once, and then quiet.', fr: 'Il descend l’échelle sans la regarder, s’assoit sur le dernier barreau, et pleure comme un toit qui cède au dégel : d’un coup, et puis plus rien.' });
-  await c.say('ralf', { en: 'Here. Her straw. She twisted a knot of it into every roof she did, for luck, so she’d know her own work.', fr: 'Tenez. Sa paille. Elle en nouait une torsade dans chaque toit qu’elle faisait, pour la chance, et pour reconnaître son ouvrage.' }, 'warm');
+  await c.say('ralf', { en: 'Here. Her straw. She twisted a knot of it into every roof she did, for luck, so she’d know her own work.', fr: 'Tenez. Sa paille. Elle en nouait une torsade dans chaque toit qu’elle faisait, pour porter chance, et pour reconnaître son ouvrage.' }, 'warm');
   await returnName(c, 'edda');
 }

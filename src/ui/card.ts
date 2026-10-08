@@ -199,7 +199,7 @@ export class Subtitles {
 function balanced(c: CanvasRenderingContext2D, text: string, max: number): string[] {
   const lines = wrapText(c, text, max);
   if (lines.length !== 2) return lines;
-  const words = text.split(' ');
+  const words = lines.join(' ').split(' ');
   let best = lines;
   let bestW = Math.max(...lines.map((l) => c.measureText(l).width));
   // A break after a comma or a full stop reads better than an even one mid-phrase.
@@ -217,6 +217,8 @@ function balanced(c: CanvasRenderingContext2D, text: string, max: number): strin
 }
 
 function wrapText(c: CanvasRenderingContext2D, text: string, max: number): string[] {
+  // A French space before : ; ! ? » or after « never breaks the line.
+  text = text.replace(/ ([:;!?»])/g, '\u00A0$1').replace(/« /g, '«\u00A0');
   const out: string[] = [];
   let line = '';
   for (const word of text.split(' ')) {

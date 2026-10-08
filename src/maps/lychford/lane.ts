@@ -159,7 +159,7 @@ async function pilgrims(c: MapContext): Promise<void> {
   await c.say('pilgrim', { en: 'Varre, sister. Over the border. They say in Varre you can still be… finished.', fr: 'À Varre, ma sœur. De l’autre côté de la frontière. On dit qu’à Varre on peut encore être… fini.' });
   await c.say('pilgrim', { en: 'We’re fraying, see. It doesn’t hurt. It’s like being a word on a page somebody keeps rubbing.', fr: 'On s’effiloche, vois-tu. Ça ne fait pas mal. C’est comme être un mot sur une page que quelqu’un frotte sans arrêt.' });
   c.emote(c.party[0] ?? p, 'silence', 2);
-  await c.say('hild', { en: 'Go carefully. The Order keeps the weir.', fr: 'Allez prudemment. L’Ordre garde le barrage.' }, 'grave');
+  await c.say('hild', { en: 'Go carefully. The Order keeps the weir.', fr: 'Soyez prudents. L’Ordre garde le barrage.' }, 'grave');
   // They go on west, slowly; the road is hers again before they are out of sight.
   for (const a of walkers) void c.walk(a, [[-60, a.y]]);
   await c.wait(2.4);

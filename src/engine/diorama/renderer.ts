@@ -317,7 +317,7 @@ export class WorldRenderer {
     const ww = window.innerWidth;
     const wh = window.innerHeight;
     this.renderer.setPixelRatio(dpr);
-    this.renderer.setSize(ww, wh, false);
+    this.renderer.setSize(ww, wh, true);
     this.box = fitView(ww, wh);
     const k = Math.min(1, 1440 / (this.box.h * dpr)) * (this.fixedScale ?? this.adaptive.scale);
     const iw = Math.max(2, Math.round(this.box.w * dpr * k));

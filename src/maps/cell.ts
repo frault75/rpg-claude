@@ -35,7 +35,7 @@ const WALL_H = 64;
 
 export const CELL: MapDef = {
   id: 'cell',
-  card: { title: { en: 'Saint Ebb’s', fr: 'Saint-Ebb' }, line: { en: 'The Penitent’s Cell', fr: 'La cellule du pénitent' } },
+  card: { title: { en: 'Saint Ebb’s', fr: 'Saint-Ebb' }, line: { en: 'The Penitent’s Cell', fr: 'La cellule de pénitence' } },
   walkable: 'f',
   ground: GROUND,
   bounds: { minX: tiles(7), maxX: tiles(7), minY: tiles(3.7), maxY: tiles(3.7) },
@@ -154,7 +154,7 @@ export const CELL: MapDef = {
     if (from === 'start' && !c.flag('hildAsked')) {
       c.letterbox(true);
       await c.wait(1.6);
-      await c.narrate({ en: 'The penitent’s cell. A pallet, a bucket, four walls. The brothers took her penknife.', fr: 'La cellule du pénitent. Une paillasse, un seau, quatre murs. Les frères lui ont pris son canif.' });
+      await c.narrate({ en: 'The penitent’s cell. A pallet, a bucket, four walls. The brothers took her penknife.', fr: 'La cellule de pénitence. Une paillasse, un seau, quatre murs. Les frères lui ont pris son canif.' });
       await c.say('isot', { en: 'Not the one on the cord. That one was Wystan’s idea.', fr: 'Pas celui au bout du cordon. Celui-là, c’était une idée de Wystan.' }, 'wry');
       await c.say('isot', { en: 'Dawn is four hours off. And someone is breathing on the other side of this wall.', fr: 'L’aube est dans quatre heures. Et quelqu’un respire de l’autre côté de ce mur.' }, 'alarmed');
       c.letterbox(false);
@@ -174,7 +174,7 @@ function showBreach(c: MapContext): void {
 /** C3: the wall comes down. */
 async function wallComesDown(c: MapContext): Promise<void> {
   c.letterbox(true);
-  await c.say('isot', { en: 'A doorway. Bricked up, and plastered, and whitewashed over. It was a door, once.', fr: 'Une porte. Murée, plâtrée, blanchie à la chaux. C’était une porte, autrefois.' }, 'alarmed');
+  await c.say('isot', { en: 'A doorway. Bricked up, and plastered, and whitewashed over. It was a door, once.', fr: 'Une embrasure. Murée, plâtrée, blanchie à la chaux. C’était une porte, autrefois.' }, 'alarmed');
   await c.say('hild', { en: 'Stand back.', fr: 'Recule.' }, 'stern');
   await c.walk(c.player, [[c.player.x, Math.max(c.player.y, tiles(5.4))]]);
   c.face(c.player, 'up');
@@ -197,8 +197,8 @@ async function wallComesDown(c: MapContext): Promise<void> {
   ]);
   await c.say('hild', { en: 'It looked smaller then.', fr: 'Il paraissait plus petit, à l’époque.' }, 'wry');
   await c.say('hild', { en: 'It was.', fr: 'Il l’était.' }, 'warm');
-  await c.say('isot', { en: 'You’ve broken your own wall.', fr: 'Vous avez cassé votre propre mur.' }, 'alarmed');
-  await c.say('hild', { en: 'An anchoress keeps a vow to stay. I kept it ten years, for a reason I’ve stopped believing. Through the church, child. The cloister, then the sea gate.', fr: 'Une recluse fait vœu de rester. Je l’ai tenu dix ans, pour une raison à laquelle je ne crois plus. Par l’église, petite. Le cloître, puis la porte de la mer.' }, 'grave');
+  await c.say('isot', { en: 'You’ve broken your own wall.', fr: 'Tu as cassé ton propre mur.' }, 'alarmed');
+  await c.say('hild', { en: 'An anchoress keeps a vow to stay. I kept it ten years, for a reason I’ve stopped believing. Through the church, child. The cloister, then the sea gate.', fr: 'Une recluse fait vœu de rester. Je l’ai tenu dix ans, pour une raison à laquelle je ne crois plus. Par l’église, petite. Le cloître, puis la Porte de la Mer.' }, 'grave');
   c.join('hild', hild);
   c.set('hildJoined');
   await c.find('anchorStone', { en: 'A chip of the wall she broke down lies at Isot’s feet. She pockets it.', fr: 'Un éclat du mur qu’elle a abattu gît aux pieds d’Isot. Elle le met dans sa poche.' });

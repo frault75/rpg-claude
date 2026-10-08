@@ -60,7 +60,7 @@ export const RANKS: readonly Rank[] = [
   { id: 'lance2', level: 6, name: { en: 'Lance II', fr: 'Lance II' }, text: { en: 'Lance deals 5.', fr: 'Lance inflige 5.' } },
   { id: 'penknife2', level: 8, name: { en: 'Penknife II', fr: 'Canif II' }, text: { en: 'Penknife deals 3.', fr: 'Canif inflige 3.' } },
   { id: 'shrive2', level: 10, name: { en: 'Shrive II', fr: 'Absoudre II' }, text: { en: 'Shrive heals 8.', fr: 'Absoudre soigne 8.' } },
-  { id: 'inkwell', level: 12, name: { en: 'The Ink-well', fr: 'L’encrier' }, text: { en: 'Isot’s Ink holds 4.', fr: 'L’encre d’Isot monte à 4.' } },
+  { id: 'inkwell', level: 12, name: { en: 'The Ink-well', fr: 'L’encrier' }, text: { en: 'Isot’s Ink holds 4.', fr: 'L’Encre d’Isot monte à 4.' } },
 ];
 
 export function hasRank(level: number, id: RankId): boolean {

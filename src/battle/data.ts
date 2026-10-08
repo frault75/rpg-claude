@@ -17,7 +17,7 @@ export const ABILITIES: Record<AbilityId, AbilityDef> = {
   benison: { id: 'benison', name: { en: 'Benison', fr: 'Bénédiction' }, owner: 'hild', target: 'none', oncePerBattle: true, text: { en: 'All allies regain 5 HP and gain Ward 3.', fr: 'Tous les alliés regagnent 5 PV et gagnent Garde 3.' } },
   lance: { id: 'lance', name: { en: 'Lance', fr: 'Lance' }, owner: 'whit', target: 'enemy', fromFront: true, reachEnemy: 2, text: { en: '4 damage to the 1st or 2nd enemy.', fr: '4 dégâts au 1er ou au 2e ennemi.' } },
   tally: { id: 'tally', name: { en: 'Tally', fr: 'Décompte' }, owner: 'whit', target: 'enemy', text: { en: 'Set Tally 3: at 0, a Reckoning of 7.', fr: 'Pose un Décompte de 3 : à 0, le Règlement inflige 7.' } },
-  vigil: { id: 'vigil', name: { en: 'Vigil', fr: 'Veille' }, owner: 'whit', target: 'none', fromFront: true, text: { en: 'The first enemy to strike an ally is struck first, for 4.', fr: 'Le premier ennemi qui frappe un allié est frappé avant, pour 4.' } },
+  vigil: { id: 'vigil', name: { en: 'Vigil', fr: 'Veille' }, owner: 'whit', target: 'none', fromFront: true, text: { en: 'The first enemy to strike an ally is struck first, for 4.', fr: 'Le premier ennemi qui frappe un allié encaisse d’abord 4 dégâts.' } },
   read: { id: 'read', name: { en: 'Read Aloud', fr: 'Lire à voix haute' }, owner: 'whit', target: 'enemy', text: { en: 'End an enemy with 6 HP or fewer.', fr: 'Achève un ennemi à 6 PV ou moins.' } },
   inscribe: { id: 'inscribe', name: { en: 'Inscribe', fr: 'Inscrire' }, owner: 'isot', target: 'none', text: { en: 'At the lectern in the Rear: write the next letter of FINIS.', fr: 'Au lutrin, à l’Arrière : écrire la lettre suivante de FINIS.' } },
 };
@@ -108,7 +108,7 @@ export interface EnemyDef {
 // The Danse Macabre's figures (DESIGN.md §5.14).
 const HAND: IntentSpec = {
   label: { en: 'Takes a hand and leads them back', fr: 'Prend une main et l’entraîne en arrière' },
-  rule: { en: 'Then the Front and the Middle swap', fr: 'Puis l’Avant et le Milieu échangent' },
+  rule: { en: 'Then the Front and the Middle swap', fr: 'Puis l’Avant et le Milieu permutent' },
   target: { place: 0 },
   damage: 3,
   reach: 'any',
@@ -139,7 +139,7 @@ export const ENEMIES: Record<string, EnemyDef> = {
       if (c.phase % 3 === 2 && hurt)
         return [
           {
-            label: { en: 'Holds the line', fr: 'Tient la ligne' },
+            label: { en: 'Holds the line', fr: 'Serre les rangs' },
             rule: { en: 'Ward 3', fr: 'Garde 3' },
             target: { unit: hurt.id },
             effects: [{ kind: 'wardAlly', amount: 3 }],
@@ -192,7 +192,7 @@ export const ENEMIES: Record<string, EnemyDef> = {
         return [
           {
             label: { en: '“Stand back! The Doctor’s under my care.”', fr: '« Arrière ! Le Docteur est sous ma garde. »' },
-            rule: { en: 'Guards the Doctor: he can’t be targeted', fr: 'Garde le Docteur : impossible à cibler' },
+            rule: { en: 'Guards the Doctor: he can’t be targeted', fr: 'Protège le Docteur : impossible à cibler' },
             target: { unit: doctor.id },
             effects: [{ kind: 'guard' }],
             reach: 'any',
@@ -225,7 +225,7 @@ export const ENEMIES: Record<string, EnemyDef> = {
         return [
           {
             label: { en: '“A little bottle by my side: the fellow’s up who should have died!”', fr: '« Une fiole à mon côté : debout, celui qui devait trépasser ! »' },
-            rule: { en: 'Raises them at full HP', fr: 'Le relève, tous PV' },
+            rule: { en: 'Raises them at full HP', fr: 'Le relève avec tous ses PV' },
             target: { unit: down.id },
             effects: [{ kind: 'raise' }],
             reach: 'any',
@@ -316,11 +316,11 @@ export const ENEMIES: Record<string, EnemyDef> = {
       hp: 15,
       id: 'rasure',
       title: { en: 'The Rasure', fr: 'La Rature' },
-      line: { en: 'Ermeline’s outline surfaces in the ink and scrapes at Isot’s inkhorn every round. Emend her stroke to free her.', fr: 'Le contour d’Ermeline remonte dans l’encre et gratte la corne d’Isot à chaque tour. Corrigez son geste pour la libérer.' },
+      line: { en: 'Ermeline’s outline surfaces in the ink and scrapes at Isot’s inkhorn every round. Emend her stroke to free her.', fr: 'Le contour d’Ermeline remonte dans l’encre et gratte l’encrier d’Isot à chaque tour. Corrigez son geste pour la libérer.' },
     },
     behave: (c) => {
       const k = c.phase % 3;
-      if (k === 0) return [{ label: { en: 'Engulfs', fr: 'Engloutit' }, rule: { en: 'And Smudges (only Isot can be)', fr: 'Et Bave (seule Isot peut l’être)' }, target: { place: 0 }, damage: 5, reach: 'any', effects: [{ kind: 'smudge' }] }];
+      if (k === 0) return [{ label: { en: 'Engulfs', fr: 'Engloutit' }, rule: { en: 'And Smudges (only Isot can be)', fr: 'Et inflige Bavure (à Isot seulement)' }, target: { place: 0 }, damage: 5, reach: 'any', effects: [{ kind: 'smudge' }] }];
       if (k === 1) return [{ label: { en: 'Wells up', fr: 'Déborde' }, rule: { en: 'A Blotlet rises', fr: 'Une Tachelette surgit' }, target: { self: true }, reach: 'any', effects: [{ kind: 'spawn', enemy: 'blotlet' }] }];
       return [{ label: { en: 'Swallows a name', fr: 'Avale un nom' }, rule: { en: 'Heals 6', fr: 'Soigne 6' }, target: { self: true }, reach: 'any', effects: [{ kind: 'heal', amount: 6 }] }];
     },
@@ -346,7 +346,7 @@ export const ENEMIES: Record<string, EnemyDef> = {
       if (c.letters >= 4 && !c.phases.has('gathering'))
         return [
           {
-            label: { en: 'Gathers the pumice…', fr: 'Rassemble la ponce…' },
+            label: { en: 'Gathers the pumice…', fr: 'Lève la ponce…' },
             rule: { en: 'Next round, every letter is scraped away', fr: 'Au prochain tour, toutes les lettres sont grattées' },
             target: { self: true },
             reach: 'any',
@@ -360,7 +360,7 @@ export const ENEMIES: Record<string, EnemyDef> = {
         case 0:
           return [{ label: { en: 'EDICT: let none stand before me', fr: 'ÉDIT : que nul ne se tienne devant moi' }, target: { place: 0 }, damage: 6, reach: 'any' }];
         case 1:
-          return [{ label: { en: 'Scrapes WHIT from the page', fr: 'Gratte WHIT de la page' }, rule: { en: 'Whit is Forgotten for 2 rounds', fr: 'Whit est Oublié pendant 2 tours' }, target: { unit: 'whit' }, reach: 'any', effects: [{ kind: 'forget', rounds: 2 }] }];
+          return [{ label: { en: 'Scrapes WHIT from the page', fr: 'Gratte WHIT sur la page' }, rule: { en: 'Whit is Forgotten for 2 rounds', fr: 'Whit est Oublié pendant 2 tours' }, target: { unit: 'whit' }, reach: 'any', effects: [{ kind: 'forget', rounds: 2 }] }];
         case 2:
           return [{ label: { en: 'Pumices the page', fr: 'Ponce la page' }, rule: { en: 'Aimed at her by name: a Step won’t save her', fr: 'Visée par son nom : changer de place ne la sauvera pas' }, target: { unit: 'isot' }, damage: 4, reach: 'any' }];
         case 3:
@@ -396,7 +396,7 @@ export const ENEMIES: Record<string, EnemyDef> = {
     behave: (c) =>
       (c.phase + c.place) % 2 === 0
         ? [{ label: { en: 'Spits embers', fr: 'Crache des braises' }, target: { place: 2 }, damage: 2, reach: 'far' }]
-        : [{ label: { en: 'Headbutts', fr: 'Donne un coup de tête' }, rule: { en: 'When it falls it bursts on the Front for 2', fr: 'En tombant, il éclate sur l’Avant pour 2' }, target: { place: 0 }, damage: 2, reach: 'close' }],
+        : [{ label: { en: 'Headbutts', fr: 'Donne un coup de tête' }, rule: { en: 'When it falls it bursts on the Front for 2', fr: 'En tombant, il éclate : 2 dégâts à l’Avant' }, target: { place: 0 }, damage: 2, reach: 'close' }],
   },
   // The Fair's back lanes (DESIGN.md §3.14): the ape-scribes' copying stall. A copyist copies
   // the last thing done to it, back at whoever did it, as hard as it was done.
@@ -407,7 +407,7 @@ export const ENEMIES: Record<string, EnemyDef> = {
       const k = c.copied;
       if (k && k.amount > 0) {
         const n = ABILITIES[k.ability].name;
-        return [{ label: { en: `Copies the ${n.en} back`, fr: `Recopie ${n.fr} en retour` }, rule: { en: 'As hard as it was done', fr: 'Aussi fort qu’on le lui a fait' }, target: { unit: k.by }, damage: k.amount, reach: 'any' }];
+        return [{ label: { en: `Copies the ${n.en} back`, fr: `Recopie « ${n.fr} »` }, rule: { en: 'As hard as it was done', fr: 'Aussi fort qu’il l’a reçu' }, target: { unit: k.by }, damage: k.amount, reach: 'any' }];
       }
       if (k && k.ability === 'gloss')
         return [{ label: { en: 'Copies the Gloss back', fr: 'Recopie la Glose en retour' }, rule: { en: 'The next blow on them deals 3 more', fr: 'Le prochain coup reçu fait 3 de plus' }, target: { unit: k.by }, effects: [{ kind: 'gloss' }], reach: 'any' }];
@@ -422,7 +422,7 @@ export const ENEMIES: Record<string, EnemyDef> = {
     behave: (c) => {
       const down = c.fallen.find((f) => f.kind === 'emberGryllus');
       if (down && c.phase % 3 === 1)
-        return [{ label: { en: 'Blows on the coals', fr: 'Souffle sur les braises' }, rule: { en: 'A fallen ember-gryllus rises at full HP', fr: 'Un grylle de braise tombé se relève, tous PV' }, target: { unit: down.id }, effects: [{ kind: 'raise' }], reach: 'any' }];
+        return [{ label: { en: 'Blows on the coals', fr: 'Souffle sur les braises' }, rule: { en: 'A fallen ember-gryllus rises at full HP', fr: 'Un grylle de braise tombé se relève avec tous ses PV' }, target: { unit: down.id }, effects: [{ kind: 'raise' }], reach: 'any' }];
       const young = c.allies.filter((a) => a.kind === 'emberGryllus').sort((a, b) => a.hp - b.hp)[0];
       if (c.phase % 3 === 1 && young)
         return [{ label: { en: 'Shields her young', fr: 'Protège son petit' }, rule: { en: 'Ward 3', fr: 'Garde 3' }, target: { unit: young.id }, effects: [{ kind: 'wardAlly', amount: 3 }], reach: 'any' }];
@@ -469,7 +469,7 @@ export const ENEMIES: Record<string, EnemyDef> = {
     behave: (c) => {
       const k = (c.phase + c.place) % 3;
       if (k === 0)
-        return [{ label: { en: 'Writes itself over', fr: 'Se récrit par-dessus' }, rule: { en: 'Whatever it loses this round, it has back', fr: 'Ce qu’il perd ce tour-ci, il le récupère' }, target: { self: true }, reach: 'any', effects: [{ kind: 'rewrite' }] }];
+        return [{ label: { en: 'Writes itself over', fr: 'Se réécrit par-dessus' }, rule: { en: 'Whatever it loses this round, it has back', fr: 'Ce qu’il perd ce tour-ci, il le récupère' }, target: { self: true }, reach: 'any', effects: [{ kind: 'rewrite' }] }];
       if (k === 1) return [{ label: { en: 'Charges', fr: 'Charge' }, target: { place: 0 }, damage: 5, reach: 'close' }];
       return [{ label: { en: 'Couches its lance', fr: 'Met sa lance en arrêt' }, target: { place: 1 }, damage: 4, reach: 'any' }];
     },
@@ -487,11 +487,11 @@ export const ENEMIES: Record<string, EnemyDef> = {
     behave: (c) => {
       switch (c.phase % 4) {
         case 0:
-          return [{ label: { en: 'Thrashes for its next letter', fr: 'Se débat pour sa prochaine lettre' }, rule: { en: 'If it reaches, its word has one more letter', fr: 'S’il l’atteint, son mot a une lettre de plus' }, target: { place: 0 }, damage: 4, reach: 'any', effects: [{ kind: 'letter' }] }];
+          return [{ label: { en: 'Thrashes for its next letter', fr: 'Se débat pour sa prochaine lettre' }, rule: { en: 'If it reaches, its word has one more letter', fr: 'S’il touche, son mot gagne une lettre' }, target: { place: 0 }, damage: 4, reach: 'any', effects: [{ kind: 'letter' }] }];
         case 1:
           return [{ label: { en: 'Sheds a stray letter', fr: 'Perd une lettre égarée' }, target: { self: true }, reach: 'any', effects: [{ kind: 'spawn', enemy: 'strayLetter' }] }];
         case 2:
-          return [{ label: { en: 'Rakes for its next letter', fr: 'Racle pour sa prochaine lettre' }, rule: { en: 'If it reaches, its word has one more letter', fr: 'S’il l’atteint, son mot a une lettre de plus' }, target: { places: [1, 2] }, damage: 3, reach: 'any', effects: [{ kind: 'letter' }] }];
+          return [{ label: { en: 'Rakes for its next letter', fr: 'Racle pour sa prochaine lettre' }, rule: { en: 'If it reaches, its word has one more letter', fr: 'S’il touche, son mot gagne une lettre' }, target: { places: [1, 2] }, damage: 3, reach: 'any', effects: [{ kind: 'letter' }] }];
         default:
           return [{ label: { en: 'Mouths F, I, N, I, S…', fr: 'Articule F, I, N, I, S…' }, rule: { en: 'A word it learned upstairs, not its own', fr: 'Un mot appris là-haut, pas le sien' }, target: { all: true }, damage: 5, reach: 'any', countdown: 1 }];
       }
@@ -515,7 +515,7 @@ export const ENEMIES: Record<string, EnemyDef> = {
       hp: 12,
       id: 'highWater',
       title: { en: 'High Water', fr: 'Marée haute' },
-      line: { en: 'The shell cracks on a spiral of writing. Now the tide breaks every second round, over the Front and the Middle.', fr: 'La coquille se fend sur une spirale d’écriture. Désormais la marée brise un tour sur deux, sur l’Avant et le Milieu.' },
+      line: { en: 'The shell cracks on a spiral of writing. Now the tide breaks every second round, over the Front and the Middle.', fr: 'La coquille se fend sur une spirale d’écriture. Désormais la marée déferle un tour sur deux sur l’Avant et le Milieu.' },
     },
     behave: (c) => {
       const k = c.phase % 3;
@@ -568,7 +568,7 @@ export const ENCOUNTERS: Record<string, EncounterDef> = {
   },
   s3: { id: 's3', name: { en: 'The copying stall', fr: 'L’étal des copistes' }, party: ['whit', 'hild', 'isot'], enemies: ['apeScribe', 'apeScribe', 'apeScribe', 'apeScribe'], stage: 'lanes' },
   f7: { id: 'f7', name: { en: 'The Ivy Gate', fr: 'La porte du Lierre' }, party: ['whit', 'hild', 'isot'], enemies: ['hare', 'caladrius', 'hare'], stage: 'ivy' },
-  f8: { id: 'f8', name: { en: 'The Court of Unreason', fr: 'La cour de Déraison' }, party: ['whit', 'hild', 'isot'], enemies: ['babewyn', 'bishopFish', 'snail'], stage: 'fair' },
+  f8: { id: 'f8', name: { en: 'The Court of Unreason', fr: 'La Cour de Déraison' }, party: ['whit', 'hild', 'isot'], enemies: ['babewyn', 'bishopFish', 'snail'], stage: 'fair' },
   b4: {
     id: 'b4',
     name: { en: 'The Blot', fr: 'La Tache' },
@@ -577,7 +577,7 @@ export const ENCOUNTERS: Record<string, EncounterDef> = {
     stage: 'inkwell',
     env: (_round, phases) =>
       phases.has('rasure') && !phases.has('ermelineFree')
-        ? { label: { en: 'Ermeline scrapes at the inkhorn', fr: 'Ermeline gratte la corne à encre' }, rule: { en: '−1 Ink. Emend her stroke onto an enemy to free her', fr: '−1 Encre. Corrigez son geste vers un ennemi pour la libérer' }, target: { unit: 'isot' }, reach: 'any', effects: [{ kind: 'drain' }] }
+        ? { label: { en: 'Ermeline scrapes at the inkhorn', fr: 'Ermeline gratte l’encrier' }, rule: { en: '−1 Ink. Emend her stroke onto an enemy to free her', fr: '−1 Encre. Corrigez son geste vers un ennemi pour la libérer' }, target: { unit: 'isot' }, reach: 'any', effects: [{ kind: 'drain' }] }
         : null,
   },
   s4: { id: 's4', name: { en: 'The sweepers', fr: 'Les balayeurs' }, party: ['whit', 'hild', 'isot'], enemies: ['inkhornHound', 'inkhornHound', 'inkhornHound', 'scrapedBrother'], stage: 'undercroft' },
@@ -597,13 +597,13 @@ export const ENCOUNTERS: Record<string, EncounterDef> = {
       },
       loose: {
         title: { en: 'Knocked Loose', fr: 'Détachée' },
-        line: { en: 'A letter falls back into the scrapings. It was trying to say something.', fr: 'Une lettre retombe dans les raclures. Il essayait de dire quelque chose.' },
+        line: { en: 'A letter falls back into the scrapings. It was trying to say something.', fr: 'Une lettre retombe dans les raclures. Le Tas essayait de dire quelque chose.' },
       },
     },
   },
   f9: { id: 'f9', name: { en: 'The cloister at dawn', fr: 'Le cloître à l’aube' }, party: ['whit', 'hild', 'isot'], enemies: ['brother', 'gaudry', 'brother'], stage: 'cloisterDawn' },
   b5: { id: 'b5', name: { en: 'The Writing of FINIS', fr: 'L’Écriture de FINIS' }, party: ['whit', 'hild', 'isot'], enemies: ['brother', 'aumery', 'brother'], stage: 'nave', objective: 'finis', mustSurvive: 'isot' },
-  b2: { id: 'b2', name: { en: 'The Mummers’ Play', fr: 'La pièce des Mimes' }, party: ['whit', 'hild', 'isot'], enemies: ['george', 'slasher', 'doctor'], stage: 'green' },
+  b2: { id: 'b2', name: { en: 'The Mummers’ Play', fr: 'La pièce des comédiens' }, party: ['whit', 'hild', 'isot'], enemies: ['george', 'slasher', 'doctor'], stage: 'green' },
   b1: {
     id: 'b1',
     name: { en: 'The Great Snail of the Causeway', fr: 'Le Grand Escargot de la chaussée' },
@@ -612,7 +612,7 @@ export const ENCOUNTERS: Record<string, EncounterDef> = {
     stage: 'causeway',
     env: (round, phases) => {
       if (phases.has('highWater'))
-        return round % 2 === 0 ? { label: { en: 'High water breaks', fr: 'La marée haute se brise' }, target: { places: [0, 1] }, damage: 2, reach: 'any' } : null;
+        return round % 2 === 0 ? { label: { en: 'High water breaks', fr: 'La marée haute déferle' }, target: { places: [0, 1] }, damage: 2, reach: 'any' } : null;
       return round % 3 === 0 ? { label: { en: 'A wave breaks', fr: 'Une vague se brise' }, target: { place: 0 }, damage: 2, reach: 'any' } : null;
     },
   },

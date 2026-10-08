@@ -215,7 +215,7 @@ export const CHAPEL: MapDef = {
       c.set('chapelSeen');
       c.letterbox(true);
       await c.wait(1);
-      await c.say('isot', { en: 'Ninefold’s chapel to the Reader. They scraped the whole city and didn’t dare touch this.', fr: 'La chapelle de Ninefold au Lecteur. Ils ont gratté toute la ville et n’ont pas osé toucher à celle-ci.' });
+      await c.say('isot', { en: 'Ninefold’s chapel to the Reader. They scraped the whole city and didn’t dare touch this.', fr: 'La chapelle du Lecteur, à Ninefold. Ils ont gratté toute la ville et n’ont pas osé toucher à celle-ci.' });
       await c.say('whit', { en: 'It’s very quiet. I like it here. I don’t know why.', fr: 'C’est très calme. J’aime bien, ici. Je ne sais pas pourquoi.' });
       c.letterbox(false);
     }

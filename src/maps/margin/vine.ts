@@ -102,8 +102,8 @@ async function wystansVine(c: MapContext): Promise<void> {
   c.face(w, 'down');
   await c.say('wystan', { en: 'Isot. Little Isot. Have you brought the knife?', fr: 'Isot. Petite Isot. As-tu apporté le canif ?' });
   const pick = await c.choose([
-    { en: 'Tell them yourself.', fr: 'Le leur dire toi-même.' },
-    { en: '(Say nothing. Let him say it.)', fr: '(Ne rien dire. Le laisser le dire.)' },
+    { en: 'Tell them yourself.', fr: 'Le leur dire elle-même.' },
+    { en: '(Say nothing. Let him say it.)', fr: '(Se taire. Le laisser parler.)' },
   ]);
   if (pick === 0) {
     c.set('confessed');
@@ -116,10 +116,10 @@ async function wystansVine(c: MapContext): Promise<void> {
   }
   await c.narrate({ en: 'Isot kneels and lays her penknife on his tiny desk. Wystan covers her hand with his paw.', fr: 'Isot s’agenouille et pose son canif sur le pupitre minuscule. Wystan couvre sa main de sa patte.' });
   await c.say('wystan', { en: 'You did a kind thing badly. That’s most kindness.', fr: 'Tu as été bonne, et maladroite. La bonté l’est presque toujours.' });
-  await c.say('isot', { en: 'I’ll write you back. I have ink. I’ll write you back and you’ll be—', fr: 'Je te réécrirai. J’ai de l’encre. Je te réécrirai et tu seras—' }, 'sad');
+  await c.say('isot', { en: 'I’ll write you back. I have ink. I’ll write you back and you’ll be—', fr: 'Je te réécrirai. J’ai de l’encre. Je te réécrirai et tu seras…' }, 'sad');
   await c.say('wystan', { en: 'Old, Isot. In pain. Frayed. No. Write him back.', fr: 'Vieux, Isot. Souffrant. Effiloché. Non. Réécris-le, lui.' });
   c.face(w, 'right');
-  await c.say('wystan', { en: 'Then write me after, and let him read me. I’d like to be finished. I was a good long sentence.', fr: 'Puis écris-moi après, et laisse-le me lire. J’aimerais être fini. J’étais une bonne longue phrase.' });
+  await c.say('wystan', { en: 'Then write me after, and let him read me. I’d like to be finished. I was a good long sentence.', fr: 'Puis écris-moi après, et laisse-le me lire. J’aimerais être fini. J’étais une belle et longue phrase.' });
   await c.say('wystan', { en: 'Red is for the words that must be read first. Remember that.', fr: 'Le rouge, c’est pour les mots qu’il faut lire en premier. Souviens-t’en.' });
   c.letterbox(false);
   await c.learn('isot', 'rubric');
@@ -142,7 +142,7 @@ async function theFallOfNames(c: MapContext): Promise<void> {
   }
   c.shake(6, 2.4);
   c.flash(0.5);
-  await c.narrate({ en: 'A toll from above, out of tune with everything: the Abbot’s great bell, being tried. Over the edge of the page of Hollin pours a waterfall of letters.', fr: 'Un coup de cloche venu d’en haut, faux avec tout le reste : la grande cloche de l’abbé, qu’on essaie. Par-dessus le bord de la page de Hollin se déverse une cascade de lettres.' });
+  await c.narrate({ en: 'A toll from above, out of tune with everything: the Abbot’s great bell, being tried. Over the edge of the page of Hollin pours a waterfall of letters.', fr: 'Un coup de cloche venu d’en haut, qui détonne sur tout le reste : la grande cloche de l’abbé, qu’on essaie. Par-dessus le bord de la page de Hollin se déverse une cascade de lettres.' });
   // The letters fall.
   const letters = 'HAMLETOFWYEMARSHANDALLWHOLIVEDTHERE';
   const fallen = [...letters].map((ch, i) => {
@@ -156,7 +156,7 @@ async function theFallOfNames(c: MapContext): Promise<void> {
     }
     await c.wait(0.06);
   }
-  await c.say('abbotUnreason', { en: 'That was a hamlet. He’s tuning his bell. Up, up, onto the bar, all of you!', fr: 'C’était un hameau. Il accorde sa cloche. Debout, debout, sur la barre, tous !' });
+  await c.say('abbotUnreason', { en: 'That was a hamlet. He’s tuning his bell. Up, up, onto the bar, all of you!', fr: 'C’était un hameau. Il accorde sa cloche. Montez, montez sur la barre, tous !' });
   const abbot = c.npc('abbot');
   abbot.x = c.player.x - 30;
   abbot.y = c.player.y;

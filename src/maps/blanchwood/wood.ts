@@ -143,7 +143,7 @@ export const WOOD: MapDef = {
       await c.wait(1.6);
       await c.say('whit', { en: 'The leaves are the wrong colour. No. They’re no colour.', fr: 'Les feuilles n’ont pas la bonne couleur. Non. Elles n’ont pas de couleur.' });
       await c.say('hild', { en: 'The Blanchwood. It grew over Ninefold after the Scouring. It’s been forgetting itself ever since.', fr: 'Le Bois-Blanc. Il a poussé sur Ninefold après le Récurage. Depuis, il s’oublie lui-même.' }, 'grave');
-      await c.say('isot', { en: 'Someone’s scraping it. Slowly, from the inside. I know what that looks like.', fr: 'Quelqu’un la gratte. Lentement, de l’intérieur. Je sais à quoi ça ressemble.' }, 'alarmed');
+      await c.say('isot', { en: 'Someone’s scraping it. Slowly, from the inside. I know what that looks like.', fr: 'Quelqu’un le gratte. Lentement, de l’intérieur. Je sais à quoi ça ressemble.' }, 'alarmed');
       c.letterbox(false);
     }
     if (from === 'battle:f5' && !c.flag('wodewoseGone')) {

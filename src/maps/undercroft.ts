@@ -150,11 +150,11 @@ export const UNDERCROFT: MapDef = {
       when: (c) => !c.cleared('s4'),
       run: async (c) => {
         c.letterbox(true);
-        await c.narrate({ en: 'A Brother is sweeping. His robe has faded to the colour of vellum. He sweeps the shavings to one end of the vault, then back to the other. Three hounds lie at his feet. They are made of inkhorns.', fr: 'Un Frère balaie. Sa robe a pâli jusqu’à la couleur du vélin. Il pousse les raclures à un bout de la crypte, puis les ramène à l’autre. Trois chiens sont couchés à ses pieds. Ils sont faits de cornes à encre.' });
+        await c.narrate({ en: 'A Brother is sweeping. His robe has faded to the colour of vellum. He sweeps the shavings to one end of the vault, then back to the other. Three hounds lie at his feet. They are made of inkhorns.', fr: 'Un Frère balaie. Sa robe a pâli jusqu’à la couleur du vélin. Il pousse les raclures à un bout de la crypte, puis les ramène à l’autre. Trois chiens sont couchés à ses pieds. Ce sont des encriers de corne.' });
         if (c.flag('knowGodric')) await c.say('isot', { en: 'Brother Godric?', fr: 'Frère Godric ?' });
         await c.say('sweeper', { en: 'Mind the floor. I’ve just done it. I’ve always just done it.', fr: 'Attention au sol. Je viens de le faire. Je viens toujours de le faire.' });
         await c.say('whit', { en: 'The dogs have our scent. They’ll go for whoever moves last.', fr: 'Les chiens ont notre odeur. Ils iront sur celui qui bouge en dernier.' });
-        await c.say('hild', { en: 'He’s scraped clean, Isot. Write him back a letter at a time, and keep him from sweeping it off again.', fr: 'Il est gratté net, Isot. Réécris-le une lettre à la fois, et empêche-le de tout balayer encore.' }, 'grave');
+        await c.say('hild', { en: 'He’s scraped clean, Isot. Write him back a letter at a time, and keep him from sweeping it off again.', fr: 'On l’a gratté à blanc, Isot. Réécris-le lettre à lettre, et empêche-le de tout rebalayer.' }, 'grave');
         c.letterbox(false);
         c.battle('s4');
       },
@@ -165,7 +165,7 @@ export const UNDERCROFT: MapDef = {
       when: (c) => c.cleared('s4') && !c.cleared('s5'),
       run: async (c) => {
         c.letterbox(true);
-        await c.narrate({ en: 'Two knights stand in the inner bays, mail and surcoat the colour of old skin. Through them, faintly, like writing through a page held to the light, lines of an older text.', fr: 'Deux chevaliers se tiennent dans les baies du fond, haubert et cotte couleur de vieille peau. À travers eux, faiblement, comme une écriture à travers une page tenue à la lumière, les lignes d’un texte plus ancien.' });
+        await c.narrate({ en: 'Two knights stand in the inner bays, mail and surcoat the colour of old skin. Through them, faintly, like writing through a page held to the light, lines of an older text.', fr: 'Deux chevaliers se tiennent dans les travées du fond, haubert et cotte couleur de vieille peau. À travers eux, faiblement, comme une écriture à travers une page tenue à la lumière, les lignes d’un texte plus ancien.' });
         await c.say('isot', { en: 'Palimpsests. Someone wrote knights over something else. Whatever we scrape off them, they’ll write back.', fr: 'Des palimpsestes. Quelqu’un a écrit des chevaliers par-dessus autre chose. Tout ce qu’on leur grattera, ils le réécriront.' }, 'alarmed');
         await c.say('whit', { en: 'Then we finish each one while it’s still writing itself back. Or we cross the new writing out.', fr: 'Alors on achève chacun pendant qu’il se réécrit. Ou on raye ce qu’il réécrit.' });
         c.letterbox(false);
@@ -187,7 +187,7 @@ export const UNDERCROFT: MapDef = {
       h: 20,
       reach: 30,
       run: async (c) => {
-        await c.say('isot', { en: 'The chute. Every page we scraped upstairs, we swept the shavings in at the top. I never wondered where they went.', fr: 'La goulotte. Chaque page qu’on grattait là-haut, on balayait les raclures par le haut. Je ne me suis jamais demandé où elles allaient.' }, 'sad');
+        await c.say('isot', { en: 'The chute. Every page we scraped upstairs, we swept the shavings in at the top. I never wondered where they went.', fr: 'La goulotte. Pour chaque page grattée là-haut, on y jetait les raclures. Je ne me suis jamais demandé où elles allaient.' }, 'sad');
         if (!c.flag('seen.godric')) await c.say('hild', { en: 'There’s writing scratched on the wall by it. Tilt your candle.', fr: 'Il y a quelque chose de gravé sur le mur, à côté. Incline ta bougie.' });
       },
     },
@@ -265,7 +265,7 @@ async function afterSweepers(c: MapContext): Promise<void> {
 
 async function approachHeap(c: MapContext): Promise<void> {
   c.letterbox(true);
-  await c.narrate({ en: 'At the end of the vault the drifts rise into one heap, higher than a man. It moves. Not like a beast: like a page in a draught. Here and there in it a whole letter catches the light and goes out again.', fr: 'Au bout de la crypte, les tas montent en un seul, plus haut qu’un homme. Il bouge. Pas comme une bête : comme une page dans un courant d’air. Çà et là une lettre entière y prend la lumière, puis s’éteint.' });
+  await c.narrate({ en: 'At the end of the vault the drifts rise into one heap, higher than a man. It moves. Not like a beast: like a page in a draught. Here and there in it a whole letter catches the light and goes out again.', fr: 'Au bout de la crypte, les tas se rejoignent en un seul, plus haut qu’un homme. Il bouge. Pas comme une bête : comme une page dans un courant d’air. Çà et là une lettre entière y prend la lumière, puis s’éteint.' });
   await c.say('isot', { en: 'It’s every letter. Everything anyone ever scraped in this abbey, trying to be a word again.', fr: 'C’est toutes les lettres. Tout ce qu’on a jamais gratté dans cette abbaye, qui essaie de redevenir un mot.' }, 'alarmed');
   await c.say('hild', { en: 'If we hit it, it’ll lose what it’s found. Let it find its word, child. Then read it.', fr: 'Si on le frappe, il perdra ce qu’il a trouvé. Laisse-le trouver son mot, petite. Ensuite, lis-le.' }, 'grave');
   const pick = await c.choose([

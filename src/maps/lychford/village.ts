@@ -88,7 +88,7 @@ export const VILLAGE: MapDef = {
       y: tiles(13.7),
       pennies: 8,
       satchel: { poultice: 1 },
-      note: { en: '“Lychford fed us through the winter of the Sweat. Feed it back.”', fr: '« Lychford nous a nourris pendant l’hiver de la Suée. Rends-le-lui. »' },
+      note: { en: '“Lychford fed us through the winter of the Sweat. Feed it back.”', fr: '« Lychford nous a nourris pendant l’hiver de la Suette. À ton tour de le nourrir. »' },
     },
   ],
   card: { title: { en: 'Lychford', fr: 'Lychford' }, line: { en: 'The Village Without Graves', fr: 'Le village sans tombes' } },
@@ -178,7 +178,7 @@ export const VILLAGE: MapDef = {
         await c.say('child2', { en: 'You have to say the rhyme when you’re caught. Listen:', fr: 'Il faut dire la comptine quand on est attrapé. Écoute :' });
         await c.say('child2', { en: '“Weeper weeps and Morning calls, Singer sings in empty halls; wake the Tenor last of all, and someone’s name will heed the call.”', fr: '« Larme pleure, Matin appelle, Chantre chante en la chapelle ; le Ténor, garde-le pour la fin, et un nom répondra soudain. »' });
         c.set('rhyme');
-        await c.say('isot', { en: 'That’s not a skipping rhyme. That’s a ringing order.', fr: 'Ce n’est pas une comptine pour sauter. C’est un ordre de sonnerie.' }, 'wry');
+        await c.say('isot', { en: 'That’s not a skipping rhyme. That’s a ringing order.', fr: 'Ce n’est pas une comptine, c’est un ordre de sonnerie.' }, 'wry');
       },
     },
     {
@@ -188,7 +188,7 @@ export const VILLAGE: MapDef = {
       h: 50,
       when: dayOnly,
       run: async (c) => {
-        await c.say('george', { en: '“Here comes I, Saint George, the valiant man—” No, no, from the top. Again.', fr: '« Me voici, saint Georges, le vaillant homme— » Non, non, on reprend. Encore.' });
+        await c.say('george', { en: '“Here comes I, Saint George, the valiant man—” No, no, from the top. Again.', fr: '« Me voici, saint Georges, le vaillant homme… » Non, non, on reprend. Encore.' });
         await c.say('isot', { en: 'You perform it every Midwinter?', fr: 'Vous la jouez à chaque mi-hiver ?' });
         await c.say('slasher', { en: 'Every night. Ten years of nights.', fr: 'Chaque nuit. Dix ans de nuits.' });
         await c.say('isot', { en: 'Every night?', fr: 'Chaque nuit ?' }, 'alarmed');
@@ -230,7 +230,7 @@ export const VILLAGE: MapDef = {
       h: 30,
       when: dayOnly,
       run: async (c) => {
-        await c.say('isot', { en: 'Frozen over. Someone has drawn a little face in the frost on the lid, smiling.', fr: 'Gelé. Quelqu’un a dessiné un petit visage dans le givre du couvercle, qui sourit.' });
+        await c.say('isot', { en: 'Frozen over. Someone has drawn a little face in the frost on the lid, smiling.', fr: 'Gelé. Quelqu’un a dessiné un petit visage souriant dans le givre du couvercle.' });
       },
     },
   ],
@@ -265,7 +265,7 @@ async function amabel(c: MapContext): Promise<void> {
     c.set('amabelScraped');
     c.npc('amabel').visible = false;
     await c.wait(1.2);
-    await c.say('hob', { en: '…I was laying the table. For one. I don’t know why I said that.', fr: '…Je mettais la table. Pour un. Je ne sais pas pourquoi j’ai dit ça.' });
+    await c.say('hob', { en: '…I was laying the table. For one. I don’t know why I said that.', fr: '…Je mettais la table. Un seul couvert. Je ne sais pas pourquoi j’ai dit ça.' });
     await c.say('hild', { en: 'You’ve done that before.', fr: 'Tu as déjà fait ça.' }, 'grave');
     await c.say('isot', { en: '…', fr: '…' }, 'sad');
   } else if (pick === 1) {
@@ -301,7 +301,7 @@ async function theVillageListens(c: MapContext): Promise<void> {
   await c.say('presenter', { en: 'Room, room, brave gallants all! Pray give us room to rhyme!', fr: 'Place, place, braves galants ! Donnez-nous place pour rimer !' });
   await c.say('george', { en: 'Here comes I, Saint George, the valiant man! A champion! Step into the ring!', fr: 'Me voici, saint Georges, le vaillant homme ! Un champion ! Entrez dans le cercle !' });
   await c.say('doctor', { en: 'And if any fall, I’ve a little bottle by my side…', fr: 'Et si quelqu’un tombe, j’ai une petite fiole à mon côté…' });
-  await c.say('isot', { en: 'If the play needs an ending, we’ll give it one.', fr: 'Si la pièce a besoin d’une fin, on va la lui donner.' }, 'stern');
+  await c.say('isot', { en: 'If the play needs an ending, we’ll give it one.', fr: 'Si la pièce a besoin d’une fin, on va lui en donner une.' }, 'stern');
   c.battle('b2');
 }
 

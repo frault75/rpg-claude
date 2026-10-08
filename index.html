@@ -19,7 +19,11 @@
         background: #000;
         overflow: hidden;
         overscroll-behavior: none;
+        /* iOS knows only "manipulation" (no double-tap zoom); others take "none". */
+        touch-action: manipulation;
         touch-action: none;
+        -webkit-text-size-adjust: 100%;
+        -webkit-touch-callout: none;
         -webkit-user-select: none;
         user-select: none;
         -webkit-tap-highlight-color: transparent;
@@ -53,10 +57,15 @@
       @media (orientation: portrait) and (pointer: coarse) {
         #rotate { display: flex; }
       }
+      * {
+        touch-action: manipulation;
+      }
       canvas#page {
         display: block;
-        width: 100vw;
-        height: 100vh;
+        position: fixed;
+        left: 0;
+        top: 0;
+        touch-action: none;
       }
       #loading {
         position: fixed;

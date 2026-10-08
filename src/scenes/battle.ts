@@ -1561,6 +1561,12 @@ export class BattleScene implements Scene {
   }
 
   private openResult(won: boolean): void {
+    // A tip still up has nothing left to point at.
+    if (this.tip) {
+      this.ui.remove(this.tip.panel);
+      this.tip = null;
+      this.tipHand.visible = this.tipHandLeft.visible = this.tipHandDown.visible = false;
+    }
     // After two defeats, the fight can be tried a step easier.
     const easier: Difficulty | null = this.difficulty === 'illuminated' ? 'normal' : this.difficulty === 'normal' ? 'story' : null;
     if (won && this.spoils && (this.spoils.xp || this.spoils.pennies)) this.openSpoils(this.spoils);

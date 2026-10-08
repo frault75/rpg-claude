@@ -17,6 +17,7 @@ import type { Scene } from './engine/scene';
 import { session } from './engine/session';
 import { type Settings, TEXT_SPEEDS } from './engine/settings';
 import { TouchControls } from './engine/touch';
+import { installScreenGuards } from './engine/fullscreen';
 import { detectLanguage, setLang, t, tr } from './i18n/i18n';
 import { Menu } from './menu/menu';
 import { equipmentPage, journalPage, type MenuDeps, newGamePage, partyPage, settingsPage, stallPage } from './menu/pages';
@@ -456,10 +457,16 @@ function boot(): void {
   });
   if (params.has('debug')) debug.toggle();
 
-  window.addEventListener('resize', () => {
+  const relayout = () => {
     renderer.resize();
     menu.layout(renderer.viewport);
-  });
+  };
+  window.addEventListener('resize', relayout);
+  // Phones change size without a resize event when toolbars hide or the game goes full screen.
+  window.visualViewport?.addEventListener('resize', relayout);
+  document.addEventListener('fullscreenchange', () => requestAnimationFrame(relayout));
+  // The page never zooms, and on a touch screen the game takes the whole screen.
+  installScreenGuards(() => settings.value.graphics.fullscreen);
 
   let last = performance.now();
   const frame = (now: number) => {
