@@ -247,7 +247,7 @@ function boot(): void {
     const ch5 = ['f9', 'b5'].includes(id);
     const ch4 = ['f7', 'f8', 'b4'].includes(id) || ch5;
     const ch3 = ['f5', 'f6', 'b3'].includes(id) || ch4;
-    const ch2 = ['f3', 'f4', 'b2'].includes(id);
+    const ch2 = ['f3', 's1', 'f4', 'b2'].includes(id);
     if (ch5) chapterFive();
     else if (ch4) chapterFour();
     else if (ch3) chapterThree();
@@ -438,7 +438,7 @@ function boot(): void {
             return mapScene('nave', { spawn: 'doors' });
           }, 0.3),
       },
-      ...['f1', 'f2', 'b1', 'f3', 'f4', 'b2', 'f5', 'f6', 'b3', 'f7', 'f8', 'b4', 'f9', 'b5'].map((id) => ({
+      ...Object.keys(REWARDS).map((id) => ({
         label: `→ fight ${id}`,
         run: () =>
           transition(() => {

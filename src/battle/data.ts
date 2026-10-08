@@ -86,6 +86,8 @@ export interface EnemyDef {
   undying?: boolean;
   /** Every this much damage it falters: its next intent is lost. */
   falterEvery?: number;
+  /** It burns down: this much HP lost at the end of every round in which it took no warmth (the corpse-candles). */
+  wanes?: number;
   behave(ctx: BehaviourCtx): IntentSpec[];
 }
 
@@ -354,6 +356,23 @@ export const ENEMIES: Record<string, EnemyDef> = {
       }
     },
   },
+  // The corpse-candles of the Fen Mill (DESIGN.md §3.14): people who should have died, burning
+  // blue on the fen. They lean in for warmth, lend each other their flame, and burn down
+  // whenever a round goes by without warmth taken: strike their reaching through and they starve.
+  corpseCandle: {
+    name: { en: 'Corpse-candle', fr: 'Chandelle des morts' },
+    hp: 9,
+    wanes: 1,
+    behave: (c) => {
+      const k = (c.phase + c.place) % 3;
+      if (k === 0)
+        return [{ label: { en: 'Leans to the Front for warmth · 2, and keeps it', fr: 'Se penche vers l’Avant pour sa chaleur · 2, et la garde' }, rule: { en: 'Heals itself by what it takes', fr: 'Se soigne de ce qu’elle prend' }, target: { place: 0 }, damage: 2, reach: 'any', effects: [{ kind: 'leech' }] }];
+      if (k === 1) return [{ label: { en: 'Gutters at the Middle · 3', fr: 'Crachote sur le Milieu · 3' }, target: { place: 1 }, damage: 3, reach: 'any' }];
+      const low = c.allies.filter((a) => a.hp < a.maxHp).sort((a, b) => a.hp - b.hp)[0];
+      if (low) return [{ label: { en: 'Lends its flame to another · +3', fr: 'Prête sa flamme à une autre · +3' }, target: { unit: low.id }, effects: [{ kind: 'heal', amount: 3 }], reach: 'any' }];
+      return [{ label: { en: 'Leans to the Rear for warmth · 2, and keeps it', fr: 'Se penche vers l’Arrière pour sa chaleur · 2, et la garde' }, rule: { en: 'Heals itself by what it takes', fr: 'Se soigne de ce qu’elle prend' }, target: { place: 2 }, damage: 2, reach: 'any', effects: [{ kind: 'leech' }] }];
+    },
+  },
   greatSnail: {
     name: { en: 'The Great Snail', fr: 'Le Grand Escargot' },
     hp: 24,
@@ -398,6 +417,7 @@ export const ENCOUNTERS: Record<string, EncounterDef> = {
   f1: { id: 'f1', name: { en: 'Grylli in the margin', fr: 'Grylles dans la marge' }, party: ['isot'], enemies: ['gryllus', 'gryllus'], stage: 'scriptorium' },
   f2: { id: 'f2', name: { en: 'The Pumice Brothers', fr: 'Les Frères de la Ponce' }, party: ['hild', 'isot'], enemies: ['brother', 'brother'], stage: 'cloister' },
   f3: { id: 'f3', name: { en: 'Hares on the lane', fr: 'Lièvres sur le chemin' }, party: ['whit', 'hild', 'isot'], enemies: ['hare', 'hare', 'hare'], stage: 'lane' },
+  s1: { id: 's1', name: { en: 'The corpse-candles', fr: 'Les chandelles des morts' }, party: ['whit', 'hild', 'isot'], enemies: ['corpseCandle', 'corpseCandle', 'corpseCandle', 'corpseCandle'], stage: 'fen' },
   f4: { id: 'f4', name: { en: 'Babewyns on the lych-gate', fr: 'Babouins sur le porche' }, party: ['whit', 'hild', 'isot'], enemies: ['babewyn', 'babewyn'], stage: 'lychgate' },
   f5: { id: 'f5', name: { en: 'The wild man of the wood', fr: 'L’homme sauvage du bois' }, party: ['whit', 'hild', 'isot'], enemies: ['wodewose', 'gryllus'], stage: 'blanchwood' },
   f6: { id: 'f6', name: { en: 'Prior Gaudry at Ninefold Gate', fr: 'Le prieur Gaudry à la porte de Ninefold' }, party: ['whit', 'hild', 'isot'], enemies: ['brother', 'gaudry', 'brother'], stage: 'gate' },
@@ -448,6 +468,8 @@ export const REWARDS: Record<string, { xp: number; pennies: number; optional?: t
   f2: { xp: 15, pennies: 6 },
   b1: { xp: 20, pennies: 15 },
   f3: { xp: 12, pennies: 6 },
+  // The Fen Mill, off the lane: optional, like everything off the path.
+  s1: { xp: 14, pennies: 10, optional: true },
   f4: { xp: 13, pennies: 7 },
   b2: { xp: 25, pennies: 20 },
   f5: { xp: 15, pennies: 8 },

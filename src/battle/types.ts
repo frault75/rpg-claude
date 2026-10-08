@@ -148,7 +148,9 @@ export type IntentEffect =
   /** Scraped from the page: can't act for this many rounds. */
   | { kind: 'forget'; rounds: number }
   /** Every letter of FINIS written so far is scraped away. */
-  | { kind: 'scrapeLetters' };
+  | { kind: 'scrapeLetters' }
+  /** The blow's damage, as dealt, heals the one who struck (the corpse-candles take warmth). */
+  | { kind: 'leech' };
 
 export type AbilityId =
   | 'penknife'

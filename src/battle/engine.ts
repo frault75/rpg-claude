@@ -144,6 +144,8 @@ export class Battle {
   private falterNext = new Set<string>();
   /** Intents that have resolved this enemy phase. */
   private resolved = new Set<string>();
+  /** Enemies that took warmth this round (a corpse-candle that fed does not burn down). */
+  private fed = new Set<string>();
   private nextIntentId = 1;
   /** What is left in the satchel, and what it held when the fight began. */
   satchel: Satchel = {};
@@ -306,6 +308,7 @@ export class Battle {
     }
     this.falterNext.clear();
     this.resolved.clear();
+    this.fed.clear();
     // The party's Ward fades as its phase begins (a charm's Ward lasts the first round).
     this.knelt.clear();
     for (const u of this.party) {
@@ -952,7 +955,14 @@ export class Battle {
       }
     }
     for (const t of targets) {
+      const before = t.hp;
       if (it.damage > 0) this.hurt(t, it.damage, it.actor);
+      // What a leeching blow takes, it keeps.
+      const taken = before - Math.max(0, t.hp);
+      if (actor && !actor.fallen && taken > 0 && it.effects.some((e) => e.kind === 'leech')) {
+        this.heal(actor, taken);
+        this.fed.add(actor.id);
+      }
       this.applyEffects(it, actor, t);
       if (this.result !== 'ongoing') return;
     }
@@ -1255,6 +1265,13 @@ export class Battle {
       u.status.rubricated = false;
       u.status.doomed = false;
       u.status.guarded = false;
+      // A corpse-candle that took no warmth this round burns down.
+      const wanes = u.side === 'enemy' && !this.fed.has(u.id) ? ENEMIES[u.kind]?.wanes : undefined;
+      if (wanes) {
+        u.hp = Math.max(0, u.hp - wanes);
+        this.emit({ type: 'damage', unit: u.id, amount: wanes, absorbed: 0, source: 'wane' });
+        if (u.hp <= 0) this.fell(u, false);
+      }
     }
     const gain = Math.min(this.maxInk - this.ink, this.difficulty === 'story' || this.wears('isot', 'hornInkwell') ? 2 : 1);
     if (gain > 0) {

@@ -681,8 +681,77 @@ export function bishopFishArt(): EnemyArt {
 }
 
 /** The art for an enemy kind, or null for those drawn as people (the Brothers). */
+// ---------------------------------------------------------------------------------------
+// The corpse-candle: someone who should have died, burning blue on the fen. A shroud of
+// tallow running with drips, a face half sunk in the wax, and a cold flame for a head.
+
+function corpseCandleFrame(flick: number, flare: number, seed: number): { a: PixelImage; e: PixelImage } {
+  const W = 22;
+  const H = 42;
+  const img = new PixelImage(W, H);
+  const glow = new PixelImage(W, H);
+  const wax = ramp('#E4DCC4', 6, 0.5);
+  const shade = ramp('#9A9888', 4);
+  const cx = 11 + flare * 0.6;
+  // The puddle of wax it stands in, and the cold light on it.
+  img.ellipse(11, 40, 9, 2, (x) => tone(shade, 2.2 - Math.abs(x - 11) * 0.18, x, 40));
+  // The shroud: narrow at the shoulders, wider and guttered at the foot.
+  for (let y = 14; y < 40; y++) {
+    const k = (y - 14) / 26;
+    const half = 3.4 + k * 4.2 + Math.sin(y * 0.9 + seed) * 0.4;
+    for (let x = Math.floor(cx - half); x <= Math.ceil(cx + half); x++) {
+      const nx = (x - cx) / half;
+      if (Math.abs(nx) > 1) continue;
+      img.set(x, y, tone(wax, 3.6 - nx * 1.6 - k * 0.8, x, y));
+    }
+  }
+  // Drips, run from the shoulders.
+  for (const [dx, len] of [
+    [-3, 9],
+    [2, 13],
+    [4, 6],
+    [-1, 17],
+  ] as const) {
+    const x = Math.round(cx + dx);
+    for (let y = 15; y < 15 + len; y++) img.set(x, y, wax[5 - (y % 2)]!);
+    img.set(x, 15 + len, wax[4]!);
+  }
+  // The face, sinking: two eyes and a mouth pressed into the wax.
+  img.set(Math.round(cx) - 2, 18, shade[0]!);
+  img.set(Math.round(cx) + 1, 18, shade[0]!);
+  img.hline(Math.round(cx) - 1, Math.round(cx), 21, shade[1]!);
+  // The wick, and the flame: blue at the root, white at the heart.
+  img.vline(Math.round(cx), 12, 14, hex('#2A2420'));
+  const flameH = 9 + flare * 6 + flick;
+  for (let y = 0; y < flameH; y++) {
+    const fy = 12 - y;
+    const k = y / flameH;
+    const half = Math.max(0.5, Math.sin(Math.min(1, k * 1.3) * Math.PI) * (2.6 + flare));
+    const lean = Math.round(Math.sin(k * 3 + flick) * 0.8 + flare * k * 2);
+    for (let x = Math.floor(cx - half) + lean; x <= Math.ceil(cx + half) + lean; x++) {
+      const core = Math.abs(x - cx - lean) < half * 0.45 && k > 0.15 && k < 0.7;
+      const c = core ? hex('#F4F8FF') : k < 0.35 ? hex('#5A8AE0') : hex('#A8C8FF');
+      if (fy < 0) continue;
+      img.set(x, fy, c);
+      glow.set(x, fy, core ? hex('#FFFFFF') : hex('#6A9AF0'));
+    }
+  }
+  img.outline(null);
+  return { a: img, e: glow };
+}
+
+export function corpseCandleArt(seed = 5): EnemyArt {
+  return sheetOf(
+    [corpseCandleFrame(0, 0, seed), corpseCandleFrame(1, 0, seed), corpseCandleFrame(0.5, 0, seed), corpseCandleFrame(-0.5, 0, seed), corpseCandleFrame(0, 1, seed)],
+    { idle: [0, 1, 2, 3], lunge: [4] },
+    [11, 41],
+  );
+}
+
 export function enemyArt(kind: string): EnemyArt | null {
   switch (kind) {
+    case 'corpseCandle':
+      return corpseCandleArt();
     case 'gryllus':
       return gryllusArt();
     case 'greatSnail':

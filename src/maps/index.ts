@@ -21,6 +21,7 @@ import { BELLTOWER } from './lychford/belltower';
 import { CHURCHYARD } from './lychford/churchyard';
 import { LANE } from './lychford/lane';
 import { MERE } from './lychford/mere';
+import { MILL_MAP } from './lychford/mill';
 import { VILLAGE } from './lychford/village';
 import { SCRIPTORIUM } from './scriptorium';
 import type { MapDef } from './types';
@@ -34,6 +35,7 @@ export const MAPS: Record<string, MapDef> = {
   churchyard: CHURCHYARD,
   belltower: BELLTOWER,
   mere: MERE,
+  mill: MILL_MAP,
   wood: WOOD,
   ninefold: NINEFOLD,
   gate: GATEHOUSE,

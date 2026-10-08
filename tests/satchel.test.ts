@@ -237,3 +237,19 @@ describe('Glossator caches', () => {
     expect(t.when!(c)).toBe(false);
   });
 });
+
+describe('returning a name', () => {
+  it('gives its experience and keepsake once, and says when it brings a level', async () => {
+    const { returnName, isReturned } = await import('../src/story/returns');
+    session.game = newGame();
+    session.game.xp = 40;
+    const cards: string[] = [];
+    const c = { card: (title: { en: string }) => void cards.push(title.en), wait: async () => {} } as unknown as MapContext;
+    await returnName(c, 'edda');
+    expect(session.game.xp).toBe(52);
+    expect(isReturned(session.game, 'edda')).toBe(true);
+    expect(cards).toEqual(['A name returned', 'Level 4']);
+    await returnName(c, 'edda');
+    expect(session.game.xp).toBe(52);
+  });
+});

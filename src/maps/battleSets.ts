@@ -26,6 +26,7 @@ import { blanchedTree, setDepth, WOOD_GROUND, WOOD_SKY, woodLight } from './blan
 import { paintBones } from './blanchwood/ossuary';
 import { acanthusRow, MARGIN_GROUND, MARGIN_SKY, marginLight, pageAbove } from './margin/common';
 import { goldBar, goose, ivy as ivyRun } from '../world3d/margin';
+import { millWheel } from '../world3d/fenmill';
 
 export interface BattleSet {
   /** Camera: where it looks and from what height. */
@@ -381,6 +382,30 @@ const PARTY_PLACES: [number, number][] = [
   [tiles(23), tiles(7.9)],
 ];
 
+const FEN_GROUND = Array.from({ length: 11 }, (_, y) => (y >= 5 && y <= 8 ? 'nnniiiiiiiiiiiiiiiiiiiiiiiiiiiinnnn' : 'n'.repeat(34)).slice(0, 34));
+
+/** The Fen Mill (S1): the frozen millpond at dusk, the mill dark behind it, its wheel in the ice. */
+function fenSet(r: WorldRenderer, st: Stage): BattleSet {
+  winterNight(r);
+  r.grade = { ...r.grade, focusBand: 60, focusRange: 220 };
+  st.ground({ ground: FEN_GROUND, heights: backdrop(43), seed: 43, palette: { ...SNOW_GROUND, snow: '#C8D0DC' } });
+  st.addSky({ ...WINTER_NIGHT_SKY, moon: [210, 120] }, 220);
+  st.addBuilding(cottage3D(tiles(20), tiles(0.2), 84, 36, { seed: 77, lit: false }), st.heightAt(tiles(22), tiles(1)));
+  st.addImage(millWheel(4), tiles(18.4), tiles(3.6));
+  for (let i = 0; i < 9; i++) st.addImage(reeds(i + 40, '#8A7A5A'), tiles(1 + i * 3.7), tiles(4.2) + (i % 3) * 5, { solid: false });
+  for (let i = 0; i < 4; i++) st.addImage(bareTree(i + 60, 0.8), tiles(3 + i * 4.2), tiles(1.6) + (i % 2) * 8);
+  // The corpse-light: cold and blue, low over the ice.
+  for (const [x, y] of [
+    [tiles(9), tiles(6)],
+    [tiles(14), tiles(7.5)],
+    [tiles(26), tiles(6.5)],
+  ] as const)
+    st.addLight(x, y, 16, 90, '#7AA8FF', 0.45, 'candle');
+  st.addEmitter({ kind: 'mote', area: [0, tiles(3), tiles(34), tiles(7)], heights: [4, 40], count: 24, color: '#A8C8FF', size: 1.4, intensity: 0.9 }, 17);
+  st.addLight(tiles(17), tiles(9.5), 40, 160, '#C8D8FF', 0.35);
+  return { camera: { x: tiles(17), y: tiles(5.8), h: 36 }, enemies: TIGHT, party: PARTY_PLACES, seaward: [tiles(17), tiles(9)] };
+}
+
 /** The Blanchwood (F5) and Ninefold Gate (F6): grey trees on blank vellum. */
 function blanchwoodSet(kind: 'blanchwood' | 'gate', r: WorldRenderer, st: Stage): BattleSet {
   const depth = kind === 'gate' ? 0.62 : 0.4;
@@ -480,6 +505,8 @@ export function dressBattle(stage: string, r: WorldRenderer, st: Stage): BattleS
     case 'lychgate':
     case 'green':
       return lychford(stage, r, st);
+    case 'fen':
+      return fenSet(r, st);
     case 'blanchwood':
     case 'gate':
       return blanchwoodSet(stage, r, st);

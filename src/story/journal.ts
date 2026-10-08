@@ -37,7 +37,13 @@ const BY_MAP: Record<string, Rule[]> = {
   seaGate: [[() => true, { en: 'Down the causeway, before the tide closes it.', fr: 'Descendre la chaussée, avant que la marée ne la ferme.' }]],
   lane: [
     [(g) => !won(g, 'f3'), { en: 'Lychford Lane. At the end of it is the village where no one has died in ten years.', fr: 'Le chemin de Lychford. Au bout, le village où personne n’est mort depuis dix ans.' }],
-    [() => true, { en: 'On into Lychford.', fr: 'Continuer jusqu’à Lychford.' }],
+    [() => true, { en: 'On into Lychford. A field track climbs north through the gap in the hedge, towards a mill on the fen.', fr: 'Continuer jusqu’à Lychford. Un chemin de champ monte vers le nord par la trouée de la haie, vers un moulin sur le marais.' }],
+  ],
+  mill: [
+    [(g) => !won(g, 's1'), { en: 'The Fen Mill. Lights move over the frozen pond, and someone is working on the roof in the dark.', fr: 'Le moulin du marais. Des lumières bougent sur la mare gelée, et quelqu’un travaille sur le toit dans le noir.' }],
+    [(g) => !flag(g, 'returned.edda') && !g.lostNames.includes('edda'), { en: 'Ralf’s hands know thatching, and he doesn’t know who taught them. Somebody in Lychford must remember.', fr: 'Les mains de Ralf savent couvrir un toit, et il ne sait pas qui le leur a appris. Quelqu’un à Lychford doit s’en souvenir.' }],
+    [(g) => !flag(g, 'returned.edda'), { en: 'Edda’s name was on the thatcher’s house. Ralf should hear it.', fr: 'Le nom d’Edda était sur la maison du couvreur. Ralf devrait l’entendre.' }],
+    [() => true, { en: 'Ralf is down from the roof. Back to the lane, and on to Lychford.', fr: 'Ralf est descendu du toit. Retour au chemin, et en route pour Lychford.' }],
   ],
   village: [
     [(g) => flag(g, 'raidDone'), { en: 'Gaudry’s torches are coming across the snow for the bell. Make for the mere.', fr: 'Les torches de Gaudry traversent la neige pour la cloche. Gagner la mare gelée.' }],
