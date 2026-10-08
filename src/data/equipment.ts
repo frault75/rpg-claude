@@ -1,7 +1,7 @@
 /**
- * Relics and charms. Each character wears one of each. They are found in the story and
- * its secrets, never bought or ground for, and none is simply better than another: each
- * bends one ability a different way, so equipping is choosing how to play.
+ * Relics and charms. Each character wears one of each. They are found in the story and its
+ * caches, or bought from Gervase the pedlar, never ground for; and none is simply better
+ * than another: each bends one rule a different way, so equipping is choosing how to play.
  */
 
 import type { LocalText } from '../i18n/i18n';
@@ -20,6 +20,8 @@ export interface ItemDef {
   lore: LocalText;
   /** Glyph colour in the menus. */
   color: string;
+  /** In silver pennies, if Gervase sells it (DESIGN.md §6.3). */
+  price?: number;
 }
 
 export const ITEMS: Record<string, ItemDef> = {
@@ -90,6 +92,116 @@ export const ITEMS: Record<string, ItemDef> = {
     text: { en: 'Once per battle, the wearer’s first ability is doubled.', fr: 'Une fois par combat, la première capacité du porteur est doublée.' },
     lore: { en: 'Red is read first.', fr: 'Le rouge se lit en premier.' },
     color: '#C63D2A',
+  },
+
+  // Given by Gervase once his name is read back to him.
+  gervasesRibbon: {
+    id: 'gervasesRibbon',
+    slot: 'charm',
+    name: { en: 'Gervase’s Ribbon', fr: 'Le ruban de Gervais' },
+    text: { en: 'The first time the wearer would fall in a battle, they stay at 1 HP.', fr: 'La première fois que le porteur devrait tomber dans un combat, il reste à 1 PV.' },
+    lore: { en: 'Faded to the colour of the road. He kept the last one for whoever said his name.', fr: 'Passé à la couleur de la route. Il gardait le dernier pour qui dirait son nom.' },
+    color: '#C89AB0',
+  },
+  // Found in a cache in the Blanchwood.
+  mourningBrooch: {
+    id: 'mourningBrooch',
+    slot: 'charm',
+    name: { en: 'Mourning brooch', fr: 'Broche de deuil' },
+    text: { en: 'When another ally falls, the wearer gains Ward 3.', fr: 'Quand un autre allié tombe, le porteur gagne Garde 3.' },
+    lore: { en: 'From before the dying stopped. No one remembers whose hair is behind the glass.', fr: 'D’avant que la mort ne cesse. Nul ne se souvient de qui sont les cheveux sous le verre.' },
+    color: '#2A2228',
+  },
+
+  // Sold by Gervase: on Lychford Lane first, then at every stall after.
+  haresFoot: {
+    id: 'haresFoot',
+    slot: 'charm',
+    name: { en: 'Hare’s-foot brush', fr: 'Patte de lièvre' },
+    text: { en: 'The free Step can be taken twice each round.', fr: 'Le Pas gratuit peut se faire deux fois par tour.' },
+    lore: { en: 'Gilders sweep the loose gold away with one. This one still wants to run.', fr: 'Les doreurs s’en servent pour chasser l’or en trop. Celle-ci veut encore courir.' },
+    color: '#B89A70',
+    price: 30,
+  },
+  gallRosary: {
+    id: 'gallRosary',
+    slot: 'charm',
+    name: { en: 'Rosary of oak-galls', fr: 'Chapelet de galles' },
+    text: { en: 'Healing the wearer receives is +2.', fr: 'Les soins que reçoit le porteur sont augmentés de 2.' },
+    lore: { en: 'Strung by a nun who made ink, and prayed while it steeped.', fr: 'Enfilé par une nonne qui faisait l’encre, et priait pendant qu’elle infusait.' },
+    color: '#6A5038',
+    price: 26,
+  },
+  coronel: {
+    id: 'coronel',
+    slot: 'relic',
+    owner: 'whit',
+    name: { en: 'Coronel', fr: 'Couronnel' },
+    text: { en: 'Lance reaches the 3rd enemy too, but deals 1 less.', fr: 'La Lance atteint aussi le 3e ennemi, mais inflige 1 de moins.' },
+    lore: { en: 'The crowned tip of a jousting lance, made to unhorse and not to kill.', fr: 'La pointe couronnée d’une lance de joute, faite pour désarçonner et non pour tuer.' },
+    color: '#C8C0A8',
+    price: 32,
+  },
+  // From the Wood’s Edge.
+  silverpoint: {
+    id: 'silverpoint',
+    slot: 'relic',
+    owner: 'isot',
+    name: { en: 'Silverpoint', fr: 'Pointe d’argent' },
+    text: { en: 'A Gloss makes the next damage +4 instead of +3, but Penknife deals 1 less.', fr: 'Une Glose rend les prochains dégâts +4 au lieu de +3, mais le Canif inflige 1 de moins.' },
+    lore: { en: 'It leaves a grey line that cannot be scraped, only written over.', fr: 'Elle laisse un trait gris qu’on ne peut gratter, seulement recouvrir.' },
+    color: '#D8DCE4',
+    price: 38,
+  },
+  lepersClapper: {
+    id: 'lepersClapper',
+    slot: 'relic',
+    owner: 'hild',
+    name: { en: 'Leper’s clapper', fr: 'Cliquette de lépreux' },
+    text: { en: 'Immure costs no HP, but walls in only enemies.', fr: 'Emmurer ne coûte pas de PV, mais n’emmure que les ennemis.' },
+    lore: { en: 'Three boards on a cord, to warn the road that someone was coming. People still step aside at the sound.', fr: 'Trois planchettes sur une cordelette, pour prévenir la route que quelqu’un venait. On s’écarte encore à ce bruit.' },
+    color: '#9A8058',
+    price: 34,
+  },
+  ebbGirdle: {
+    id: 'ebbGirdle',
+    slot: 'charm',
+    name: { en: 'Saint Ebb’s girdle', fr: 'Ceinture de sainte Ebbe' },
+    text: { en: 'In the Rear, the wearer takes 1 less from every blow.', fr: 'À l’Arrière, le porteur subit 1 de moins de chaque coup.' },
+    lore: { en: 'A knotted cord: one knot for every tide she counted from her rock.', fr: 'Une cordelette nouée : un nœud par marée qu’elle compta depuis son rocher.' },
+    color: '#A8B8C0',
+    price: 36,
+  },
+  // From the Drollery Fair.
+  hornInkwell: {
+    id: 'hornInkwell',
+    slot: 'relic',
+    owner: 'isot',
+    name: { en: 'Horn inkwell', fr: 'Cornet à encre' },
+    text: { en: 'Ink holds only 2, but refills by 2 each round.', fr: 'L’encre ne monte qu’à 2, mais se remplit de 2 à chaque tour.' },
+    lore: { en: 'A cow’s horn cut short and hung from a belt. A scribe on the road writes small, and often.', fr: 'Une corne de vache coupée court, pendue à la ceinture. Un scribe en route écrit petit, et souvent.' },
+    color: '#8A6A40',
+    price: 44,
+  },
+  plumbLine: {
+    id: 'plumbLine',
+    slot: 'relic',
+    owner: 'hild',
+    name: { en: 'Mason’s plumb-line', fr: 'Fil à plomb' },
+    text: { en: 'Shove deals 2 more, but pushes the enemy back only one place.', fr: 'Bousculer inflige 2 de plus, mais ne repousse l’ennemi que d’une place.' },
+    lore: { en: 'The mason’s, from the day he walled her in. It hangs true. She has made her peace with that.', fr: 'Celui du maçon, le jour où il l’a emmurée. Il pend droit. Elle s’y est faite.' },
+    color: '#7A7A80',
+    price: 40,
+  },
+  scallop: {
+    id: 'scallop',
+    slot: 'relic',
+    owner: 'whit',
+    name: { en: 'Pilgrim’s scallop', fr: 'Coquille de pèlerin' },
+    text: { en: 'Vigil strikes for 6 instead of 4, but only from the Front.', fr: 'La Veille frappe pour 6 au lieu de 4, mais seulement depuis l’Avant.' },
+    lore: { en: 'Every pilgrim to the sea carries one home. He has never been home.', fr: 'Chaque pèlerin de la mer en rapporte une chez lui. Il n’est jamais rentré chez lui.' },
+    color: '#E8D0B0',
+    price: 42,
   },
 };
 

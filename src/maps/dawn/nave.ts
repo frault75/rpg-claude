@@ -73,6 +73,17 @@ let blanked = 0;
 
 export const NAVE: MapDef = {
   id: 'nave',
+  caches: [
+    {
+      id: 'nave',
+      x: tiles(3.0),
+      y: tiles(8.6),
+      hidden: true,
+      pennies: 10,
+      satchel: { salVolatile: 1 },
+      note: { en: '“If the last page is ever written, read our names too. We are at the bottom, in brown ink.”', fr: '« Si la dernière page s’écrit un jour, lis aussi nos noms. Nous sommes tout en bas, à l’encre brune. »' },
+    },
+  ],
   card: { title: { en: 'Saint Ebb’s', fr: 'Saint-Ebb' }, line: { en: 'The Abbey Church', fr: 'L’église abbatiale' } },
   walkable: 'f',
   ground: GROUND,

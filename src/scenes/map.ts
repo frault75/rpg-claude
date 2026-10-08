@@ -30,6 +30,7 @@ import { Actor } from '../world3d/actor';
 import { Billboard, pixelTexture } from '../world3d/billboard';
 import { Stage } from '../world3d/stage';
 import { ITEMS } from '../data/equipment';
+import { withCaches } from '../maps/caches';
 
 /** What a map asks of the game around it. */
 export interface MapHooks {
@@ -37,6 +38,8 @@ export interface MapHooks {
   goto(map: string, spawn: string): void;
   /** Close the chapter: the interlude page, then the next chapter's first map. */
   interlude(n: number): void;
+  /** Gervase's stall, over the map; resolves when it is closed. */
+  shop(stall: string): Promise<void>;
 }
 
 /** How a map is entered: at a named spawn, or at a point (after a fight). */
@@ -67,6 +70,7 @@ function chalk(): THREE_Texture {
 const CELL = 8;
 
 export class MapScene implements Scene {
+  readonly def: MapDef;
   readonly name: string;
   readonly rakes = true;
   readonly stage: Stage;
@@ -103,10 +107,13 @@ export class MapScene implements Scene {
     private readonly r: WorldRenderer,
     private readonly input: Input,
     private readonly audio: AudioEngine,
-    readonly def: MapDef,
+    def: MapDef,
     arrival: Arrival,
     private readonly hooks: MapHooks,
   ) {
+    // The caches become boxes on the stage, things to open and chalk marks to find.
+    def = withCaches(def);
+    this.def = def;
     this.name = def.id;
     const st = (this.stage = new Stage(r));
     const set = def.build(r, st);
@@ -387,6 +394,7 @@ export class MapScene implements Scene {
         await this.director.wait(2.6);
       },
       page: (def) => this.openPage(def),
+      shop: (stall) => this.hooks.shop(stall),
     };
     return ctx;
   }

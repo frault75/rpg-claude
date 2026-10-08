@@ -136,6 +136,17 @@ async function restored(c: MapContext): Promise<void> {
 
 export const CHAPEL: MapDef = {
   id: 'chapel',
+  caches: [
+    {
+      id: 'chapel',
+      x: tiles(19.4),
+      y: tiles(7.8),
+      hidden: true,
+      pennies: 6,
+      satchel: { waxSeal: 2 },
+      note: { en: '“The Reader came here once a year, they say, and nobody was afraid of him.”', fr: '« Le Lecteur venait ici une fois l’an, dit-on, et personne n’avait peur de lui. »' },
+    },
+  ],
   card: { title: { en: 'Knell Chapel', fr: 'La chapelle du Glas' }, line: { en: 'The Reader’s house', fr: 'La maison du Lecteur' } },
   walkable: 'f',
   ground: GROUND,

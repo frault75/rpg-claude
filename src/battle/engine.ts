@@ -10,6 +10,7 @@ import { Rng } from '../engine/rng';
 import type { CharId } from '../story/state';
 import { ABILITIES, ENCOUNTERS, ENEMIES, type EncounterDef, type IntentSpec, PARTY_STATS } from './data';
 import { type Difficulty, enemyDamage, enemyHp, hasRank, hpAt, relabel, TUNED_LEVEL } from './growth';
+import { SATCHEL, type Satchel, SATCHEL_IDS, type SatchelId } from './satchel';
 import { type AbilityId, type BattleEvent, freshStatuses, type Intent, type Place, type Unit } from './types';
 
 export interface BattleSetup {
@@ -23,6 +24,8 @@ export interface BattleSetup {
   level?: number;
   /** DESIGN.md §5.17. Story: +50% HP, Ink refills by 2, softer blows. Normal by default. */
   difficulty?: Difficulty;
+  /** What the party carries into the fight (DESIGN.md §6.2). */
+  satchel?: Satchel;
   /** Emend upgraded at Knell Chapel: a blow can be turned onto another enemy (2 Ink). */
   emendAnywhere?: boolean;
 }
@@ -52,7 +55,11 @@ export type Refusal =
   | 'too-strong'
   | 'not-single'
   | 'guarded'
-  | 'lectern';
+  | 'lectern'
+  | 'empty'
+  | 'full'
+  | 'front-only'
+  | 'enemies-only';
 
 /** Abilities a Rubric (or Vermilion) can double. */
 const DOUBLES: ReadonlySet<AbilityId> = new Set(['penknife', 'shove', 'shrive', 'immure', 'squint', 'benison', 'lance', 'tally', 'vigil', 'read']);
@@ -70,7 +77,8 @@ interface Snapshot {
   units: Unit[];
   intents: Intent[];
   ink: number;
-  stepUsed: boolean;
+  steps: number;
+  spared: string[];
   vigil: Battle['vigil'];
   usedOnce: string[];
   firstBlow: string[];
@@ -84,6 +92,7 @@ interface Snapshot {
   inscribedRound: number;
   dealt: [string, number][];
   falterNext: string[];
+  satchel: Satchel;
   eventsLen: number;
 }
 
@@ -94,7 +103,9 @@ export class Battle {
   round = 0;
   ink = 2;
   maxInk = 3;
-  stepUsed = false;
+  /** Free Steps taken this round, and how many a round allows (two with the Hare's-foot brush). */
+  steps = 0;
+  stepsAllowed = 1;
   vigil: { by: string; power: number } | null = null;
   result: 'ongoing' | 'victory' | 'defeat' = 'ongoing';
   /** Next round's intents, after a Squint. */
@@ -107,6 +118,8 @@ export class Battle {
   private firstBlow = new Set<string>();
   /** Allies whose first doubled ability this battle is free (Vermilion). */
   private firstAbility = new Set<string>();
+  /** Allies whose first fall this battle is turned aside (Gervase's Ribbon). */
+  private spared = new Set<string>();
   /** Rounds of foresight left from a Squint. */
   private squinted = 0;
   /** Allies kneeling this round (an Edict served). */
@@ -132,6 +145,9 @@ export class Battle {
   /** Intents that have resolved this enemy phase. */
   private resolved = new Set<string>();
   private nextIntentId = 1;
+  /** What is left in the satchel, and what it held when the fight began. */
+  satchel: Satchel = {};
+  private readonly packed: Satchel;
 
   constructor(setup: BattleSetup) {
     const def = typeof setup.encounter === 'string' ? ENCOUNTERS[setup.encounter] : setup.encounter;
@@ -141,6 +157,8 @@ export class Battle {
     this.abilities = setup.abilities;
     this.level = setup.level ?? TUNED_LEVEL;
     this.difficulty = setup.difficulty ?? 'normal';
+    this.packed = { ...(setup.satchel ?? {}) };
+    this.satchel = { ...this.packed };
     this.emendAnywhere = !!setup.emendAnywhere;
     this.equipment = setup.equipment ?? {};
     this.fighting = new Set(setup.party.slice(0, 3));
@@ -151,12 +169,15 @@ export class Battle {
       if (this.wears(c, 'anchorStone')) u.status.ward = 2;
       if (this.wears(c, 'ebbShell')) this.firstBlow.add(c);
       if (this.wears(c, 'vermilionPot')) this.firstAbility.add(c);
+      if (this.wears(c, 'gervasesRibbon')) this.spared.add(c);
+      if (this.wears(c, 'haresFoot')) this.stepsAllowed = 2;
       this.units.push(u);
     });
     if (this.wears('isot', 'lampBlack')) {
       this.maxInk = 4;
       this.ink = 1;
     }
+    if (this.wears('isot', 'hornInkwell')) this.maxInk = 2;
     if (hasRank(this.level, 'inkwell')) this.maxInk++;
     let place = 0;
     this.def.enemies.forEach((kind, i) => {
@@ -252,7 +273,7 @@ export class Battle {
   private beginRound(): void {
     this.round++;
     this.emit({ type: 'round', round: this.round });
-    this.stepUsed = false;
+    this.steps = 0;
     this.vigil = null;
     const carried = this.intents.filter((i) => i.waiting && !i.cancelled && i.actor !== 'env' && !this.unit(i.actor)?.fallen);
     this.intents = [];
@@ -398,7 +419,8 @@ export class Battle {
       units: structuredClone(this.units),
       intents: structuredClone(this.intents),
       ink: this.ink,
-      stepUsed: this.stepUsed,
+      steps: this.steps,
+      spared: [...this.spared],
       vigil: this.vigil ? { ...this.vigil } : null,
       usedOnce: [...this.usedOnce],
       firstBlow: [...this.firstBlow],
@@ -412,6 +434,7 @@ export class Battle {
       inscribedRound: this.inscribedRound,
       dealt: [...this.dealt],
       falterNext: [...this.falterNext],
+      satchel: { ...this.satchel },
       eventsLen: this.events.length,
     });
   }
@@ -427,7 +450,8 @@ export class Battle {
     this.units = s.units;
     this.intents = s.intents;
     this.ink = s.ink;
-    this.stepUsed = s.stepUsed;
+    this.steps = s.steps;
+    this.spared = new Set(s.spared);
     this.vigil = s.vigil;
     this.usedOnce = new Set(s.usedOnce);
     this.firstBlow = new Set(s.firstBlow);
@@ -441,6 +465,7 @@ export class Battle {
     this.inscribedRound = s.inscribedRound;
     this.dealt = new Map(s.dealt);
     this.falterNext = new Set(s.falterNext);
+    this.satchel = s.satchel;
     this.events.length = s.eventsLen;
     this.result = 'ongoing';
     return true;
@@ -460,10 +485,15 @@ export class Battle {
     const ub = this.allyAt(b)!;
     ua.place = b;
     ub.place = a;
-    this.stepUsed = true;
+    this.steps++;
     this.emit({ type: 'move', unit: ua.id, from: a, to: b });
     this.emit({ type: 'move', unit: ub.id, from: b, to: a });
     return true;
+  }
+
+  /** Are this round's free Steps all taken? */
+  get stepUsed(): boolean {
+    return this.steps >= this.stepsAllowed;
   }
 
   /** Ink cost of an ability for its user right now (Emend costs 2 to name an enemy). */
@@ -478,6 +508,7 @@ export class Battle {
     const def = ABILITIES[ability];
     if (!def.hp) return 0;
     if (ability === 'shrive' && this.wears(user.kind as CharId, 'psalterChain')) return 2;
+    if (ability === 'immure' && this.wears(user.kind as CharId, 'lepersClapper')) return 0;
     return def.hp;
   }
 
@@ -493,6 +524,7 @@ export class Battle {
     const def = ABILITIES[ability];
     if (def.oncePerBattle && this.usedOnce.has(ability)) return 'used';
     if (def.fromFront && u.place > 1) return 'from-front';
+    if (ability === 'vigil' && u.place > 0 && this.wears(u.kind as CharId, 'scallop')) return 'front-only';
     if (this.inkCost(u, ability, target) > this.ink) return 'ink';
     const hp = this.hpCost(ability, u);
     if (hp && u.hp <= hp) return 'hp';
@@ -502,7 +534,7 @@ export class Battle {
         if (!t || t.side !== 'enemy' || t.fallen) return 'target';
         if (t.status.immured) return 'immured-target';
         if (t.status.guarded) return 'guarded';
-        if (def.reachEnemy && this.rank(t) >= def.reachEnemy) return 'reach';
+        if (def.reachEnemy && this.rank(t) >= def.reachEnemy + (ability === 'lance' && this.wears('whit', 'coronel') ? 1 : 0)) return 'reach';
         if (ability === 'read' && ENEMIES[t.kind]?.undying) return 'too-strong';
         if (ability === 'read' && t.hp > this.readThreshold(u)) return 'too-strong';
         break;
@@ -515,6 +547,7 @@ export class Battle {
         break;
       case 'anyUnit':
         if (!t || t.fallen) return 'target';
+        if (ability === 'immure' && t.side !== 'enemy' && this.wears(u.kind as CharId, 'lepersClapper')) return 'enemies-only';
         if (t.status.immured) return 'immured-target';
         if (t.status.guarded) return 'guarded';
         break;
@@ -592,7 +625,8 @@ export class Battle {
           this.ink++;
           this.emit({ type: 'ink', amount: 1 });
         }
-        this.hurt(t!, (hasRank(this.level, 'penknife2') ? 3 : 2) * x + bonus, u.id);
+        const knife = (hasRank(this.level, 'penknife2') ? 3 : 2) - (this.wears('isot', 'silverpoint') ? 1 : 0);
+        this.hurt(t!, knife * x + bonus, u.id);
         break;
       }
       case 'gloss':
@@ -621,8 +655,12 @@ export class Battle {
         break;
       case 'shove': {
         const first = this.standingEnemies()[0]!;
-        this.hurt(first, (hasRank(this.level, 'shove2') ? 3 : 2) * x, u.id);
-        if (!first.fallen) this.toBack(first);
+        const plumb = this.wears('hild', 'plumbLine');
+        this.hurt(first, ((hasRank(this.level, 'shove2') ? 3 : 2) + (plumb ? 2 : 0)) * x, u.id);
+        if (!first.fallen) {
+          if (plumb) this.backOne(first);
+          else this.toBack(first);
+        }
         break;
       }
       case 'shrive': {
@@ -657,7 +695,7 @@ export class Battle {
         }
         break;
       case 'lance':
-        this.hurt(t!, ((hasRank(this.level, 'lance2') ? 5 : 4) - (this.wears('whit', 'bellClapper') ? 1 : 0)) * x, u.id);
+        this.hurt(t!, ((hasRank(this.level, 'lance2') ? 5 : 4) - (this.wears('whit', 'bellClapper') ? 1 : 0) - (this.wears('whit', 'coronel') ? 1 : 0)) * x, u.id);
         break;
       case 'tally':
         t!.status.tally = this.wears('whit', 'blankPennon') ? 2 : 3;
@@ -665,7 +703,7 @@ export class Battle {
         this.emit({ type: 'status', unit: t!.id, status: 'tally', on: true });
         break;
       case 'vigil':
-        this.vigil = { by: u.id, power: 4 * x };
+        this.vigil = { by: u.id, power: (this.wears('whit', 'scallop') ? 6 : 4) * x };
         this.emit({ type: 'status', unit: u.id, status: 'ward', on: true });
         break;
       case 'read':
@@ -687,6 +725,90 @@ export class Battle {
         }
         break;
       }
+    }
+    this.checkEnd();
+    return true;
+  }
+
+  /** What has been used from the satchel so far this fight. */
+  spent(): Satchel {
+    const out: Satchel = {};
+    for (const id of SATCHEL_IDS) {
+      const n = (this.packed[id] ?? 0) - (this.satchel[id] ?? 0);
+      if (n > 0) out[id] = n;
+    }
+    return out;
+  }
+
+  /** Why an ally can't use this from the satchel on this target, or null if they can. */
+  checkItem(userId: string, item: SatchelId, target: ActTarget = {}): Refusal | null {
+    const u = this.unit(userId);
+    if (this.result !== 'ongoing') return 'over';
+    if (!u || u.side !== 'party') return 'no-unit';
+    if (u.fallen) return 'fallen';
+    if (u.acted) return 'acted';
+    if (u.status.immured) return 'immured';
+    if (!(this.satchel[item] ?? 0)) return 'empty';
+    const t = target.unit ? this.unit(target.unit) : undefined;
+    switch (SATCHEL[item].target) {
+      case 'ally':
+        if (!t || t.side !== 'party' || t.fallen) return 'target';
+        break;
+      case 'fallen':
+        if (!t || t.side !== 'party' || !t.fallen) return 'target';
+        break;
+      case 'enemy':
+        if (!t || t.side !== 'enemy' || t.fallen) return 'target';
+        if (t.status.immured) return 'immured-target';
+        if (t.status.guarded) return 'guarded';
+        break;
+      case 'none':
+        if (item === 'gallInk' && this.ink >= this.maxInk) return 'full';
+        break;
+    }
+    return null;
+  }
+
+  /** Use something from the satchel instead of an ability: it spends the ally's action. */
+  useItem(userId: string, item: SatchelId, target: ActTarget = {}): boolean {
+    if (this.checkItem(userId, item, target)) return false;
+    this.snapshot();
+    const u = this.unit(userId)!;
+    const t = target.unit ? this.unit(target.unit) : undefined;
+    this.satchel = { ...this.satchel, [item]: (this.satchel[item] ?? 0) - 1 };
+    u.acted = true;
+    this.emit({ type: 'item', unit: u.id, item, target: target.unit });
+    switch (item) {
+      case 'poultice':
+        this.heal(t!, 8);
+        break;
+      case 'gallInk': {
+        const gain = Math.min(this.maxInk - this.ink, 2);
+        this.ink += gain;
+        this.emit({ type: 'ink', amount: gain });
+        break;
+      }
+      case 'waxSeal':
+        t!.status.ward += 4;
+        this.emit({ type: 'ward', unit: t!.id, amount: 4 });
+        break;
+      case 'holyWater':
+        if (t!.status.ward) {
+          t!.status.ward = 0;
+          this.emit({ type: 'status', unit: t!.id, status: 'ward', on: false });
+        }
+        if (t!.status.shelled) {
+          t!.status.shelled = false;
+          this.emit({ type: 'status', unit: t!.id, status: 'shelled', on: false });
+        }
+        break;
+      case 'salVolatile':
+        t!.fallen = false;
+        t!.hp = Math.min(t!.maxHp, 6);
+        t!.acted = true;
+        this.emit({ type: 'rise', unit: t!.id });
+        this.emit({ type: 'heal', unit: t!.id, amount: t!.hp });
+        break;
     }
     this.checkEnd();
     return true;
@@ -909,7 +1031,7 @@ export class Battle {
     }
     let a = amount;
     if (u.status.glossed) {
-      a += 3;
+      a += this.wears('isot', 'silverpoint') ? 4 : 3;
       u.status.glossed = false;
     }
     if (u.status.doomed) a *= 2;
@@ -918,9 +1040,17 @@ export class Battle {
       a = Math.max(0, a - 1);
       this.firstBlow.delete(u.id);
     }
+    // Saint Ebb's girdle: in the Rear, every blow is a point lighter.
+    if (u.side === 'party' && !byParty && u.place === 2 && this.wears(u.kind as CharId, 'ebbGirdle')) a = Math.max(0, a - 1);
     const absorbed = Math.min(u.status.ward, a);
     u.status.ward -= absorbed;
     a -= absorbed;
+    // Gervase's Ribbon: the first fall of the battle is turned aside, at 1 HP.
+    if (u.side === 'party' && a >= u.hp && this.spared.has(u.id)) {
+      this.spared.delete(u.id);
+      a = u.hp - 1;
+      this.emit({ type: 'spared', unit: u.id });
+    }
     // A big enough hit splits off a piece of the Blot.
     const splits = u.side === 'enemy' ? ENEMIES[u.kind]?.splits : undefined;
     if (splits && byParty && a >= splits.at) this.spawn(splits.into, u);
@@ -967,7 +1097,8 @@ export class Battle {
 
   private heal(u: Unit, amount: number): void {
     const before = u.hp;
-    u.hp = Math.min(u.maxHp, u.hp + amount);
+    const more = u.side === 'party' && this.wears(u.kind as CharId, 'gallRosary') ? 2 : 0;
+    u.hp = Math.min(u.maxHp, u.hp + amount + more);
     this.emit({ type: 'heal', unit: u.id, amount: u.hp - before });
   }
 
@@ -997,6 +1128,13 @@ export class Battle {
     u.status.tally = null;
     u.status.ward = 0;
     this.emit({ type: 'fall', unit: u.id });
+    // The mourning brooch: whoever wears it steels themself when another ally falls.
+    if (u.side === 'party')
+      for (const o of this.party)
+        if (o !== u && !o.fallen && this.wears(o.kind as CharId, 'mourningBrooch')) {
+          o.status.ward += 3;
+          this.emit({ type: 'ward', unit: o.id, amount: 3 });
+        }
     if (this.def.mustSurvive === u.id && this.result === 'ongoing') {
       this.result = 'defeat';
       this.emit({ type: 'defeat' });
@@ -1068,6 +1206,18 @@ export class Battle {
     else if (this.revivals > 2 && by) this.hurt(by, 3, 'masks');
   }
 
+  /** Push an enemy one place back: it trades places with the one behind it (the plumb-line). */
+  private backOne(e: Unit): void {
+    const line = this.standingEnemies();
+    const behind = line[line.indexOf(e) + 1];
+    if (!behind) return;
+    const from = e.place;
+    behind.place = from;
+    e.place = from + behind.size;
+    this.emit({ type: 'move', unit: behind.id, from: from + e.size, to: from });
+    this.emit({ type: 'move', unit: e.id, from, to: e.place });
+  }
+
   private toBack(e: Unit): void {
     const from = e.place;
     let place = 0;
@@ -1106,7 +1256,7 @@ export class Battle {
       u.status.doomed = false;
       u.status.guarded = false;
     }
-    const gain = Math.min(this.maxInk - this.ink, this.difficulty === 'story' ? 2 : 1);
+    const gain = Math.min(this.maxInk - this.ink, this.difficulty === 'story' || this.wears('isot', 'hornInkwell') ? 2 : 1);
     if (gain > 0) {
       this.ink += gain;
       this.emit({ type: 'ink', amount: gain });

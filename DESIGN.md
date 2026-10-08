@@ -972,7 +972,7 @@ The tests play every fight in every mode, at the level the story gives:
 Equipment never inflates stats. Every item is a sidegrade that bends one rule, so equipping is choosing how to play.
 
 - **Slots.** Each character has a **relic** slot, for an item that is theirs alone, and a **charm** slot, which anyone can fill. A charm is worn by one character at a time.
-- **Finding.** Items are found at story beats and in secrets, never bought or farmed. Once found, an item is carried for the rest of the game.
+- **Finding.** Items are found at story beats and in Glossator caches, or bought from Gervase the pedlar (§6.3); none can be farmed. Once had, an item is carried for the rest of the game.
 - **Equipping** happens in the pause menu's Equipment page (§10.7): each slot opens a list of the items that fit it, with their rule and a line of lore. Taking a charm worn by someone else moves it.
 - An item only works while its wearer is in the fight.
 
@@ -986,6 +986,17 @@ Equipment never inflates stats. Every item is a sidegrade that bends one rule, s
 | **Clapper of the Passing Bell** | Whit's relic | A Reckoning deals 9 instead of 7, but Lance deals 3. | *Lychford's bell rang for no one for ten years.* |
 | **Ebb Shell** | Charm | The first blow taken in each battle deals 1 less. | *Picked up on the causeway, still wet.* |
 | **Pot of Vermilion** | Charm | The wearer's first ability that can be doubled (§5.6) is doubled, once per battle. | *Red is read first.* |
+| **Gervase's Ribbon** | Charm | The first time the wearer would fall in a battle, they stay at 1 HP. | *Faded to the colour of the road. He kept the last one for whoever said his name.* |
+| **Mourning brooch** | Charm | When another ally falls, the wearer gains Ward 3. | *From before the dying stopped. No one remembers whose hair is behind the glass.* |
+| **Hare's-foot brush** | Charm | The free Step can be taken twice each round. | *Gilders sweep the loose gold away with one. This one still wants to run.* |
+| **Rosary of oak-galls** | Charm | Healing the wearer receives is +2. | *Strung by a nun who made ink, and prayed while it steeped.* |
+| **Coronel** | Whit's relic | Lance reaches the 3rd enemy too, but deals 1 less. | *The crowned tip of a jousting lance, made to unhorse and not to kill.* |
+| **Silverpoint** | Isot's relic | A Gloss makes the next damage +4 instead of +3, but Penknife deals 1 less. | *It leaves a grey line that cannot be scraped, only written over.* |
+| **Leper's clapper** | Hild's relic | Immure costs no HP, but walls in only enemies. | *Three boards on a cord, to warn the road that someone was coming.* |
+| **Saint Ebb's girdle** | Charm | In the Rear, the wearer takes 1 less from every blow. | *A knotted cord: one knot for every tide she counted from her rock.* |
+| **Horn inkwell** | Isot's relic | Ink holds only 2, but refills by 2 each round. | *A scribe on the road writes small, and often.* |
+| **Mason's plumb-line** | Hild's relic | Shove deals 2 more, but pushes the enemy back only one place. | *The mason's, from the day he walled her in. It hangs true. She has made her peace with that.* |
+| **Pilgrim's scallop** | Whit's relic | Vigil strikes for 6 instead of 4, but only from the Front. | *Every pilgrim to the sea carries one home. He has never been home.* |
 
 Where each is found, with a line saying how and the item's card:
 
@@ -996,20 +1007,39 @@ Where each is found, with a line saying how and the item's card:
 - **Ebb Shell:** the Sea Gate causeway, after B1, still wet.
 - **Clapper of the Passing Bell:** the bell tower, once the passing bell has rung. It is the bell's old clapper, cracked and replaced long ago, hanging on a hook, so the bell keeps its own voice for the end.
 - **Pot of Vermilion:** Wystan's vine, given by Wystan with the Rubric.
+- **Gervase's Ribbon:** the Drollery Fair, when Isot reads Gervase his name (§6.3).
+- **Mourning brooch:** a hidden cache in Ninefold Blank.
+- **The rest** are sold at Gervase's stall (§6.3).
 
-A test checks that every item is either carried from the start or found by a script.
+A test checks that every item is carried from the start, found by a script or in a cache, or sold, and that only what is sold has a price.
 
 Every fight can be won with no items worn.
 
 ### 6.1 Pennies, caches and loot
 
 - **Silver pennies** (*deniers*) are the realm's coin. They come from every fight once, from Glossator caches and from side stories, and they are spent at the pedlar (§6.3). The pause menu shows the purse.
-- **Glossator caches** are small iron-bound boxes left off the path by the hedge-scribes (§1.6), two to four in every chapter. Some sit in plain sight; others are known only by a chalk manicule that the raking light finds on a wall or a stone (§10.3). A cache holds pennies, satchel items, and now and then an item of equipment.
+- **Glossator caches** are small iron-bound boxes left off the path by the hedge-scribes (§1.6), with a red chalk hand on the lid. Some sit in plain sight; others are known only by a chalk manicule that the raking light finds (§10.3), and the box shows once it has been read. A cache holds pennies, satchel items, and now and then an item of equipment, and under its lid a note in a Glossator's hand. A satchel full of a kind leaves the rest in the box.
+
+| Chapter | Cache | Holds | The note |
+|---|---|---|---|
+| I | Scriptorium, by the armarium | 3d, a poultice | *For whoever is scraped next. We were scraped too, and we kept writing.* |
+| I | Cloister, hidden | 5d, a wax seal | *The Abbot counts the candles. He does not count the chalk.* |
+| II | Lychford, by a house | 8d, a poultice | *Lychford fed us through the winter of the Sweat. Feed it back.* |
+| II | Churchyard, hidden | 6d, oak-gall ink | *Dunstan digs. We write down the names he digs for.* |
+| II | Bell tower, hidden | 10d, holy water | *Thirty-nine bells came down the Abbey road in carts. We wrote down every one.* |
+| III | The Blanchwood | 6d, sal volatile | *The wood forgets. Write on the bark, and it remembers a little longer.* |
+| III | Ninefold Blank, hidden | 8d, the mourning brooch | *Ninefold had a fair, a mill and a hundred hearths. We have the names of forty.* |
+| III | Knell Chapel, hidden | 6d, two wax seals | *The Reader came here once a year, they say, and nobody was afraid of him.* |
+| IV | The Edge | 8d, oak-gall ink | *Past here the page runs out.* |
+| IV | The Ivy Road, hidden | 8d, two poultices | *What is written is held. What is held can be let go. Both are a kind of mercy, and only one of them is his.* |
+| IV | Wystan's vine, hidden | 12d, holy water | *Wystan, if you ever find this: we kept your place.* |
+| V | Saint Ebb's at dawn, by Isot's desk | 6d, a poultice, a wax seal | *Isot. We saw you scrape the line, and we saw you cry over it. Write it back.* |
+| V | The nave, hidden | 10d, sal volatile | *If the last page is ever written, read our names too. We are at the bottom, in brown ink.* |
 - **Loot is placed, not rolled.** Every reward is fixed and listed on the victory scroll, so a retried fight gives the same puzzle and the same prize.
 
 ### 6.2 The satchel
 
-Up to three of each kind are carried. In battle, any ally can use one instead of an ability: **Satchel** opens from the command list, and using an item spends that ally's action.
+Up to three of each kind are carried. In battle, any ally can use one instead of an ability: **Satchel** comes last in every ally's list, and using an item spends that ally's action. What is used is gone only if the fight is won; a fight lost or left gives it back, so a retried fight is the same puzzle.
 
 | Item | Effect | Price |
 |---|---|---|
@@ -1028,7 +1058,11 @@ Up to three of each kind are carried. In battle, any ally can use one instead of
   - at the Wood's Edge (Ch III);
   - at the Drollery Fair (Ch IV);
   - at the mouth of the Undercroft (Ch V), whose way he knows, because he has walked every road twice.
-- **His stock.** The satchel items, and equipment that grows chapter by chapter. Prices are in §6.2 and in the item list.
+- **His stock** grows from stall to stall, and nothing the party owns is offered again:
+  - Lychford Lane: poultices, wax seals, oak-gall ink; the hare's-foot brush (30d), the rosary of oak-galls (26d), the coronel (32d);
+  - the Wood's Edge adds holy water; the silverpoint (38d), the leper's clapper (34d), Saint Ebb's girdle (36d);
+  - the Drollery Fair adds sal volatile; the horn inkwell (44d), the plumb-line (40d), the pilgrim's scallop (42d).
+- **On the lane** he is knotting the tenth ribbon to the wayside cross, one for every year of the Mercy. He has walked his name clean off, and Whit says: *So have I.*
 - **Fraying.** He frays a little more at each meeting.
 - **His name.** Once the player has read his name at the hermit's hearth in Ninefold, Isot can read it to him at the Fair. He remembers the second walk of every road: once to sell, once to see how the ribbons were worn. He gives her his last ribbon, *Gervase's Ribbon* (a charm: the first time the wearer would fall in a battle, they stay at 1 HP), and asks a quarter less from then on. In the ending his name is read with the others.
 
@@ -1620,7 +1654,7 @@ Each milestone is playable and arrives as its own PR, with build and tests green
 | **Done** | Items in the story | The six items not carried from the start are found at story beats (§6), each with a line and its card; the clapper is the passing bell's old one, so the bell still rings at the end |
 | **Done** | Relief | Banks, terraces and steps on every outdoor map and behind every outdoor battle (§8.2), buildings on their terraces, snow-covered and gesso faces; nothing left out of reach |
 | **Done** | Growth and difficulty | One shared level from every fight won once (§5.16): HP by level, five ranks, the victory scroll with its filling bar and the bell for a new level, level, experience and purse on the party page; Story, Normal and Illuminated (§5.17), chosen at New Game and in the settings, the old Gentle Hand carried over as Story; saves upgraded with the experience and pennies of fights already won |
-| **Next** | Satchel, caches and the pedlar | §6.1–§6.3: the satchel in battle, Glossator caches (some found only by raking light), Gervase's stall, new equipment |
+| **Done** | Satchel, caches and the pedlar | §6.1–§6.3: the satchel in battle (given back if the fight is lost), thirteen Glossator caches with their notes, seven of them found by raking light; Gervase's stall on the lane, at the Wood's Edge and at the Fair, his name read back to him and his ribbon; eleven new relics and charms, each bending one rule |
 | **Planned** | Side stories | §3.14: the Fen Mill, the Charcoal Hollow, the Fair's back lanes and the Undercroft, each with its own fights, monsters and caches |
 
 ---

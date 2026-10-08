@@ -23,6 +23,16 @@ let stepped = false;
 
 export const EDGE_MAP: MapDef = {
   id: 'edge',
+  caches: [
+    {
+      id: 'edge',
+      x: tiles(30.5),
+      y: tiles(12.4),
+      pennies: 8,
+      satchel: { gallInk: 1 },
+      note: { en: '“Past here the page runs out. Mind your feet: the margin is deeper than it looks.”', fr: '« Passé ce point, la page s’arrête. Gare à tes pieds : la marge est plus profonde qu’elle n’en a l’air. »' },
+    },
+  ],
   card: { title: { en: 'The Margin', fr: 'La Marge' }, line: { en: 'Off the page', fr: 'Hors de la page' } },
   walkable: 'vo',
   ground: GROUND,

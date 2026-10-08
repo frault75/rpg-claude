@@ -314,6 +314,15 @@ export function drawPortrait(s: CharSpec, mood: Mood = 'neutral'): PixelImage {
     case 'none':
       img.ellipse(cx, 12, 10.5, 6, (x, y, nx, ny) => (y < 15 ? shadeAt(hair, sphere(nx, ny, 2.6) / 5, x, y) : null));
       break;
+    case 'cap': {
+      // Hair at the temples, then a felt cap pulled down over it with its brim rolled up.
+      for (const side of [-1, 1])
+        img.ellipse(cx + side * 9.5, 15.5, 2.6, 3.4, (x, y, nx, ny) => shadeAt(hair, sphere(nx * side, ny, 2.4) / 5, x, y));
+      img.ellipse(cx, 11, 10.8, 6.6, (x, y, nx, ny) => (y < 13 ? shadeAt(hw, sphere(nx, ny, 2.6) / 5, x, y) : null));
+      for (let x = Math.round(cx - 12); x <= Math.round(cx + 11); x++)
+        for (const y of [12, 13]) img.set(x, y, shadeAt(hw, Math.max(0, (y === 12 ? 3.6 : 2.4) - ((x - cx) / 12) * 1.2) / 5, x, y));
+      break;
+    }
   }
   img.outline(null);
   return img;

@@ -69,6 +69,17 @@ function blankStone(): ReturnType<typeof newArt> & { anchor: [number, number] } 
 
 export const CHURCHYARD: MapDef = {
   id: 'churchyard',
+  caches: [
+    {
+      id: 'churchyard',
+      x: tiles(25.6),
+      y: tiles(11.0),
+      hidden: true,
+      pennies: 6,
+      satchel: { gallInk: 1 },
+      note: { en: '“Dunstan digs. We write down the names he digs for, so that somebody still has them.”', fr: '« Dunstan creuse. Nous écrivons les noms pour qui il creuse, pour que quelqu’un les ait encore. »' },
+    },
+  ],
   card: { title: { en: 'Lychford', fr: 'Lychford' }, line: { en: 'The Churchyard of Saint Hilda', fr: 'Le cimetière de Sainte-Hilda' } },
   walkable: 'dn=',
   ground: GROUND,

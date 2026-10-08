@@ -150,6 +150,17 @@ const ALL_POINTS = ROADS.flat();
 
 export const NINEFOLD: MapDef = {
   id: 'ninefold',
+  caches: [
+    {
+      id: 'ninefold',
+      x: tiles(36.5),
+      y: tiles(13.8),
+      hidden: true,
+      pennies: 8,
+      item: 'mourningBrooch',
+      note: { en: '“Ninefold had a fair, a mill and a hundred hearths. We have the names of forty. Forgive us the rest.”', fr: '« Ninefold avait une foire, un moulin et cent foyers. Nous avons les noms de quarante. Pardonne-nous les autres. »' },
+    },
+  ],
   card: { title: { en: 'Ninefold Blank', fr: 'Ninefold la Blanche' }, line: { en: 'The Faded Path', fr: 'Le chemin effacé' } },
   walkable: '.v',
   ground: GROUND,

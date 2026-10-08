@@ -59,6 +59,8 @@ export interface GameState {
   xp: number;
   /** Silver pennies in the purse (§6.1). */
   pennies: number;
+  /** How many of each satchel item are carried (§6.2), three at most. */
+  satchel: Partial<Record<string, number>>;
   lostNames: string[];
   /** Seconds played. */
   playTime: number;
@@ -83,6 +85,7 @@ export function newGame(): GameState {
     cleared: [],
     xp: 0,
     pennies: 0,
+    satchel: {},
     lostNames: [],
     playTime: 0,
   };

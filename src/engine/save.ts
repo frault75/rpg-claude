@@ -4,6 +4,7 @@
  */
 
 import { spoilsOf } from '../battle/growth';
+import { SATCHEL_IDS, SATCHEL_MAX } from '../battle/satchel';
 import { type GameState, newGame } from '../story/state';
 
 export const SAVE_VERSION = 3;
@@ -32,6 +33,16 @@ function isObject(v: unknown): v is Record<string, unknown> {
 const has = (v: unknown, x: string) => Array.isArray(v) && v.includes(x);
 /** A whole number of something, never below zero. */
 const count = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? Math.max(0, Math.floor(v)) : 0);
+/** The satchel: known items only, three of a kind at most. */
+function satchelOf(v: unknown): GameState['satchel'] {
+  const out: GameState['satchel'] = {};
+  if (!isObject(v)) return out;
+  for (const id of SATCHEL_IDS) {
+    const n = Math.min(SATCHEL_MAX, count(v[id]));
+    if (n) out[id] = n;
+  }
+  return out;
+}
 
 /** Version 1 saves predate the items found at story beats (DESIGN.md §6): give back those already passed. */
 const PASSED: [item: string, passed: (st: Record<string, unknown>, flags: Record<string, unknown>) => boolean][] = [
@@ -98,6 +109,7 @@ export function parseSave(raw: string | null): SaveData | null {
     formation: Array.isArray(st.formation) && st.formation.length === 3 ? (st.formation as GameState['formation']) : base.formation,
     xp: count(st.xp),
     pennies: count(st.pennies),
+    satchel: satchelOf(st.satchel),
   };
   return {
     version: SAVE_VERSION,

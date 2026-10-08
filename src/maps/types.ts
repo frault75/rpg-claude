@@ -113,6 +113,8 @@ export interface MapDef {
   zones?: Zone[];
   exits?: Exit[];
   underwriting?: Underwriting[];
+  /** Glossator caches (caches.ts): boxes of pennies, satchel things and now and then an item. */
+  caches?: import('./caches').Cache[];
   /** Runs when the map is entered: `from` is the spawn name, or `battle:<id>` after a fight. */
   enter?: (c: MapContext, from: string) => Promise<void>;
   /** Save the game whenever the map is entered. */
@@ -165,6 +167,8 @@ export interface MapContext {
   learn(who: CharId, ability: import('../battle/types').AbilityId): Promise<void>;
   /** Show a close-up page that the raking light can read (resolves when closed). */
   page(def: PageDef): Promise<void>;
+  /** Open Gervase's stall (an id of STALLS); resolves when it is closed. */
+  shop(stall: string): Promise<void>;
 }
 
 /** A page seen close up: lines of writing, some scraped, read by tilting the candle. */

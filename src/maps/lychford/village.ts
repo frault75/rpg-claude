@@ -81,6 +81,16 @@ const HEIGHTS = relief(W, H, [
 
 export const VILLAGE: MapDef = {
   id: 'village',
+  caches: [
+    {
+      id: 'village',
+      x: tiles(9.4),
+      y: tiles(13.7),
+      pennies: 8,
+      satchel: { poultice: 1 },
+      note: { en: '“Lychford fed us through the winter of the Sweat. Feed it back.”', fr: '« Lychford nous a nourris pendant l’hiver de la Suée. Rends-le-lui. »' },
+    },
+  ],
   card: { title: { en: 'Lychford', fr: 'Lychford' }, line: { en: 'The Village Without Graves', fr: 'Le village sans tombes' } },
   walkable: 'dn',
   ground: GROUND,

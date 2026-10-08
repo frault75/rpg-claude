@@ -5,6 +5,8 @@
 
 import { ABILITIES, PARTY_STATS } from '../battle/data';
 import { abilityText, DIFFICULTIES, hpAt, progress } from '../battle/growth';
+import { SATCHEL, SATCHEL_IDS } from '../battle/satchel';
+import { buyItem, buySatchel, priceFor, type Sale, stock } from '../data/stalls';
 import { canWear, ITEMS, type Slot } from '../data/equipment';
 import { BINDABLE, type Bindable, DEFAULT_KEYS, type Input, keyLabel, padLabel } from '../engine/input';
 import type { SettingsStore } from '../engine/settings';
@@ -99,6 +101,45 @@ export function partyPage(d: MenuDeps): Page {
   };
 }
 
+/** Gervase's stall (DESIGN.md §6.3): things for the satchel, and the relics and charms he carries. */
+export function stallPage(d: MenuDeps, stall: string): Page {
+  return {
+    title: () => t(d.game().flags.gervaseNamed ? 'shop.titleNamed' : 'shop.title'),
+    help: () => t('shop.help', { n: d.game().pennies }),
+    rows: () => {
+      const g = d.game();
+      const { satchel, items } = stock(stall, g);
+      const rows: Row[] = [];
+      const sold = (sale: Sale, name: string) => {
+        d.menu.toast(t(`shop.${sale}`, { name }));
+        d.menu.refresh();
+      };
+      const ware = (r: Row, color: string, html: string) => {
+        r.el.querySelector('.label')!.innerHTML = html;
+        r.el.insertBefore(el('span', 'gem', ''), r.el.querySelector('.label'));
+        (r.el.querySelector('.gem') as HTMLElement).style.background = color;
+        rows.push(r);
+      };
+      rows.push(infoRow(`<span class="section">${t('equip.satchel')}</span>`));
+      for (const id of satchel) {
+        const sd = SATCHEL[id];
+        const r = buttonRow('', () => sold(buySatchel(g, id), tr(sd.name)), `${priceFor(sd.price, g)} ${t('shop.d')}`);
+        ware(r, sd.color, `${tr(sd.name)} <span class="have">×${g.satchel[id] ?? 0}</span><span class="item-text">${tr(sd.text)}</span><span class="item-lore">${tr(sd.lore)}</span>`);
+      }
+      rows.push(sepRow());
+      rows.push(infoRow(`<span class="section">${t('shop.gear')}</span>`));
+      if (!items.length) rows.push(infoRow(t('shop.soldOut'), 'dim'));
+      for (const id of items) {
+        const it = ITEMS[id]!;
+        const fits = it.owner ? t('shop.for', { name: tr(PARTY_STATS[it.owner].name) }) : t('equip.charm');
+        const r = buttonRow('', () => sold(buyItem(g, id), tr(it.name)), `${priceFor(it.price ?? 0, g)} ${t('shop.d')}`);
+        ware(r, it.color, `${tr(it.name)} <span class="have">${fits}</span><span class="item-text">${tr(it.text)}</span><span class="item-lore">${tr(it.lore)}</span>`);
+      }
+      return rows;
+    },
+  };
+}
+
 /** New Game: how hard the Book fights back (DESIGN.md §5.17). The cursor starts on the mode last chosen. */
 export function newGamePage(d: MenuDeps, start: () => void): Page {
   return {
@@ -178,6 +219,15 @@ export function equipmentPage(d: MenuDeps): Page {
         const it = ITEMS[i];
         if (!it) continue;
         rows.push(infoRow(`<span class="gem" style="background:${it.color}"></span><span class="label">${tr(it.name)}<span class="item-text">${tr(it.text)}</span><span class="item-lore">${tr(it.lore)}</span></span>`));
+      }
+      // The satchel: used in battle, from any ally's list.
+      rows.push(sepRow());
+      rows.push(infoRow(`<span class="section">${t('equip.satchel')}</span><span class="value">${t('party.pennies', { n: g.pennies })}</span>`));
+      const packed = SATCHEL_IDS.filter((id) => (g.satchel[id] ?? 0) > 0);
+      if (!packed.length) rows.push(infoRow(t('equip.satchelEmpty'), 'dim'));
+      for (const id of packed) {
+        const sd = SATCHEL[id];
+        rows.push(infoRow(`<span class="gem" style="background:${sd.color}"></span><span class="label">${tr(sd.name)} ×${g.satchel[id]}<span class="item-text">${tr(sd.text)}</span><span class="item-lore">${tr(sd.lore)}</span></span>`));
       }
       return rows;
     },

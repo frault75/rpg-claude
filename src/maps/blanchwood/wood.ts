@@ -12,6 +12,7 @@ import { rock } from '../../pixel/nature';
 import { blanch, outlineBird } from '../../world3d/blanchwood';
 import { relief } from '../../world3d/relief';
 import { tiles } from '../../world3d/stage';
+import { pedlar } from '../gervase';
 import type { MapDef, Rect } from '../types';
 import { blanchedTree, blanchingGround, setDepth, WOOD_GROUND, WOOD_SKY, woodDepth, woodLight } from './common';
 
@@ -21,6 +22,8 @@ const H = 13;
 const depthAt = (x: number) => Math.max(0, Math.min(1, (x / tiles(W) - 0.12) / 0.82)) * 0.62;
 const GROUND = blanchingGround(W, H, (tx) => Math.max(0, (tx - 22) / 30), (_x, y) => y >= 6 && y <= 7, 31);
 const PATH_Y = tiles(7);
+// Gervase, at the edge, where the colour still holds.
+const GERVASE = pedlar('woodsEdge', tiles(9.6), tiles(8.5), 'down');
 
 // The wood climbs away from the path in two banks, the trees standing on them.
 const HEIGHTS = relief(W, H, [
@@ -30,6 +33,16 @@ const HEIGHTS = relief(W, H, [
 
 export const WOOD: MapDef = {
   id: 'wood',
+  caches: [
+    {
+      id: 'wood',
+      x: tiles(20.6),
+      y: tiles(10.6),
+      pennies: 6,
+      satchel: { salVolatile: 1 },
+      note: { en: '“The wood forgets. Write on the bark, and it remembers a little longer.”', fr: '« Le bois oublie. Écris sur l’écorce, et il se souvient un peu plus longtemps. »' },
+    },
+  ],
   card: { title: { en: 'The Blanchwood', fr: 'La Blanchewood' }, line: { en: 'Where the colour goes first', fr: 'Là où la couleur s’en va d’abord' } },
   walkable: '.dv',
   ground: GROUND,
@@ -72,7 +85,7 @@ export const WOOD: MapDef = {
     st.addEmitter({ kind: 'mote', area: [0, tiles(1), tiles(W), tiles(11)], heights: [4, 60], count: 40, color: '#F4F0E6', size: 1.6, intensity: 0.4 }, 21);
     return { blocked, posts };
   },
-  npcs: [{ id: 'wodewose', speaker: 'villager', spec: CHARACTERS.wodewose!, x: tiles(28.5), y: PATH_Y - 2, dir: 'left', fray: 0.25, when: (c) => !c.cleared('f5') }],
+  npcs: [{ id: 'wodewose', speaker: 'villager', spec: CHARACTERS.wodewose!, x: tiles(28.5), y: PATH_Y - 2, dir: 'left', fray: 0.25, when: (c) => !c.cleared('f5') }, GERVASE.npc],
   zones: [
     {
       id: 'wodewose',
@@ -91,6 +104,7 @@ export const WOOD: MapDef = {
     },
   ],
   things: [
+    GERVASE.thing,
     {
       id: 'wren',
       x: tiles(15.2),

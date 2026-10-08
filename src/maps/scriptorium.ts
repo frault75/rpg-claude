@@ -49,6 +49,16 @@ export function scriptoriumAtDawn(on: boolean): void {
 
 export const SCRIPTORIUM: MapDef = {
   id: 'scriptorium',
+  caches: [
+    {
+      id: 'scriptorium',
+      x: tiles(4.2),
+      y: tiles(3.2),
+      pennies: 3,
+      satchel: { poultice: 1 },
+      note: { en: 'Inside the lid, in a small careful hand: “For whoever is scraped next. We were scraped too, and we kept writing. — the Glossators.”', fr: 'Sous le couvercle, d’une petite main soigneuse : « Pour qui sera gratté le prochain. Nous l’avons été aussi, et nous avons continué d’écrire. — les Glossateurs. »' },
+    },
+  ],
   card: { title: { en: 'Saint Ebb’s', fr: 'Saint-Ebb' }, line: { en: 'The Scriptorium, the night before', fr: 'Le scriptorium, la nuit d’avant' } },
   walkable: 'f',
   ground: GROUND,
