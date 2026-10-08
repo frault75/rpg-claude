@@ -18,8 +18,9 @@ const GLYPHS: Record<string, string> = {
   J: '001001001101010',
   K: '101101110101101',
   L: '100100100100111',
-  M: '101111111101101',
-  N: '110101101101101',
+  // M and W are five wide and N four: at three they read as H and Π.
+  M: '1000111011101011000110001',
+  N: '10011101101110011001',
   O: '010101101101010',
   P: '110101110100100',
   Q: '010101101110011',
@@ -28,7 +29,7 @@ const GLYPHS: Record<string, string> = {
   T: '111010010010010',
   U: '101101101101111',
   V: '101101101101010',
-  W: '101101111111101',
+  W: '1000110001101011010101010',
   X: '101101010101101',
   Y: '101101010010010',
   Z: '111001010100111',
@@ -39,18 +40,25 @@ const GLYPHS: Record<string, string> = {
   '·': '000000010000000',
 };
 
+const glyph = (ch: string): string => GLYPHS[ch] ?? GLYPHS[' ']!;
+/** Glyphs are five rows tall and three wide, or wider for the broad letters. */
+const glyphW = (g: string): number => g.length / 5;
+
 /** Width in pixels of a line of text. */
 export function textWidth(text: string): number {
-  return Math.max(0, text.length * 4 - 1);
+  let w = 0;
+  for (const ch of text.toUpperCase()) w += glyphW(glyph(ch)) + 1;
+  return Math.max(0, w - 1);
 }
 
 /** Draw `text` (capitals) at (x, y) in one colour. */
 export function drawText(img: PixelImage, text: string, x: number, y: number, color: RGBA): void {
   let cx = x;
   for (const ch of text.toUpperCase()) {
-    const g = GLYPHS[ch] ?? GLYPHS[' ']!;
-    for (let i = 0; i < 15; i++) if (g[i] === '1') img.set(cx + (i % 3), y + Math.floor(i / 3), color);
-    cx += 4;
+    const g = glyph(ch);
+    const gw = glyphW(g);
+    for (let i = 0; i < g.length; i++) if (g[i] === '1') img.set(cx + (i % gw), y + Math.floor(i / gw), color);
+    cx += gw + 1;
   }
 }
 

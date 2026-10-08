@@ -4,6 +4,7 @@ import { abbeyChurch3D, elevation } from '../src/world3d/building';
 import { CHARACTERS, DIRS, drawCharacter, FRAME_H, FRAME_W, FRAMES } from '../src/pixel/characters';
 import { oakTree, rock } from '../src/pixel/nature';
 import { bayer, hex, PixelImage, ramp } from '../src/pixel/pixel';
+import { textImage, textWidth } from '../src/pixel/font';
 import { flameSheet } from '../src/pixel/props';
 import { KINDS, paintGround, parseLayout, TILE } from '../src/pixel/terrain';
 
@@ -138,5 +139,24 @@ describe('scenery', () => {
     expect(rock(1, 2).w).toBe(52);
     const f = flameSheet(4, 9, 14);
     expect(f.a.w).toBe(36);
+  });
+});
+
+describe('the inscription font', () => {
+  it('sets W, M and N broad enough to tell from H, and measures them so', () => {
+    expect(textWidth('HOH')).toBe(11);
+    expect(textWidth('WHO')).toBe(13);
+    expect(textWidth('WHEN')).toBe(18);
+    const w = textImage(['WHO'], [0, 0, 0, 255], 0);
+    expect(w.w).toBe(13);
+    const ink = (img: PixelImage, x0: number, x1: number) => {
+      let n = '';
+      for (let y = 0; y < 5; y++) for (let x = x0; x < x1; x++) n += img.alpha(x, y) > 0 ? '1' : '0';
+      return n;
+    };
+    // The W in full, then a gap, then the H.
+    expect(ink(w, 0, 5)).toBe('1000110001101011010101010');
+    expect(ink(w, 5, 6)).toBe('00000');
+    expect(ink(w, 6, 9)).toBe('101101111101101');
   });
 });
