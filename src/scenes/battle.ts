@@ -55,6 +55,7 @@ import {
   type SpoilsLook,
   spoilsHeight,
 } from '../battle/hud';
+import { SATCHEL, SATCHEL_IDS, type SatchelId } from '../battle/satchel';
 import { abilityText, claim, type Difficulty, hpAt, LEVEL_XP, levelFor, MAX_LEVEL, progress, type Spoils } from '../battle/growth';
 import { type AbilityId, type BattleEvent, type Intent, PLACE_NAMES, type Unit } from '../battle/types';
 import type { DebugInfo } from '../debug/overlay';
@@ -200,7 +201,7 @@ interface Opt {
   run: () => void;
 }
 
-type MenuKind = 'root' | 'abilities' | 'target' | 'step' | 'result';
+type MenuKind = 'root' | 'abilities' | 'satchel' | 'target' | 'step' | 'result';
 
 interface MenuState {
   kind: MenuKind;
@@ -376,6 +377,7 @@ export class BattleScene implements Scene {
       equipment: g.equipment,
       level: levelFor(g.xp),
       difficulty: this.difficulty,
+      satchel: g.satchel,
       emendAnywhere: !!g.flags.emendUpgraded,
       seed: 7,
     });
@@ -563,6 +565,28 @@ export class BattleScene implements Scene {
           },
           tick: (k) => {
             if (f) f.ox = lunge * Math.sin(Math.min(1, k * 1.4) * Math.PI);
+          },
+          end: () => {
+            if (f) f.ox = 0;
+          },
+        });
+        break;
+      }
+      case 'item': {
+        const f = this.fig(e.unit);
+        const def = SATCHEL[e.item as SatchelId];
+        this.queue({
+          dur: 0.42,
+          start: () => {
+            if (def) this.showCallout(tr(def.name), 1.1);
+            if (e.item === 'holyWater') glossSound(a);
+            else if (e.item === 'waxSeal') wardSound(a);
+            else healSound(a);
+            const target = e.target ? this.fig(e.target) : f;
+            if (target && def) this.burst(target, def.color, 18);
+          },
+          tick: (k) => {
+            if (f) f.ox = -5 * Math.sin(Math.min(1, k * 1.4) * Math.PI);
           },
           end: () => {
             if (f) f.ox = 0;
@@ -793,6 +817,17 @@ export class BattleScene implements Scene {
           },
         });
         break;
+      case 'spared':
+        this.queue({
+          dur: 0.6,
+          start: () => {
+            this.popup(e.unit, t('battle.spared'), 'word');
+            wardSound(a);
+            const f = this.fig(e.unit);
+            if (f) this.burst(f, '#C89AB0', 30);
+          },
+        });
+        break;
       case 'pass':
         this.queue({
           dur: 0.45,
@@ -837,6 +872,9 @@ export class BattleScene implements Scene {
             this.mode = 'result';
             this.defeats = 0;
             this.spoils = claim(session.game, this.encounter);
+            // What was used from the satchel is gone only once the fight is won.
+            const sat = session.game.satchel;
+            for (const [id, n] of Object.entries(this.battle.spent())) sat[id] = Math.max(0, (sat[id] ?? 0) - (n ?? 0));
             this.music.stop();
             phrase(a, 'victory');
             this.showBanner(t('battle.victory'), t('battle.victoryLine'), false);
@@ -1045,8 +1083,8 @@ export class BattleScene implements Scene {
       kind: 'abilities',
       title: tr(u.name),
       cursor: 0,
-      options: () =>
-        b.abilitiesOf(u.id).map((a) => {
+      options: () => [
+        ...b.abilitiesOf(u.id).map((a) => {
           const def = ABILITIES[a];
           const ts = this.targetsFor(u, a);
           const base = b.check(u.id, a, ts[0] ?? {});
@@ -1065,8 +1103,107 @@ export class BattleScene implements Scene {
             },
           };
         }),
+        ...this.satchelEntry(u),
+      ],
     });
     this.cmdDirty = true;
+  }
+
+  /** The satchel, last in every ally's list once anything was carried into the fight. */
+  private satchelEntry(u: Unit): Opt[] {
+    const b = this.battle;
+    const carried = SATCHEL_IDS.filter((id) => (session.game.satchel[id] ?? 0) > 0);
+    if (!carried.length) return [];
+    const left = carried.reduce((n, id) => n + (b.satchel[id] ?? 0), 0);
+    const base = b.checkItem(u.id, carried.find((id) => b.satchel[id]) ?? carried[0]!, {});
+    const blocking = !left ? 'empty' : base === 'acted' || base === 'immured' || base === 'fallen' ? base : null;
+    return [
+      {
+        label: t('battle.satchel'),
+        right: `${left}`,
+        disabled: !!blocking,
+        help: blocking ? `${t('battle.satchelHelp')} — ${this.refusalText(blocking, u)}` : t('battle.satchelHelp'),
+        warn: !!blocking,
+        run: () => (blocking ? this.buzz(this.refusalText(blocking, u)) : this.openSatchel(u, carried)),
+      },
+    ];
+  }
+
+  private openSatchel(u: Unit, carried: SatchelId[]): void {
+    const b = this.battle;
+    uiTick(this.audio, true);
+    this.menus.push({
+      kind: 'satchel',
+      title: t('battle.satchel'),
+      cursor: 0,
+      options: () =>
+        carried.map((id) => {
+          const def = SATCHEL[id];
+          const ts = this.itemTargets(u, id);
+          const refusal = ts.some((x) => !x.refusal) ? null : (ts[0]?.refusal ?? 'target');
+          return {
+            label: tr(def.name),
+            right: `×${b.satchel[id] ?? 0}`,
+            disabled: !!refusal,
+            help: refusal ? `${tr(def.text)} — ${this.refusalText(refusal, u)}` : tr(def.text),
+            warn: !!refusal,
+            run: () => {
+              if (refusal) return this.buzz(this.refusalText(refusal, u));
+              if (def.target === 'none') return this.doUse(u.id, id, {});
+              this.openItemTargets(u, id);
+            },
+          };
+        }),
+    });
+    this.cmdDirty = true;
+  }
+
+  private itemTargets(user: Unit, id: SatchelId): { unit?: string; refusal: Refusal | null }[] {
+    const b = this.battle;
+    const allies = [...b.party].sort((x, y) => x.place - y.place);
+    switch (SATCHEL[id].target) {
+      case 'enemy':
+        return b.standingEnemies().map((e) => ({ unit: e.id, refusal: b.checkItem(user.id, id, { unit: e.id }) }));
+      case 'ally':
+        return allies.filter((x) => !x.fallen).map((x) => ({ unit: x.id, refusal: b.checkItem(user.id, id, { unit: x.id }) }));
+      case 'fallen':
+        return allies.map((x) => ({ unit: x.id, refusal: b.checkItem(user.id, id, { unit: x.id }) }));
+      case 'none':
+        return [{ refusal: b.checkItem(user.id, id) }];
+    }
+  }
+
+  private openItemTargets(u: Unit, id: SatchelId): void {
+    const def = SATCHEL[id];
+    uiTick(this.audio, true);
+    const prompt = t('battle.chooseTarget');
+    this.menus.push({
+      kind: 'target',
+      title: tr(def.name),
+      cursor: 0,
+      options: () =>
+        this.itemTargets(u, id).map((x) => {
+          const tu = this.battle.unit(x.unit!)!;
+          return {
+            label: this.nameOf(tu.id),
+            unit: tu.id,
+            help: x.refusal ? `${this.unitHelp(tu)} — ${this.refusalText(x.refusal, u)}` : `${prompt} ${this.unitHelp(tu)}`,
+            warn: !!x.refusal,
+            disabled: !!x.refusal,
+            run: () => (x.refusal ? this.buzz(this.refusalText(x.refusal, u)) : this.doUse(u.id, id, { unit: tu.id })),
+          };
+        }),
+    });
+    const m = this.menus[this.menus.length - 1]!;
+    m.cursor = Math.max(0, m.options().findIndex((o) => !o.disabled));
+    this.cmdDirty = true;
+    this.overlayDirty = true;
+  }
+
+  private doUse(user: string, id: SatchelId, target: { unit?: string }): void {
+    if (!this.battle.useItem(user, id, target)) return this.buzz(t('refuse.target'));
+    uiTick(this.audio, true);
+    this.played();
   }
 
   private openTargets(u: Unit, a: AbilityId): void {
@@ -1553,7 +1690,7 @@ export class BattleScene implements Scene {
 
   /** Where the command window may stand, at its tallest so what avoids it doesn't hop between menus. */
   private commandZone(): { x: number; y: number; w: number; h: number } {
-    const top = VIEW_H - 18 - commandHeight(6) * this.zw;
+    const top = VIEW_H - 18 - commandHeight(7) * this.zw;
     return { x: 18, y: top, w: COMMAND_W * this.zw, h: VIEW_H - top };
   }
 

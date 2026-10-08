@@ -189,6 +189,8 @@ export interface AbilityDef {
 export type BattleEvent =
   | { type: 'omen'; intents: string[] }
   | { type: 'act'; unit: string; ability: AbilityId; target?: string }
+  /** Something used from the satchel (an id of SATCHEL). */
+  | { type: 'item'; unit: string; item: string; target?: string }
   | { type: 'intent'; intent: string; actor: string }
   | { type: 'windup'; intent: string; actor: string; countdown: number }
   | { type: 'damage'; unit: string; amount: number; absorbed: number; source: string }
@@ -208,6 +210,8 @@ export type BattleEvent =
   | { type: 'falter'; unit: string }
   | { type: 'vigil'; unit: string; by: string }
   | { type: 'fall'; unit: string }
+  /** A fall turned aside (Gervase's Ribbon): the ally stays at 1 HP. */
+  | { type: 'spared'; unit: string }
   | { type: 'rise'; unit: string }
   | { type: 'spawn'; unit: string }
   | { type: 'ink'; amount: number }

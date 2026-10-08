@@ -32,6 +32,17 @@ const HEIGHTS = relief(W, H, [
 
 export const VINE: MapDef = {
   id: 'vine',
+  caches: [
+    {
+      id: 'vine',
+      x: tiles(24.0),
+      y: tiles(11.6),
+      hidden: true,
+      pennies: 12,
+      satchel: { holyWater: 1 },
+      note: { en: '“Wystan, if you ever find this: we kept your place.”', fr: '« Wystan, si tu trouves ceci un jour : nous t’avons gardé ta place. »' },
+    },
+  ],
   card: { title: { en: 'The Margin', fr: 'La Marge' }, line: { en: 'Wystan’s Vine', fr: 'La vigne de Wystan' } },
   walkable: 'o',
   ground: GROUND,

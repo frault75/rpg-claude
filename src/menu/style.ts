@@ -58,6 +58,8 @@ export const MENU_CSS = /* css */ `
 #menu .hpbar { display: inline-block; width: 6em; height: 0.45em; background: rgba(0, 0, 0, 0.45); border: 1px solid rgba(232, 199, 106, 0.5); border-radius: 0.25em; vertical-align: middle; margin-left: 0.4em; overflow: hidden; }
 #menu .hpbar i { display: block; height: 100%; background: linear-gradient(90deg, #3E9A5A, #9AE08A); }
 #menu .xpbar i { background: linear-gradient(90deg, #9A7428, #F6DC8A); }
+#menu .section { color: #C9A040; font-variant: small-caps; letter-spacing: 0.03em; }
+#menu .have { color: #C9A040; font-size: 0.82em; font-variant: small-caps; margin-left: 0.3em; }
 #menu .gem { width: 0.8em; height: 0.8em; transform: rotate(45deg); border: 1px solid rgba(255, 240, 200, 0.8); flex: none; box-shadow: 0 0 0.35em rgba(255, 220, 140, 0.5); }
 #menu .item-text { display: block; font-size: 0.82em; color: #C9C3B6; font-style: normal; }
 #menu .item-lore { display: block; font-size: 0.78em; color: #9AA2C0; font-style: italic; }

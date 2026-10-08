@@ -12,7 +12,10 @@ export const FRAME_H = 48;
 
 export type Dir = 'down' | 'up' | 'left' | 'right';
 export type Headwear = 'kerchief' | 'wimple' | 'helm' | 'mitre' | 'hood' | 'cap' | 'tallhat' | 'crown' | 'tiara' | 'none';
-export type Held = 'quill' | 'book' | 'lance' | 'crozier' | 'stone' | 'sword' | 'bottle' | 'spade' | 'broom' | 'bow' | 'hammer' | 'club' | 'none';
+export type Held = 'quill' | 'book' | 'lance' | 'crozier' | 'stone' | 'sword' | 'bottle' | 'spade' | 'broom' | 'bow' | 'hammer' | 'club' | 'ribbons' | 'none';
+
+/** The pedlar's ribbons, faded: rose, woad, weld, madder, sage. */
+const RIBBONS = ['#C8909C', '#7A94B8', '#D8C070', '#B86A50', '#8AA078'];
 
 export interface CharSpec {
   id: string;
@@ -78,6 +81,8 @@ export const CHARACTERS: Record<string, CharSpec> = {
   wystan: { id: 'wystan', skin: '#6A4A30', hair: '#4A3020', eyes: '#1A1008', headwear: 'hood', headwearColor: '#5E4632', veil: '#2E2018', robe: '#5E4632', belt: '#C8B890', held: 'quill', muzzle: 'ape', scale: 0.74 },
   abbotUnreason: { id: 'abbotUnreason', skin: '#D8702A', hair: '#C8601A', eyes: '#1A1008', headwear: 'mitre', headwearColor: '#F2EDE2', robe: '#F2EDE2', cape: '#C63D2A', held: 'crozier', muzzle: 'fox', scale: 0.86 },
   hunter: { id: 'hunter', skin: '#E0BA96', hair: '#5A3A22', eyes: '#2A1E16', headwear: 'cap', headwearColor: '#2E6A3A', robe: '#4A6A3A', belt: '#4A3A20', held: 'bow' },
+  // Gervase the pedlar: a man of Ninefold, scraped a hundred and fifty years ago, still walking.
+  gervase: { id: 'gervase', skin: '#E2C2A4', hair: '#A89A88', eyes: '#3A3028', headwear: 'cap', headwearColor: '#7A4A3A', robe: '#8A7A62', belt: '#C8909C', held: 'ribbons' },
   eadgyth: { id: 'eadgyth', skin: '#E8C6A8', hair: '#A8462A', eyes: '#2A4A3A', headwear: 'none', headwearColor: '#000000', robe: '#2E5A3A', cape: '#4A3A2A', belt: '#6A4A2A', held: 'bow' },
 };
 
@@ -361,6 +366,14 @@ function drawFront(img: PixelImage, s: CharSpec, front: boolean, p: Pose): void 
       img.rect(22, 40, 5, 6, SILVER[3]!);
       img.vline(22, 40, 45, SILVER[5]!);
       img.set(24, 42, hex('#FFFFFF'));
+    } else if (s.held === 'ribbons') {
+      // A walking staff with ribbons knotted at its head, hanging and lifting.
+      img.vline(24, 4 + by, 46, WOOD[2]!);
+      img.vline(25, 4 + by, 46, WOOD[0]!);
+      RIBBONS.forEach((c, i) => {
+        const len = 7 + ((i * 3) % 5);
+        for (let k = 0; k < len; k++) img.set(25 + Math.round(Math.sin((k + i) * 0.9) * 1.2) + (i % 2 ? 1 : -1) * Math.min(2, k >> 2), 6 + by + i + k, hex(c));
+      });
     } else if (s.held === 'broom') {
       img.vline(24, 8 + by, 40, WOOD[2]!);
       for (let x = 21; x < 28; x++) img.vline(x, 40, 46 - (x % 2), hex(x % 3 ? '#B89A5A' : '#8A7040'));
@@ -782,6 +795,11 @@ function drawSide(img: PixelImage, s: CharSpec, p: Pose): void {
     img.vline(hand + 1, 8 + by, 40, WOOD[2]!);
     img.rect(hand - 1, 40, 5, 6, SILVER[3]!);
     img.set(hand, 42, hex('#FFFFFF'));
+  } else if (s.held === 'ribbons') {
+    img.vline(hand + 1, 4 + by, 46, WOOD[2]!);
+    RIBBONS.forEach((c, i) => {
+      for (let k = 0; k < 6 + (i % 3) * 2; k++) img.set(hand + 1 - Math.min(3, k >> 1) + Math.round(Math.sin(k + i) * 0.8), 6 + by + i + k, hex(c));
+    });
   } else if (s.held === 'broom') {
     img.line(hand + 1, 10 + by, hand - 4, 40, WOOD[2]!);
     for (let x = hand - 8; x < hand; x++) img.vline(x, 40, 46 - (x % 2), hex('#B89A5A'));

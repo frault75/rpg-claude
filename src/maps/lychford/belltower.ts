@@ -81,6 +81,17 @@ const ropes: Thing[] = BELLS.map((b, i) => ({
 
 export const BELLTOWER: MapDef = {
   id: 'belltower',
+  caches: [
+    {
+      id: 'belltower',
+      x: tiles(1.8),
+      y: tiles(5.4),
+      hidden: true,
+      pennies: 10,
+      satchel: { holyWater: 1 },
+      note: { en: '“Thirty-nine bells came down the Abbey road in carts. We wrote down every one, and where it had hung.”', fr: '« Trente-neuf cloches sont descendues sur la route de l’abbaye, en charrettes. Nous les avons toutes notées, et l’endroit où elles pendaient. »' },
+    },
+  ],
   card: { title: { en: 'Lychford', fr: 'Lychford' }, line: { en: 'The Ringing Chamber', fr: 'La chambre des cloches' } },
   walkable: 'w',
   ground: GROUND,

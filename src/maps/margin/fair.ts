@@ -16,6 +16,7 @@ import type { Billboard } from '../../world3d/billboard';
 import { goldBar, goose, hen, ivy } from '../../world3d/margin';
 import { relief } from '../../world3d/relief';
 import { tiles } from '../../world3d/stage';
+import { pedlar } from '../gervase';
 import type { MapContext, MapDef, NpcDef } from '../types';
 import { acanthusRow, MARGIN_GROUND, MARGIN_SKY, marginLight, pageAbove } from './common';
 
@@ -29,6 +30,8 @@ const HEN: [number, number] = [tiles(36), tiles(11)];
 const ninefolder = (id: string, x: number, y: number, fray: number, spec = CHARACTERS.villager!): NpcDef => ({ id, speaker: 'villager', spec, x: tiles(x), y: tiles(y), dir: 'down', fray });
 
 let guards: Billboard[] = [];
+// Gervase, trading among the forgotten, who take him for one of their own.
+const GERVASE = pedlar('fair', tiles(10.2), tiles(11.8), 'down');
 
 // The gold stands up on its gesso behind the fair; the Court's alcove keeps the ground's level.
 const HEIGHTS = relief(W, H, [
@@ -99,8 +102,10 @@ export const FAIR: MapDef = {
     ninefolder('folk2', 19, 11.6, 0.45, CHARACTERS.goodwife!),
     ninefolder('folk3', 29, 12, 0.3),
     ninefolder('folk4', 22, 6.4, 0.5, CHARACTERS.goodwife!),
+    GERVASE.npc,
   ],
   things: [
+    GERVASE.thing,
     {
       id: 'abbot',
       x: PULPIT[0],

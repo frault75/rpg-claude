@@ -19,7 +19,7 @@ import { type Settings, TEXT_SPEEDS } from './engine/settings';
 import { TouchControls } from './engine/touch';
 import { detectLanguage, setLang, t, tr } from './i18n/i18n';
 import { Menu } from './menu/menu';
-import { equipmentPage, journalPage, type MenuDeps, newGamePage, partyPage, settingsPage } from './menu/pages';
+import { equipmentPage, journalPage, type MenuDeps, newGamePage, partyPage, settingsPage, stallPage } from './menu/pages';
 import { MAPS } from './maps/index';
 import { BattleScene } from './scenes/battle';
 import { type Arrival, MapScene } from './scenes/map';
@@ -123,6 +123,16 @@ function boot(): void {
     return new MapScene(renderer, input, audio, def, arrival, {
       goto: (map, spawn) => transition(() => mapScene(map, { spawn }), 0.8),
       interlude: (n) => transition(() => interlude(n), 1.8),
+      shop: (stall) =>
+        new Promise<void>((resolve) => {
+          input.frozen = true;
+          menu.onClose = () => {
+            input.frozen = false;
+            resolve();
+          };
+          menu.layout(renderer.viewport);
+          menu.show([{ label: () => t('shop.title'), page: () => stallPage(deps, stall) }], 0);
+        }),
       battle: (fight, back) =>
         transition(
           () =>

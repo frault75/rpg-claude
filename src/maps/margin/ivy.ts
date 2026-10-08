@@ -79,6 +79,17 @@ async function throughArch(c: MapContext, j: number, word: string): Promise<void
 
 export const IVY: MapDef = {
   id: 'ivy',
+  caches: [
+    {
+      id: 'ivy',
+      x: tiles(58.6),
+      y: tiles(11.6),
+      hidden: true,
+      pennies: 8,
+      satchel: { poultice: 2 },
+      note: { en: '“What is written is held. What is held can be let go. Both are a kind of mercy, and only one of them is his.”', fr: '« Ce qui est écrit est tenu. Ce qui est tenu peut être lâché. Les deux sont une sorte de miséricorde, et une seule est la sienne. »' },
+    },
+  ],
   card: { title: { en: 'The Margin', fr: 'La Marge' }, line: { en: 'The Ivy Road', fr: 'Le chemin du Lierre' } },
   walkable: 'o',
   ground: GROUND,

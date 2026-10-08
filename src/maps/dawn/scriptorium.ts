@@ -10,6 +10,7 @@
 import { EbbNightAmbience } from '../../audio/ambient';
 import { bell, midiToHz } from '../../audio/instruments';
 import { ghostWords } from '../../pixel/underwriting';
+import { tiles } from '../../world3d/stage';
 import { DOOR_X, LECTERN, SCRIPTORIUM, scriptoriumAtDawn, WALL_Y, WYSTAN_DESK } from '../scriptorium';
 import type { MapContext, MapDef } from '../types';
 
@@ -35,6 +36,16 @@ export async function mercyTolls(c: MapContext, n: number): Promise<void> {
 export const DAWN_SCRIPTORIUM: MapDef = {
   ...SCRIPTORIUM,
   id: 'dawnScriptorium',
+  caches: [
+    {
+      id: 'dawnScriptorium',
+      x: tiles(4.4),
+      y: tiles(7.2),
+      pennies: 6,
+      satchel: { poultice: 1, waxSeal: 1 },
+      note: { en: '“Isot. We saw you scrape the line, and we saw you cry over it. Write it back. — the Glossators.”', fr: '« Isot. Nous t’avons vue gratter la ligne, et nous t’avons vue pleurer dessus. Réécris-la. — les Glossateurs. »' },
+    },
+  ],
   card: { title: { en: 'Saint Ebb’s', fr: 'Saint-Ebb' }, line: { en: 'Dawn, the Feast of Saint Ebba', fr: 'L’aube, la fête de sainte Ebba' } },
   ambience: () => new EbbNightAmbience(),
   checkpoint: true,

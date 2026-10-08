@@ -1,12 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import { ENCOUNTERS } from '../src/battle/data';
 import { MAPS } from '../src/maps/index';
+import { withCaches } from '../src/maps/caches';
 import { TILE } from '../src/pixel/terrain';
 import { TerrainModel } from '../src/world3d/terrain';
 import { relief } from '../src/world3d/relief';
 
 describe('the maps', () => {
-  for (const [id, m] of Object.entries(MAPS)) {
+  for (const [id, raw] of Object.entries(MAPS)) {
+    // With their caches: a box to open and, for the hidden ones, a chalk mark to find.
+    const m = withCaches(raw);
     const at = (x: number, y: number) => m.ground[Math.floor(y / TILE)]?.[Math.floor(x / TILE)] ?? ' ';
 
     it(`${id}: every spawn stands on walkable ground`, () => {
@@ -36,7 +39,8 @@ describe('the maps', () => {
 
   // The relief must never strand anything: walking in 4-pixel steps, as a figure climbs
   // (at most 7 pixels at a time), everything a map offers is reached from one of its entrances.
-  for (const [id, m] of Object.entries(MAPS)) {
+  for (const [id, raw] of Object.entries(MAPS)) {
+    const m = withCaches(raw);
     it(`${id}: the relief leaves everything within walking reach`, () => {
       const model = new TerrainModel({ ground: m.ground, heights: m.heights ?? [], seed: 1 });
       const cols = m.ground[0]!.length * (TILE / 4);

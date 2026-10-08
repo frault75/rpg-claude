@@ -83,6 +83,17 @@ export function cloisterAtDawn(on: boolean): void {
 
 export const CLOISTER: MapDef = {
   id: 'cloister',
+  caches: [
+    {
+      id: 'cloister',
+      x: tiles(26.3),
+      y: tiles(10.8),
+      hidden: true,
+      pennies: 5,
+      satchel: { waxSeal: 1 },
+      note: { en: '“The Abbot counts the candles. He does not count the chalk.”', fr: '« L’abbé compte les chandelles. Il ne compte pas la craie. »' },
+    },
+  ],
   card: { title: { en: 'Saint Ebb’s', fr: 'Saint-Ebb' }, line: { en: 'The Cloister, by moonlight', fr: 'Le cloître, au clair de lune' } },
   walkable: 'f.',
   ground: GROUND,

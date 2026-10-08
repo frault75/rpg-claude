@@ -11,6 +11,7 @@ import { relief } from '../../world3d/relief';
 import { tiles } from '../../world3d/stage';
 import { bareTree, snowHedge } from '../../world3d/lychford';
 import { WinterAmbience } from '../../audio/winter';
+import { pedlar } from '../gervase';
 import type { MapContext, MapDef, Rect } from '../types';
 import { SNOW_GROUND, snowfall, WINTER_SKY, winterDay } from './winter';
 
@@ -33,6 +34,8 @@ const GROUND = [
 ];
 
 const LANE_Y = tiles(7);
+// Gervase, knotting this year's ribbon to the wayside cross.
+const GERVASE = pedlar('lane', tiles(15.8), tiles(6.6), 'down');
 
 // A sunken lane: a snowy bank behind the hedge and the fen rising beyond it, cut where a
 // field track climbs out through the gateway.
@@ -88,6 +91,7 @@ export const LANE: MapDef = {
     { id: 'pilgrimA', speaker: 'pilgrim', spec: CHARACTERS.villager!, x: tiles(W + 2), y: LANE_Y - 4, dir: 'left', fray: 0.45, when: (c) => c.cleared('f3') && !c.flag('pilgrimsPassed') },
     { id: 'pilgrimB', speaker: 'pilgrim', spec: CHARACTERS.goodwife!, x: tiles(W + 3), y: LANE_Y + 6, dir: 'left', fray: 0.55, when: (c) => c.cleared('f3') && !c.flag('pilgrimsPassed') },
     { id: 'pilgrimC', speaker: 'pilgrim', spec: CHARACTERS.amabel!, x: tiles(W + 4), y: LANE_Y, dir: 'left', fray: 0.65, when: (c) => c.cleared('f3') && !c.flag('pilgrimsPassed') },
+    GERVASE.npc,
   ],
   zones: [
     {
@@ -116,6 +120,7 @@ export const LANE: MapDef = {
         await c.say('isot', { en: 'A wayside cross. Someone has tied a ribbon to it for every year of the Mercy. Ten.', fr: 'Une croix de chemin. Quelqu’un y a noué un ruban pour chaque année de la Miséricorde. Dix.' }, 'sad');
       },
     },
+    GERVASE.thing,
   ],
   exits: [{ rect: [tiles(W - 1), tiles(5), tiles(1), tiles(4)], to: 'village', spawn: 'lane' }],
   async enter(c, from) {
