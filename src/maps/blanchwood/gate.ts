@@ -81,11 +81,11 @@ async function theMeeting(c: MapContext): Promise<void> {
   await c.say('gaudry', { en: 'Sister Hild. You’ve grown thin on the road.', fr: 'Sœur Hild. Tu as maigri sur la route.' });
   await c.say('gaudry', { en: 'The Abbot bids his sister come home. And bids the knight be put back where he was.', fr: 'L’abbé prie sa sœur de rentrer. Et prie qu’on remette le chevalier là où il était.' });
   await c.say('isot', { en: 'His… sister?', fr: 'Sa… sœur ?' }, 'alarmed');
-  await c.say('ermeline', { en: '…Agnes, Cole, Wenna, Osgar… I’m sorry. I’m sorry. Hold still and it won’t take long.', fr: '…Agnès, Cole, Wenna, Osgar… Pardon. Pardon. Ne bouge pas et ce ne sera pas long.' });
+  await c.say('ermeline', { en: '…Agnes, Cole, Wenna, Osgar… I’m sorry. I’m sorry. Hold still and it won’t take long.', fr: '…Agnès, Cole, Wenna, Osgar… Pardon. Pardon. Ne bougez pas, et ce ne sera pas long.' });
   const hild = c.party.find((a) => a.id === 'hild');
   if (hild) hild.emote('silence', 2.4);
   await c.say('hild', { en: 'I’ve spent ten years not looking at things. Let me look.', fr: 'J’ai passé dix ans à ne pas regarder les choses. Laissez-moi regarder.' }, 'grave');
-  await c.narrate({ en: 'Hild narrows her eyes the way an anchoress looks through the squint in her wall, at the altar, at what is hidden.', fr: 'Hild plisse les yeux comme une recluse regarde par l’hagioscope de son mur, vers l’autel, vers ce qui est caché.' });
+  await c.narrate({ en: 'Hild narrows her eyes, as she did for ten years at the squint.', fr: 'Hild plisse les yeux, comme elle l’a fait dix ans durant à son hagioscope.' });
   c.release();
   c.letterbox(false);
   await c.learn('hild', 'squint');
@@ -97,8 +97,8 @@ async function afterTheGate(c: MapContext): Promise<void> {
   c.letterbox(true);
   await c.wait(0.6);
   await c.say('isot', { en: 'Your brother. The Abbot is your brother.', fr: 'Ton frère. L’abbé est ton frère.' }, 'stern');
-  await c.say('hild', { en: 'I raised him on bread and psalms. He was a kind boy. Kindness is a dangerous thing in a powerful man.', fr: 'Je l’ai élevé au pain et aux psaumes. C’était un garçon gentil. La gentillesse est une chose dangereuse chez un homme puissant.' }, 'grave');
-  await c.say('isot', { en: 'Anything else you’d like to mention?', fr: 'Autre chose que tu voudrais mentionner ?' }, 'wry');
+  await c.say('hild', { en: 'I raised him on bread and psalms. He was a soft-hearted boy. That’s a dangerous thing in a powerful man.', fr: 'Je l’ai élevé au pain et aux psaumes. Il avait le cœur tendre. C’est dangereux, chez un homme puissant.' }, 'grave');
+  await c.say('isot', { en: 'Anything else you’d like to mention?', fr: 'Autre chose à me dire, pendant qu’on y est ?' }, 'wry');
   await c.say('hild', { en: 'Not yet.', fr: 'Pas encore.' }, 'sad');
   c.shake(2, 0.6);
   const g = c.npc('gaudry');

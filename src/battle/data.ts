@@ -107,14 +107,14 @@ export interface EnemyDef {
 
 // The Danse Macabre's figures (DESIGN.md §5.14).
 const HAND: IntentSpec = {
-  label: { en: 'Takes the hand of the Front · 3, and leads them back', fr: 'Prend la main de l’Avant · 3, et l’entraîne en arrière' },
+  label: { en: 'Takes a hand and leads them back', fr: 'Prend une main et l’entraîne en arrière' },
   rule: { en: 'Then the Front and the Middle swap', fr: 'Puis l’Avant et le Milieu échangent' },
   target: { place: 0 },
   damage: 3,
   reach: 'any',
   effects: [{ kind: 'swapFrontMiddle' }],
 };
-const WHIRL: IntentSpec = { label: { en: 'Whirls: the Middle and the Rear · 2', fr: 'Tournoie : le Milieu et l’Arrière · 2' }, target: { places: [1, 2] }, damage: 2, reach: 'any' };
+const WHIRL: IntentSpec = { label: { en: 'Whirls', fr: 'Tournoie' }, target: { places: [1, 2] }, damage: 2, reach: 'any' };
 const BOW: IntentSpec = { label: { en: 'Bows to the empty place', fr: 'S’incline devant la place vide' }, target: { self: true }, reach: 'any' };
 const TUNE: IntentSpec = {
   label: { en: 'Calls the tune', fr: 'Donne le ton' },
@@ -129,7 +129,7 @@ export const ENEMIES: Record<string, EnemyDef> = {
   gryllus: {
     name: { en: 'Gryllus', fr: 'Grylle' },
     hp: 4,
-    behave: () => [{ label: { en: 'Butts the Front · 2', fr: 'Cogne l’Avant · 2' }, target: { place: 0 }, damage: 2, reach: 'close' }],
+    behave: () => [{ label: { en: 'Headbutts', fr: 'Donne un coup de tête' }, target: { place: 0 }, damage: 2, reach: 'close' }],
   },
   brother: {
     name: { en: 'Pumice Brother', fr: 'Frère de la Ponce' },
@@ -139,15 +139,16 @@ export const ENEMIES: Record<string, EnemyDef> = {
       if (c.phase % 3 === 2 && hurt)
         return [
           {
-            label: { en: `Holds the line: ${hurt.name.en} gains Ward 3`, fr: `Tient la ligne : ${hurt.name.fr} gagne Garde 3` },
+            label: { en: 'Holds the line', fr: 'Tient la ligne' },
+            rule: { en: 'Ward 3', fr: 'Garde 3' },
             target: { unit: hurt.id },
             effects: [{ kind: 'wardAlly', amount: 3 }],
             reach: 'any',
           },
         ];
       if (c.phase % 2 === 0)
-        return [{ label: { en: 'Scours the Front · 3, strips Ward', fr: 'Récure l’Avant · 3, ôte la Garde' }, target: { place: 0 }, damage: 3, reach: 'close', effects: [{ kind: 'stripWard' }] }];
-      return [{ label: { en: 'Rasps at the Rear: Smudge', fr: 'Râpe l’Arrière : Bavure' }, target: { place: 2 }, damage: 0, reach: 'far', effects: [{ kind: 'smudge' }] }];
+        return [{ label: { en: 'Scours with pumice', fr: 'Récure à la ponce' }, rule: { en: 'Strips Ward', fr: 'Ôte la Garde' }, target: { place: 0 }, damage: 3, reach: 'close', effects: [{ kind: 'stripWard' }] }];
+      return [{ label: { en: 'Rasps at the page', fr: 'Râpe la page' }, rule: { en: 'Smudge', fr: 'Bavure' }, target: { place: 2 }, damage: 0, reach: 'far', effects: [{ kind: 'smudge' }] }];
     },
   },
   hare: {
@@ -156,14 +157,14 @@ export const ENEMIES: Record<string, EnemyDef> = {
     behave: (c) =>
       c.phase % 3 === 2
         ? [{ label: { en: 'Bounds to the back', fr: 'Bondit au fond' }, target: { self: true }, effects: [{ kind: 'toBack' }], reach: 'any' }]
-        : [{ label: { en: 'Looses an arrow at the Rear · 3', fr: 'Décoche une flèche sur l’Arrière · 3' }, target: { place: 2 }, damage: 3, reach: 'far' }],
+        : [{ label: { en: 'Looses an arrow', fr: 'Décoche une flèche' }, target: { place: 2 }, damage: 3, reach: 'far' }],
   },
   babewyn: {
     name: { en: 'Babewyn', fr: 'Babouin' },
     hp: 10,
     behave: () => [
-      { label: { en: 'Bites the Front · 3', fr: 'Mord l’Avant · 3' }, target: { place: 0 }, damage: 3, reach: 'close' },
-      { label: { en: 'Spits at the Middle · 2', fr: 'Crache sur le Milieu · 2' }, target: { place: 1 }, damage: 2, reach: 'far' },
+      { label: { en: 'Bites', fr: 'Mord' }, target: { place: 0 }, damage: 3, reach: 'close' },
+      { label: { en: 'Spits', fr: 'Crache' }, target: { place: 1 }, damage: 2, reach: 'far' },
     ],
   },
   snail: {
@@ -171,7 +172,7 @@ export const ENEMIES: Record<string, EnemyDef> = {
     hp: 6,
     behave: (c) =>
       c.phase % 2 === 0
-        ? [{ label: { en: 'Creeps: Front · 2', fr: 'Rampe : Avant · 2' }, target: { place: 0 }, damage: 2, reach: 'close', effects: [{ kind: 'unshell' }] }]
+        ? [{ label: { en: 'Creeps out of its shell', fr: 'Sort de sa coquille' }, target: { place: 0 }, damage: 2, reach: 'close', effects: [{ kind: 'unshell' }] }]
         : [{ label: { en: 'Withdraws into its shell', fr: 'Rentre dans sa coquille' }, target: { self: true }, effects: [{ kind: 'shell' }], reach: 'any' }],
   },
   wodewose: {
@@ -179,8 +180,8 @@ export const ENEMIES: Record<string, EnemyDef> = {
     hp: 16,
     behave: (c) =>
       c.phase % 2 === 0
-        ? [{ label: { en: 'Gathers itself to club the Front · 9', fr: 'Se ramasse pour assommer l’Avant · 9' }, target: { place: 0 }, damage: 9, reach: 'close', countdown: 1 }]
-        : [{ label: { en: 'Roars: the party’s Ward is stripped', fr: 'Rugit : la Garde du groupe tombe' }, target: { all: true }, effects: [{ kind: 'stripWard' }], reach: 'any' }],
+        ? [{ label: { en: 'Gathers itself to club', fr: 'Se ramasse pour assommer' }, target: { place: 0 }, damage: 9, reach: 'close', countdown: 1 }]
+        : [{ label: { en: 'Roars', fr: 'Rugit' }, rule: { en: 'Strips Ward', fr: 'Ôte la Garde' }, target: { all: true }, effects: [{ kind: 'stripWard' }], reach: 'any' }],
   },
   george: {
     name: { en: 'Saint George', fr: 'Saint Georges' },
@@ -200,7 +201,6 @@ export const ENEMIES: Record<string, EnemyDef> = {
       return [
         {
           label: { en: '“Here comes I, Saint George; I’ll smite the foremost if I can!”', fr: '« Me voici, saint Georges ; je frappe le premier qui vient ! »' },
-          rule: { en: 'Front · 4', fr: 'Avant · 4' },
           target: { place: 0 },
           damage: 4,
           reach: 'close',
@@ -213,8 +213,8 @@ export const ENEMIES: Record<string, EnemyDef> = {
     hp: 10,
     behave: (c) =>
       c.phase % 2 === 0
-        ? [{ label: { en: '“I’m Bold Slasher, sharp of blade!”', fr: '« Je suis le Hardi Tranchant, lame affûtée ! »' }, rule: { en: 'Slashes the Middle · 3', fr: 'Taille le Milieu · 3' }, target: { place: 1 }, damage: 3, reach: 'close' }]
-        : [{ label: { en: '“Then catch my sword, and catch it well!”', fr: '« Alors attrape mon épée, et attrape-la bien ! »' }, rule: { en: 'Hurls his blade at the Rear · 3', fr: 'Lance sa lame sur l’Arrière · 3' }, target: { place: 2 }, damage: 3, reach: 'far' }],
+        ? [{ label: { en: '“I’m Bold Slasher, sharp of blade!”', fr: '« Je suis le Hardi Tranchant, lame affûtée ! »' }, target: { place: 1 }, damage: 3, reach: 'close' }]
+        : [{ label: { en: '“Then catch my sword, and catch it well!”', fr: '« Alors attrape mon épée, et attrape-la bien ! »' }, target: { place: 2 }, damage: 3, reach: 'far' }],
   },
   doctor: {
     name: { en: 'Doctor Ball', fr: 'Docteur Ball' },
@@ -225,18 +225,18 @@ export const ENEMIES: Record<string, EnemyDef> = {
         return [
           {
             label: { en: '“A little bottle by my side: the fellow’s up who should have died!”', fr: '« Une fiole à mon côté : debout, celui qui devait trépasser ! »' },
-            rule: { en: `Raises ${down.name.en} at full HP`, fr: `Relève ${down.name.fr}, tous PV` },
+            rule: { en: 'Raises them at full HP', fr: 'Le relève, tous PV' },
             target: { unit: down.id },
             effects: [{ kind: 'raise' }],
             reach: 'any',
           },
         ];
       const patient = c.allies.find((a) => a.kind === 'george') ?? c.allies[0];
-      if (!patient) return [{ label: { en: '“Physician, heal thyself!”', fr: '« Médecin, guéris-toi toi-même ! »' }, rule: { en: 'Heals himself · 4', fr: 'Se soigne · 4' }, target: { self: true }, effects: [{ kind: 'heal', amount: 4 }], reach: 'any' }];
+      if (!patient) return [{ label: { en: '“Physician, heal thyself!”', fr: '« Médecin, guéris-toi toi-même ! »' }, rule: { en: 'Heals himself 4', fr: 'Se soigne de 4' }, target: { self: true }, effects: [{ kind: 'heal', amount: 4 }], reach: 'any' }];
       return [
         {
           label: { en: '“A dose of this, and up you get!”', fr: '« Une goutte de ceci, et te voilà debout ! »' },
-          rule: { en: `Doses ${patient.name.en}: heals 4`, fr: `Soigne ${patient.name.fr} : 4` },
+          rule: { en: 'Heals 4', fr: 'Soigne 4' },
           target: { unit: patient.id },
           effects: [{ kind: 'heal', amount: 4 }],
           reach: 'any',
@@ -260,7 +260,7 @@ export const ENEMIES: Record<string, EnemyDef> = {
               effects: [{ kind: 'kneel' }],
             },
           ]
-        : [{ label: { en: 'Brings the hammer down on the Front · 4, strips Ward', fr: 'Abat le marteau sur l’Avant · 4, ôte la Garde' }, target: { place: 0 }, damage: 4, reach: 'close', effects: [{ kind: 'stripWard' }] }],
+        : [{ label: { en: 'Brings the hammer down', fr: 'Abat le marteau' }, rule: { en: 'Strips Ward', fr: 'Ôte la Garde' }, target: { place: 0 }, damage: 4, reach: 'close', effects: [{ kind: 'stripWard' }] }],
   },
   pope: dancer({ en: 'The Pope', fr: 'Le Pape' }, 0),
   king: dancer({ en: 'The King', fr: 'Le Roi' }, 1),
@@ -286,14 +286,14 @@ export const ENEMIES: Record<string, EnemyDef> = {
       if (c.phase % 2 === 0 && weakest)
         return [
           {
-            label: { en: `Looks away from ${weakest.name.en}`, fr: `Détourne les yeux de ${weakest.name.fr}` },
+            label: { en: 'Looks away', fr: 'Détourne les yeux' },
             rule: { en: 'That ally takes double damage this round', fr: 'Cet allié subit le double ce tour-ci' },
             target: { unit: weakest.id },
             reach: 'any',
             effects: [{ kind: 'doom' }],
           },
         ];
-      return [{ label: { en: 'Flutters: Ward 2', fr: 'Voltige : Garde 2' }, target: { self: true }, reach: 'any', effects: [{ kind: 'wardAlly', amount: 2 }] }];
+      return [{ label: { en: 'Flutters', fr: 'Voltige' }, rule: { en: 'Ward 2', fr: 'Garde 2' }, target: { self: true }, reach: 'any', effects: [{ kind: 'wardAlly', amount: 2 }] }];
     },
   },
   bishopFish: {
@@ -302,8 +302,8 @@ export const ENEMIES: Record<string, EnemyDef> = {
     behave: (c) => {
       const hurt = c.allies.filter((a) => a.hp < a.maxHp).sort((a, b) => a.hp - b.hp)[0];
       if (hurt)
-        return [{ label: { en: `Blesses ${hurt.name.en}: heals 4, Ward 2`, fr: `Bénit ${hurt.name.fr} : soigne 4, Garde 2` }, target: { unit: hurt.id }, reach: 'any', effects: [{ kind: 'heal', amount: 4 }, { kind: 'wardAlly', amount: 2 }] }];
-      return [{ label: { en: 'Sprinkles the Front with brine · 2', fr: 'Asperge l’Avant de saumure · 2' }, target: { place: 0 }, damage: 2, reach: 'far' }];
+        return [{ label: { en: 'Blesses', fr: 'Bénit' }, rule: { en: 'Heals 4, Ward 2', fr: 'Soigne 4, Garde 2' }, target: { unit: hurt.id }, reach: 'any', effects: [{ kind: 'heal', amount: 4 }, { kind: 'wardAlly', amount: 2 }] }];
+      return [{ label: { en: 'Sprinkles brine', fr: 'Asperge de saumure' }, target: { place: 0 }, damage: 2, reach: 'far' }];
     },
   },
   blot: {
@@ -320,9 +320,9 @@ export const ENEMIES: Record<string, EnemyDef> = {
     },
     behave: (c) => {
       const k = c.phase % 3;
-      if (k === 0) return [{ label: { en: 'Engulfs the Front · 5, and Smudges', fr: 'Engloutit l’Avant · 5, et Bave' }, rule: { en: 'Only Isot can be Smudged', fr: 'Seule Isot peut être Bavée' }, target: { place: 0 }, damage: 5, reach: 'any', effects: [{ kind: 'smudge' }] }];
-      if (k === 1) return [{ label: { en: 'Wells up: a Blotlet rises', fr: 'Déborde : une Tachelette surgit' }, target: { self: true }, reach: 'any', effects: [{ kind: 'spawn', enemy: 'blotlet' }] }];
-      return [{ label: { en: 'Swallows a name: heals 6', fr: 'Avale un nom : soigne 6' }, target: { self: true }, reach: 'any', effects: [{ kind: 'heal', amount: 6 }] }];
+      if (k === 0) return [{ label: { en: 'Engulfs', fr: 'Engloutit' }, rule: { en: 'And Smudges (only Isot can be)', fr: 'Et Bave (seule Isot peut l’être)' }, target: { place: 0 }, damage: 5, reach: 'any', effects: [{ kind: 'smudge' }] }];
+      if (k === 1) return [{ label: { en: 'Wells up', fr: 'Déborde' }, rule: { en: 'A Blotlet rises', fr: 'Une Tachelette surgit' }, target: { self: true }, reach: 'any', effects: [{ kind: 'spawn', enemy: 'blotlet' }] }];
+      return [{ label: { en: 'Swallows a name', fr: 'Avale un nom' }, rule: { en: 'Heals 6', fr: 'Soigne 6' }, target: { self: true }, reach: 'any', effects: [{ kind: 'heal', amount: 6 }] }];
     },
   },
   blotlet: {
@@ -333,8 +333,8 @@ export const ENEMIES: Record<string, EnemyDef> = {
     behave: (c) => {
       const blot = c.allies.find((a) => a.kind === 'blot');
       if (blot && Math.abs(blot.place - c.place) === 1)
-        return [{ label: { en: 'Seeps back into the Blot: heals it 5', fr: 'Retourne dans la Tache : la soigne de 5' }, target: { unit: blot.id }, reach: 'any', effects: [{ kind: 'heal', amount: 5 }] }];
-      return [{ label: { en: 'Spatters the Rear · 2', fr: 'Éclabousse l’Arrière · 2' }, target: { place: 2 }, damage: 2, reach: 'far' }];
+        return [{ label: { en: 'Seeps back into the Blot', fr: 'Retourne dans la Tache' }, rule: { en: 'Heals it 5', fr: 'La soigne de 5' }, target: { unit: blot.id }, reach: 'any', effects: [{ kind: 'heal', amount: 5 }] }];
+      return [{ label: { en: 'Spatters', fr: 'Éclabousse' }, target: { place: 2 }, damage: 2, reach: 'far' }];
     },
   },
   aumery: {
@@ -355,16 +355,16 @@ export const ENEMIES: Record<string, EnemyDef> = {
           },
         ];
       if (c.phases.has('cleanPage') && c.phase % 3 === 0)
-        return [{ label: { en: 'MERCY tolls: the Middle is blanked', fr: 'MERCY sonne : le Milieu est effacé' }, rule: { en: 'Forgotten for a round', fr: 'Oublié pour un tour' }, target: { place: 1 }, reach: 'any', effects: [{ kind: 'forget', rounds: 1 }] }];
+        return [{ label: { en: 'MERCY tolls', fr: 'MISÉRICORDE sonne' }, rule: { en: 'Forgotten for a round', fr: 'Oublié pour un tour' }, target: { place: 1 }, reach: 'any', effects: [{ kind: 'forget', rounds: 1 }] }];
       switch (c.phase % 5) {
         case 0:
-          return [{ label: { en: 'EDICT: let none stand before me', fr: 'ÉDIT : que nul ne se tienne devant moi' }, rule: { en: 'Front · 6', fr: 'Avant · 6' }, target: { place: 0 }, damage: 6, reach: 'any' }];
+          return [{ label: { en: 'EDICT: let none stand before me', fr: 'ÉDIT : que nul ne se tienne devant moi' }, target: { place: 0 }, damage: 6, reach: 'any' }];
         case 1:
           return [{ label: { en: 'Scrapes WHIT from the page', fr: 'Gratte WHIT de la page' }, rule: { en: 'Whit is Forgotten for 2 rounds', fr: 'Whit est Oublié pendant 2 tours' }, target: { unit: 'whit' }, reach: 'any', effects: [{ kind: 'forget', rounds: 2 }] }];
         case 2:
-          return [{ label: { en: 'Pumices the page: Isot · 4', fr: 'Ponce la page : Isot · 4' }, rule: { en: 'Aimed at her by name: a Step won’t save her', fr: 'Visée par son nom : un Pas ne la sauvera pas' }, target: { unit: 'isot' }, damage: 4, reach: 'any' }];
+          return [{ label: { en: 'Pumices the page', fr: 'Ponce la page' }, rule: { en: 'Aimed at her by name: a Step won’t save her', fr: 'Visée par son nom : un Pas ne la sauvera pas' }, target: { unit: 'isot' }, damage: 4, reach: 'any' }];
         case 3:
-          return [{ label: { en: 'Sermon: Ward 6', fr: 'Sermon : Garde 6' }, target: { self: true }, reach: 'any', effects: [{ kind: 'wardAlly', amount: 6 }] }];
+          return [{ label: { en: 'Preaches', fr: 'Prêche' }, rule: { en: 'Ward 6', fr: 'Garde 6' }, target: { self: true }, reach: 'any', effects: [{ kind: 'wardAlly', amount: 6 }] }];
         default:
           return [{ label: { en: 'Calls a Brother', fr: 'Appelle un Frère' }, target: { self: true }, reach: 'any', effects: [{ kind: 'spawn', enemy: 'brother' }] }];
       }
@@ -380,11 +380,11 @@ export const ENEMIES: Record<string, EnemyDef> = {
     behave: (c) => {
       const k = (c.phase + c.place) % 3;
       if (k === 0)
-        return [{ label: { en: 'Leans to the Front for warmth · 2, and keeps it', fr: 'Se penche vers l’Avant pour sa chaleur · 2, et la garde' }, rule: { en: 'Heals itself by what it takes', fr: 'Se soigne de ce qu’elle prend' }, target: { place: 0 }, damage: 2, reach: 'any', effects: [{ kind: 'leech' }] }];
-      if (k === 1) return [{ label: { en: 'Gutters at the Middle · 3', fr: 'Crachote sur le Milieu · 3' }, target: { place: 1 }, damage: 3, reach: 'any' }];
+        return [{ label: { en: 'Leans in for warmth', fr: 'Se penche pour se réchauffer' }, rule: { en: 'Heals itself by what it takes', fr: 'Se soigne de ce qu’elle prend' }, target: { place: 0 }, damage: 2, reach: 'any', effects: [{ kind: 'leech' }] }];
+      if (k === 1) return [{ label: { en: 'Gutters', fr: 'Crachote' }, target: { place: 1 }, damage: 3, reach: 'any' }];
       const low = c.allies.filter((a) => a.hp < a.maxHp).sort((a, b) => a.hp - b.hp)[0];
-      if (low) return [{ label: { en: 'Lends its flame to another · +3', fr: 'Prête sa flamme à une autre · +3' }, target: { unit: low.id }, effects: [{ kind: 'heal', amount: 3 }], reach: 'any' }];
-      return [{ label: { en: 'Leans to the Rear for warmth · 2, and keeps it', fr: 'Se penche vers l’Arrière pour sa chaleur · 2, et la garde' }, rule: { en: 'Heals itself by what it takes', fr: 'Se soigne de ce qu’elle prend' }, target: { place: 2 }, damage: 2, reach: 'any', effects: [{ kind: 'leech' }] }];
+      if (low) return [{ label: { en: 'Lends its flame', fr: 'Prête sa flamme' }, rule: { en: 'Heals 3', fr: 'Soigne 3' }, target: { unit: low.id }, effects: [{ kind: 'heal', amount: 3 }], reach: 'any' }];
+      return [{ label: { en: 'Leans in for warmth', fr: 'Se penche pour se réchauffer' }, rule: { en: 'Heals itself by what it takes', fr: 'Se soigne de ce qu’elle prend' }, target: { place: 2 }, damage: 2, reach: 'any', effects: [{ kind: 'leech' }] }];
     },
   },
   // The Charcoal Hollow (DESIGN.md §3.14): sparks of the burners' kilns, gone wild, and the
@@ -395,8 +395,8 @@ export const ENEMIES: Record<string, EnemyDef> = {
     bursts: { damage: 2, place: 0 },
     behave: (c) =>
       (c.phase + c.place) % 2 === 0
-        ? [{ label: { en: 'Spits embers at the Rear · 2', fr: 'Crache des braises sur l’Arrière · 2' }, target: { place: 2 }, damage: 2, reach: 'far' }]
-        : [{ label: { en: 'Butts the Front · 2', fr: 'Cogne l’Avant · 2' }, rule: { en: 'When it falls it bursts: the Front · 2', fr: 'En tombant il éclate : l’Avant · 2' }, target: { place: 0 }, damage: 2, reach: 'close' }],
+        ? [{ label: { en: 'Spits embers', fr: 'Crache des braises' }, target: { place: 2 }, damage: 2, reach: 'far' }]
+        : [{ label: { en: 'Headbutts', fr: 'Donne un coup de tête' }, rule: { en: 'When it falls it bursts on the Front for 2', fr: 'En tombant, il éclate sur l’Avant pour 2' }, target: { place: 0 }, damage: 2, reach: 'close' }],
   },
   // The Fair's back lanes (DESIGN.md §3.14): the ape-scribes' copying stall. A copyist copies
   // the last thing done to it, back at whoever did it, as hard as it was done.
@@ -407,13 +407,13 @@ export const ENEMIES: Record<string, EnemyDef> = {
       const k = c.copied;
       if (k && k.amount > 0) {
         const n = ABILITIES[k.ability].name;
-        return [{ label: { en: `Copies the ${n.en} back at ${k.byName.en} · ${k.amount}`, fr: `Recopie ${n.fr} sur ${k.byName.fr} · ${k.amount}` }, rule: { en: 'As hard as it was done', fr: 'Aussi fort qu’on le lui a fait' }, target: { unit: k.by }, damage: k.amount, reach: 'any' }];
+        return [{ label: { en: `Copies the ${n.en} back`, fr: `Recopie ${n.fr} en retour` }, rule: { en: 'As hard as it was done', fr: 'Aussi fort qu’on le lui a fait' }, target: { unit: k.by }, damage: k.amount, reach: 'any' }];
       }
       if (k && k.ability === 'gloss')
-        return [{ label: { en: `Copies the Gloss onto ${k.byName.en}`, fr: `Recopie la Glose sur ${k.byName.fr}` }, rule: { en: 'Their next wound is +3', fr: 'Leur prochaine blessure est +3' }, target: { unit: k.by }, effects: [{ kind: 'gloss' }], reach: 'any' }];
+        return [{ label: { en: 'Copies the Gloss back', fr: 'Recopie la Glose en retour' }, rule: { en: 'Their next wound is +3', fr: 'Leur prochaine blessure est +3' }, target: { unit: k.by }, effects: [{ kind: 'gloss' }], reach: 'any' }];
       return (c.phase + c.place) % 2 === 0
-        ? [{ label: { en: 'Scribbles over the Middle · 2', fr: 'Griffonne sur le Milieu · 2' }, target: { place: 1 }, damage: 2, reach: 'any' }]
-        : [{ label: { en: 'Blots the Rear: Smudge', fr: 'Tache l’Arrière : Bavure' }, target: { place: 2 }, reach: 'far', effects: [{ kind: 'smudge' }] }];
+        ? [{ label: { en: 'Scribbles', fr: 'Griffonne' }, target: { place: 1 }, damage: 2, reach: 'any' }]
+        : [{ label: { en: 'Blots the page', fr: 'Tache la page' }, rule: { en: 'Smudge', fr: 'Bavure' }, target: { place: 2 }, reach: 'far', effects: [{ kind: 'smudge' }] }];
     },
   },
   wodewoseMother: {
@@ -422,13 +422,13 @@ export const ENEMIES: Record<string, EnemyDef> = {
     behave: (c) => {
       const down = c.fallen.find((f) => f.kind === 'emberGryllus');
       if (down && c.phase % 3 === 1)
-        return [{ label: { en: 'Blows on the coals: an ember rekindles', fr: 'Souffle sur les braises : une braise se rallume' }, rule: { en: 'A fallen ember-gryllus rises at full HP', fr: 'Un grylle de braise tombé se relève, tous PV' }, target: { unit: down.id }, effects: [{ kind: 'raise' }], reach: 'any' }];
+        return [{ label: { en: 'Blows on the coals', fr: 'Souffle sur les braises' }, rule: { en: 'A fallen ember-gryllus rises at full HP', fr: 'Un grylle de braise tombé se relève, tous PV' }, target: { unit: down.id }, effects: [{ kind: 'raise' }], reach: 'any' }];
       const young = c.allies.filter((a) => a.kind === 'emberGryllus').sort((a, b) => a.hp - b.hp)[0];
       if (c.phase % 3 === 1 && young)
-        return [{ label: { en: 'Shields her young: Ward 3', fr: 'Protège son petit : Garde 3' }, target: { unit: young.id }, effects: [{ kind: 'wardAlly', amount: 3 }], reach: 'any' }];
+        return [{ label: { en: 'Shields her young', fr: 'Protège son petit' }, rule: { en: 'Ward 3', fr: 'Garde 3' }, target: { unit: young.id }, effects: [{ kind: 'wardAlly', amount: 3 }], reach: 'any' }];
       if (c.phase % 3 === 0)
-        return [{ label: { en: 'Gathers herself to club the Front · 10', fr: 'Se ramasse pour assommer l’Avant · 10' }, target: { place: 0 }, damage: 10, reach: 'close', countdown: 1 }];
-      return [{ label: { en: 'Roars: the party’s Ward is stripped', fr: 'Rugit : la Garde du groupe tombe' }, target: { all: true }, effects: [{ kind: 'stripWard' }], reach: 'any' }];
+        return [{ label: { en: 'Gathers herself to club', fr: 'Se ramasse pour assommer' }, target: { place: 0 }, damage: 10, reach: 'close', countdown: 1 }];
+      return [{ label: { en: 'Roars', fr: 'Rugit' }, rule: { en: 'Strips Ward', fr: 'Ôte la Garde' }, target: { all: true }, effects: [{ kind: 'stripWard' }], reach: 'any' }];
     },
   },
   // The Undercroft (DESIGN.md §3.14): the Rasure Vault under the scriptorium, where ten
@@ -446,8 +446,8 @@ export const ENEMIES: Record<string, EnemyDef> = {
         return [{ label: { en: 'Sweeps the margin clean', fr: 'Balaie la marge' }, rule: { en: 'The letters of his name given back so far are lost', fr: 'Les lettres de son nom rendues jusqu’ici sont perdues' }, target: { self: true }, reach: 'any', effects: [{ kind: 'unname' }] }];
       const hound = c.allies.filter((a) => a.kind === 'inkhornHound').sort((a, b) => a.hp - b.hp)[0];
       if (c.phase % 2 === 1 && hound)
-        return [{ label: { en: `Shortens the leash: ${hound.name.en} gains Ward 3`, fr: `Raccourcit la laisse : ${hound.name.fr} gagne Garde 3` }, target: { unit: hound.id }, reach: 'any', effects: [{ kind: 'wardAlly', amount: 3 }] }];
-      return [{ label: { en: 'Sweeps pumice dust at the Rear · 2: Smudge', fr: 'Balaie la poussière de ponce sur l’Arrière · 2 : Bavure' }, target: { place: 2 }, damage: 2, reach: 'far', effects: [{ kind: 'smudge' }] }];
+        return [{ label: { en: 'Shortens the leash', fr: 'Raccourcit la laisse' }, rule: { en: 'Ward 3', fr: 'Garde 3' }, target: { unit: hound.id }, reach: 'any', effects: [{ kind: 'wardAlly', amount: 3 }] }];
+      return [{ label: { en: 'Sweeps up pumice dust', fr: 'Soulève la poussière de ponce' }, rule: { en: 'Smudge', fr: 'Bavure' }, target: { place: 2 }, damage: 2, reach: 'far', effects: [{ kind: 'smudge' }] }];
     },
   },
   // Hounds born of inkhorns, that hunt by the smell of fresh ink: whoever did something last.
@@ -457,8 +457,8 @@ export const ENEMIES: Record<string, EnemyDef> = {
     bound: true,
     behave: (c) => {
       if (c.scent && (c.phase + c.place) % 2 === 1)
-        return [{ label: { en: `Runs ${c.scent.name.en} down by the scent · 3`, fr: `Traque ${c.scent.name.fr} à l’odeur · 3` }, rule: { en: 'It hunts whoever acted last', fr: 'Il traque qui a agi en dernier' }, target: { unit: c.scent.id }, damage: 3, reach: 'any' }];
-      return [{ label: { en: 'Snaps at the Front · 2', fr: 'Happe l’Avant · 2' }, target: { place: 0 }, damage: 2, reach: 'close' }];
+        return [{ label: { en: 'Hunts by the scent', fr: 'Traque à l’odeur' }, rule: { en: 'It hunts whoever acted last', fr: 'Il traque qui a agi en dernier' }, target: { unit: c.scent.id }, damage: 3, reach: 'any' }];
+      return [{ label: { en: 'Snaps', fr: 'Happe' }, target: { place: 0 }, damage: 2, reach: 'close' }];
     },
   },
   // Knights written over something older: whatever is scraped off them in a round, they
@@ -470,8 +470,8 @@ export const ENEMIES: Record<string, EnemyDef> = {
       const k = (c.phase + c.place) % 3;
       if (k === 0)
         return [{ label: { en: 'Writes itself over', fr: 'Se récrit par-dessus' }, rule: { en: 'Whatever it loses this round, it has back', fr: 'Ce qu’il perd ce tour-ci, il le récupère' }, target: { self: true }, reach: 'any', effects: [{ kind: 'rewrite' }] }];
-      if (k === 1) return [{ label: { en: 'Rides down the Front · 5', fr: 'Charge l’Avant · 5' }, target: { place: 0 }, damage: 5, reach: 'close' }];
-      return [{ label: { en: 'Couches its lance at the Middle · 4', fr: 'Met sa lance en arrêt sur le Milieu · 4' }, target: { place: 1 }, damage: 4, reach: 'any' }];
+      if (k === 1) return [{ label: { en: 'Charges', fr: 'Charge' }, target: { place: 0 }, damage: 5, reach: 'close' }];
+      return [{ label: { en: 'Couches its lance', fr: 'Met sa lance en arrêt' }, target: { place: 1 }, damage: 4, reach: 'any' }];
     },
   },
   // The Heap: every letter ever scraped in Saint Ebb's, swept together for ten years,
@@ -487,13 +487,13 @@ export const ENEMIES: Record<string, EnemyDef> = {
     behave: (c) => {
       switch (c.phase % 4) {
         case 0:
-          return [{ label: { en: 'Reaches for its next letter: thrashes the Front · 4', fr: 'Cherche sa prochaine lettre : se débat contre l’Avant · 4' }, rule: { en: 'If it reaches, its word has one more letter', fr: 'S’il l’atteint, son mot a une lettre de plus' }, target: { place: 0 }, damage: 4, reach: 'any', effects: [{ kind: 'letter' }] }];
+          return [{ label: { en: 'Thrashes for its next letter', fr: 'Se débat pour sa prochaine lettre' }, rule: { en: 'If it reaches, its word has one more letter', fr: 'S’il l’atteint, son mot a une lettre de plus' }, target: { place: 0 }, damage: 4, reach: 'any', effects: [{ kind: 'letter' }] }];
         case 1:
           return [{ label: { en: 'Sheds a stray letter', fr: 'Perd une lettre égarée' }, target: { self: true }, reach: 'any', effects: [{ kind: 'spawn', enemy: 'strayLetter' }] }];
         case 2:
-          return [{ label: { en: 'Reaches for its next letter: rakes the Middle and the Rear · 3', fr: 'Cherche sa prochaine lettre : racle le Milieu et l’Arrière · 3' }, rule: { en: 'If it reaches, its word has one more letter', fr: 'S’il l’atteint, son mot a une lettre de plus' }, target: { places: [1, 2] }, damage: 3, reach: 'any', effects: [{ kind: 'letter' }] }];
+          return [{ label: { en: 'Rakes for its next letter', fr: 'Racle pour sa prochaine lettre' }, rule: { en: 'If it reaches, its word has one more letter', fr: 'S’il l’atteint, son mot a une lettre de plus' }, target: { places: [1, 2] }, damage: 3, reach: 'any', effects: [{ kind: 'letter' }] }];
         default:
-          return [{ label: { en: 'Mouths a word it learned upstairs: F, I, N, I, S… everyone · 5', fr: 'Articule un mot appris là-haut : F, I, N, I, S… tous · 5' }, rule: { en: 'Not its word', fr: 'Ce n’est pas son mot' }, target: { all: true }, damage: 5, reach: 'any', countdown: 1 }];
+          return [{ label: { en: 'Mouths F, I, N, I, S…', fr: 'Articule F, I, N, I, S…' }, rule: { en: 'A word it learned upstairs, not its own', fr: 'Un mot appris là-haut, pas le sien' }, target: { all: true }, damage: 5, reach: 'any', countdown: 1 }];
       }
     },
   },
@@ -504,8 +504,8 @@ export const ENEMIES: Record<string, EnemyDef> = {
     returns: true,
     behave: (c) =>
       (c.phase + c.place) % 2 === 0
-        ? [{ label: { en: 'Flutters at the Rear · 2', fr: 'Voltige sur l’Arrière · 2' }, rule: { en: 'Cut down, it falls back into the Heap', fr: 'Abattue, elle retombe dans le Tas' }, target: { place: 2 }, damage: 2, reach: 'any' }]
-        : [{ label: { en: 'Nicks the Middle · 2', fr: 'Entaille le Milieu · 2' }, rule: { en: 'Cut down, it falls back into the Heap', fr: 'Abattue, elle retombe dans le Tas' }, target: { place: 1 }, damage: 2, reach: 'any' }],
+        ? [{ label: { en: 'Flutters', fr: 'Voltige' }, rule: { en: 'Cut down, it falls back into the Heap', fr: 'Abattue, elle retombe dans le Tas' }, target: { place: 2 }, damage: 2, reach: 'any' }]
+        : [{ label: { en: 'Nicks', fr: 'Entaille' }, rule: { en: 'Cut down, it falls back into the Heap', fr: 'Abattue, elle retombe dans le Tas' }, target: { place: 1 }, damage: 2, reach: 'any' }],
   },
   greatSnail: {
     name: { en: 'The Great Snail', fr: 'Le Grand Escargot' },
@@ -520,14 +520,14 @@ export const ENEMIES: Record<string, EnemyDef> = {
     behave: (c) => {
       const k = c.phase % 3;
       if (k === 0)
-        return [{ label: { en: 'Horns out: lashes the Front · 5', fr: 'Cornes dehors : fouette l’Avant · 5' }, target: { place: 0 }, damage: 5, reach: 'close', effects: [{ kind: 'unshell' }] }];
+        return [{ label: { en: 'Horns out, it lashes', fr: 'Cornes dehors, il fouette' }, target: { place: 0 }, damage: 5, reach: 'close', effects: [{ kind: 'unshell' }] }];
       if (k === 1)
         return [
           // It licks its wounds in there: chipping at the shell barely keeps up; Strike Through the withdrawal instead.
           { label: { en: 'Withdraws into its shell', fr: 'Rentre dans sa coquille' }, rule: { en: 'Licks its wounds: heals 4', fr: 'Lèche ses plaies : se soigne de 4' }, target: { self: true }, effects: [{ kind: 'shell' }, { kind: 'heal', amount: 4 }], reach: 'any' },
           { label: { en: 'Gathers the tide… (next: everyone · 3)', fr: 'Appelle la marée… (ensuite : tous · 3)' }, target: { self: true }, reach: 'any', foretells: 3 },
         ];
-      return [{ label: { en: 'Slime tide: drenches everyone · 3', fr: 'Marée de bave : trempe tout le monde · 3' }, target: { all: true }, damage: 3, reach: 'any' }];
+      return [{ label: { en: 'A tide of slime', fr: 'Une marée de bave' }, target: { all: true }, damage: 3, reach: 'any' }];
     },
   },
 };
@@ -564,7 +564,7 @@ export const ENCOUNTERS: Record<string, EncounterDef> = {
     party: ['whit', 'hild', 'isot'],
     enemies: ['pope', 'king', 'childDancer', 'ploughman'],
     stage: 'ossuary',
-    env: () => ({ label: { en: 'The dance turns: every dancer one place back', fr: 'La danse tourne : chaque danseur recule d’une place' }, target: { self: true }, reach: 'any', effects: [{ kind: 'turn' }] }),
+    env: () => ({ label: { en: 'The dance turns', fr: 'La danse tourne' }, rule: { en: 'Every dancer one place back', fr: 'Chaque danseur recule d’une place' }, target: { self: true }, reach: 'any', effects: [{ kind: 'turn' }] }),
   },
   s3: { id: 's3', name: { en: 'The copying stall', fr: 'L’étal des copistes' }, party: ['whit', 'hild', 'isot'], enemies: ['apeScribe', 'apeScribe', 'apeScribe', 'apeScribe'], stage: 'lanes' },
   f7: { id: 'f7', name: { en: 'The Ivy Gate', fr: 'La porte du Lierre' }, party: ['whit', 'hild', 'isot'], enemies: ['hare', 'caladrius', 'hare'], stage: 'ivy' },
@@ -577,7 +577,7 @@ export const ENCOUNTERS: Record<string, EncounterDef> = {
     stage: 'inkwell',
     env: (_round, phases) =>
       phases.has('rasure') && !phases.has('ermelineFree')
-        ? { label: { en: 'Ermeline scrapes at Isot’s inkhorn: −1 Ink', fr: 'Ermeline gratte la corne d’Isot : −1 Encre' }, rule: { en: 'Emend her stroke onto an enemy to free her', fr: 'Amendez son geste vers un ennemi pour la libérer' }, target: { unit: 'isot' }, reach: 'any', effects: [{ kind: 'drain' }] }
+        ? { label: { en: 'Ermeline scrapes at the inkhorn', fr: 'Ermeline gratte la corne à encre' }, rule: { en: '−1 Ink. Emend her stroke onto an enemy to free her', fr: '−1 Encre. Amendez son geste vers un ennemi pour la libérer' }, target: { unit: 'isot' }, reach: 'any', effects: [{ kind: 'drain' }] }
         : null,
   },
   s4: { id: 's4', name: { en: 'The sweepers', fr: 'Les balayeurs' }, party: ['whit', 'hild', 'isot'], enemies: ['inkhornHound', 'inkhornHound', 'inkhornHound', 'scrapedBrother'], stage: 'undercroft' },
@@ -612,8 +612,8 @@ export const ENCOUNTERS: Record<string, EncounterDef> = {
     stage: 'causeway',
     env: (round, phases) => {
       if (phases.has('highWater'))
-        return round % 2 === 0 ? { label: { en: 'High water: a wave breaks over the Front and the Middle · 2', fr: 'Marée haute : une vague brise sur l’Avant et le Milieu · 2' }, target: { places: [0, 1] }, damage: 2, reach: 'any' } : null;
-      return round % 3 === 0 ? { label: { en: 'The tide: a wave breaks over the Front · 2', fr: 'La marée : une vague brise sur l’Avant · 2' }, target: { place: 0 }, damage: 2, reach: 'any' } : null;
+        return round % 2 === 0 ? { label: { en: 'High water breaks', fr: 'La marée haute se brise' }, target: { places: [0, 1] }, damage: 2, reach: 'any' } : null;
+      return round % 3 === 0 ? { label: { en: 'A wave breaks', fr: 'Une vague se brise' }, target: { place: 0 }, damage: 2, reach: 'any' } : null;
     },
   },
 };

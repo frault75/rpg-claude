@@ -99,7 +99,7 @@ export const DAWN_SCRIPTORIUM: MapDef = {
       art: ghostWords(['QUOD LECTUM EST', 'LIGATUR']),
       revealed: async (c) => {
         await c.say('isot', { en: '“Quod lectum est, ligatur.” What is read is bound. That’s the other half of the motto. Someone scraped it off the lectern.', fr: '« Quod lectum est, ligatur. » Ce qui est lu est lié. C’est l’autre moitié de la devise. Quelqu’un l’a grattée du lutrin.' }, 'alarmed');
-        await c.say('whit', { en: 'What is written is held, and what is read is bound. So reading is how a thing is finished.', fr: 'Ce qui est écrit est tenu, et ce qui est lu est lié. Alors c’est en lisant qu’une chose est finie.' });
+        await c.say('whit', { en: 'What is written is held, and what is read is bound. So reading is how a thing is finished.', fr: 'Ce qui est écrit est retenu, et ce qui est lu est lié. Alors c’est en lisant qu’une chose est finie.' });
       },
     },
   ],
@@ -114,11 +114,11 @@ export const DAWN_SCRIPTORIUM: MapDef = {
     await c.wait(1);
     await c.narrate({ en: 'They climb out of the margin of Wystan’s psalter onto his desk, the way the grylli did, an hour before.', fr: 'Ils sortent de la marge du psautier de Wystan sur son pupitre, comme l’avaient fait les grylles, une heure plus tôt.' });
     await mercyTolls(c, 1);
-    await c.narrate({ en: 'MERCY tolls for the first time. Out from the Abbey a white ring goes across the fens, and wherever it passes the colour drains out of the world.', fr: 'MERCY sonne pour la première fois. Depuis l’Abbaye, un anneau blanc s’étend sur les marais, et partout où il passe la couleur quitte le monde.' });
-    await c.say('isot', { en: 'Nine tolls. That was the first.', fr: 'Neuf glas. C’était le premier.' }, 'stern');
+    await c.narrate({ en: 'MERCY tolls for the first time. Out from the Abbey a white ring goes across the fens, and wherever it passes the colour drains out of the world.', fr: 'MISÉRICORDE sonne pour la première fois. Depuis l’Abbaye, un anneau blanc s’étend sur les marais, et partout où il passe la couleur quitte le monde.' });
+    await c.say('isot', { en: 'Nine tolls. That was the first.', fr: 'Neuf coups. C’était le premier.' }, 'stern');
     await c.narrate({ en: 'Below the walls, at low tide, the Fen Fyrd comes across the wet sand of the causeway with Eadgyth at its head.', fr: 'Sous les murs, à marée basse, la milice des marais traverse le sable mouillé de la chaussée, Eadgyth à sa tête.' });
     await c.say('eadgyth', { en: 'Low tide! For the old king, and everyone he can’t let go of. Forward!', fr: 'Marée basse ! Pour le vieux roi, et pour tous ceux qu’il ne peut pas laisser partir. En avant !' });
-    await c.narrate({ en: 'Only Lychford, far off across the water, keeps its colour: its bell is the one MERCY is missing.', fr: 'Seul Lychford, au loin de l’autre côté de l’eau, garde ses couleurs : sa cloche est celle qui manque à MERCY.' });
+    await c.narrate({ en: 'Only Lychford, far off across the water, keeps its colour: its bell is the one MERCY is missing.', fr: 'Seul Lychford, au loin de l’autre côté de l’eau, garde ses couleurs : sa cloche est celle qui manque à MISÉRICORDE.' });
     c.letterbox(false);
   },
 };
@@ -151,8 +151,8 @@ async function cuthwin(c: MapContext): Promise<void> {
   await c.wait(0.8);
   await c.say('cuthwin', { en: '…Osric.', fr: '…Osric.' });
   await c.say('cuthwin', { en: 'He stood on my left in choir. Thirty years. He was always flat on the Amen, and I always went flat with him, so he wouldn’t be alone in it.', fr: 'Il se tenait à ma gauche au chœur. Trente ans. Il était toujours faux sur l’Amen, et je descendais toujours avec lui, pour qu’il n’y soit pas seul.' });
-  await c.say('cuthwin', { en: 'And then I went on going flat. For ten years. With nobody.', fr: 'Et puis j’ai continué à descendre. Pendant dix ans. Avec personne.' });
-  await c.say('hild', { en: 'Not with nobody. With him. You just didn’t know his name.', fr: 'Pas avec personne. Avec lui. Tu ne savais simplement plus son nom.' }, 'warm');
+  await c.say('cuthwin', { en: 'And then I went on going flat. Ten years. On my own.', fr: 'Et puis j’ai continué à descendre. Dix ans. Tout seul.' });
+  await c.say('hild', { en: 'He was there. You’d only mislaid his name.', fr: 'Il était là. Tu avais seulement égaré son nom.' }, 'warm');
   await c.narrate({ en: 'Cuthwin opens the drawer of his desk and takes out a little wooden pitch-pipe, worn dark where a thumb held it.', fr: 'Cuthwin ouvre le tiroir de son pupitre et en sort un petit diapason de bois, noirci là où un pouce le tenait.' });
   await c.say('cuthwin', { en: 'It was in my stall. I never knew whose. It’s a quarter-tone flat. Of course it is. Take it. I don’t need it now.', fr: 'Il était dans ma stalle. Je n’ai jamais su à qui. Il est faux d’un quart de ton. Évidemment. Prends-le. Je n’en ai plus besoin.' });
   hum(true);

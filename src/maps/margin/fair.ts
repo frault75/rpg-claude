@@ -10,7 +10,7 @@
 import { MarginAmbience } from '../../audio/margin';
 import { CHARACTERS } from '../../pixel/characters';
 import { enemyStill } from '../../pixel/enemies';
-import { ghostWords } from '../../pixel/underwriting';
+import { ghostText } from '../../pixel/underwriting';
 import { session } from '../../engine/session';
 import type { Billboard } from '../../world3d/billboard';
 import { goldBar, goose, hen, ivy } from '../../world3d/margin';
@@ -147,7 +147,7 @@ export const FAIR: MapDef = {
       run: async (c) => {
         await c.say('villager', { en: 'We were Ninefold. I think. There was bread. Are you the Reader? Is it time?', fr: 'Nous étions Ninefold. Je crois. Il y avait du pain. Êtes-vous le Lecteur ? Est-ce l’heure ?' });
         await c.say('villager', { en: 'We don’t want to go back. Only to be read. To be finished properly, like a good sentence.', fr: 'Nous ne voulons pas revenir. Seulement être lus. Être finis comme il faut, comme une bonne phrase.' });
-        await c.say('isot', { en: 'They’re not asking to come home. They want an ending.', fr: 'Ils ne demandent pas à rentrer. Ils veulent une fin.' }, 'sad');
+        await c.say('isot', { en: 'A full stop. That’s all they’re asking for.', fr: 'Un point final. C’est tout ce qu’ils demandent.' }, 'sad');
       },
     },
     {
@@ -158,7 +158,7 @@ export const FAIR: MapDef = {
       when: (c) => c.flag('amabelScraped'),
       run: async (c) => {
         await c.narrate({ en: 'A little brown hen comes and stands on Isot’s foot.', fr: 'Une petite poule brune vient se poser sur le pied d’Isot.' });
-        await c.say('amabel', { en: 'Bok. …Isot? It’s me, love. It doesn’t hurt here. I just can’t remember Hob’s face.', fr: 'Bok. …Isot ? C’est moi, ma belle. Ça ne fait pas mal ici. Je ne me souviens juste plus du visage de Hob.' });
+        await c.say('amabel', { en: 'Bok. …Isot? It’s me, love. It doesn’t hurt here. I just can’t remember Hob’s face.', fr: 'Bok. …Isot ? C’est moi, ma belle. Ça ne fait pas mal, ici. C’est le visage de Hob que je n’arrive plus à retrouver.' });
         await c.say('isot', { en: 'I’ll write you back. I promise. With his hand in yours.', fr: 'Je te réécrirai. Promis. Avec sa main dans la tienne.' }, 'sad');
         c.set('amabelFound');
       },
@@ -181,8 +181,8 @@ export const FAIR: MapDef = {
     },
   ],
   underwriting: [
-    { id: 'name-fishers', x: tiles(6), y: tiles(1.3), h: 16, art: ghostWords(['NELL AND TOM FISHER', 'WHO ARGUED SIXTY YEARS'], true), lostName: 'fishers' },
-    { id: 'name-cutha', x: ALCOVE[0], y: ALCOVE[1] - 6, h: 20, art: ghostWords(['OLD CUTHA', 'WHO TOLD THE BEES'], true), lostName: 'cutha', when: (c) => c.cleared('f8') },
+    { id: 'name-fishers', x: tiles(6), y: tiles(1.3), h: 16, art: ghostText([{ en: 'NELL AND TOM FISHER', fr: 'NELL ET TOM PECHEUR' }, { en: 'WHO ARGUED SIXTY YEARS', fr: 'SOIXANTE ANS DE DISPUTE' }], true), lostName: 'fishers' },
+    { id: 'name-cutha', x: ALCOVE[0], y: ALCOVE[1] - 6, h: 20, art: ghostText([{ en: 'OLD CUTHA', fr: 'LE VIEUX CUTHA' }, { en: 'WHO TOLD THE BEES', fr: 'QUI PARLAIT AUX ABEILLES' }], true), lostName: 'cutha', when: (c) => c.cleared('f8') },
   ],
   exits: [
     { rect: [tiles(W - 0.6), tiles(5), tiles(0.6), tiles(6)], to: 'vine', spawn: 'west' },

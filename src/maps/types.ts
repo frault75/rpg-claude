@@ -79,8 +79,8 @@ export interface Underwriting {
   x: number;
   y: number;
   h: number;
-  /** The ghost, drawn in pixels (lines of old ink, a doorway's outline). */
-  art: import('../pixel/pixel').PixelImage;
+  /** The ghost, drawn in pixels (lines of old ink, a doorway's outline); or drawn when the map is built, in the player's language. */
+  art: import('../pixel/pixel').PixelImage | (() => import('../pixel/pixel').PixelImage);
   /** Stand it on the floor instead of upright. */
   flat?: boolean;
   /** When it has been fully revealed: a flag is set and this runs. */
@@ -89,6 +89,9 @@ export interface Underwriting {
   lostName?: string;
   when?: (c: MapContext) => boolean;
 }
+
+/** An underwriting's art, drawn now if it is drawn in the player's language. */
+export const underArt = (u: Underwriting): import('../pixel/pixel').PixelImage => (typeof u.art === 'function' ? u.art() : u.art);
 
 export interface MapDef {
   id: string;

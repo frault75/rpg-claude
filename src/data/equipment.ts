@@ -48,7 +48,7 @@ export const ITEMS: Record<string, ItemDef> = {
     owner: 'hild',
     name: { en: 'The Psalter Chain', fr: 'La chaîne du psautier' },
     text: { en: 'Shrive costs 2 HP instead of 3, and heals 5 instead of 6.', fr: 'Absoudre coûte 2 PV au lieu de 3, et soigne 5 au lieu de 6.' },
-    lore: { en: 'Ten years it held her book to the wall. Now it holds the book to her.', fr: 'Dix ans elle a tenu son livre au mur. Elle tient maintenant le livre contre elle.' },
+    lore: { en: 'For ten years it held her psalter to the wall. Now she swings it.', fr: 'Dix ans, elle a tenu son psautier attaché au mur. Aujourd’hui, Hild la fait tournoyer.' },
     color: '#8E96A4',
   },
   anchorStone: {
@@ -65,7 +65,7 @@ export const ITEMS: Record<string, ItemDef> = {
     owner: 'whit',
     name: { en: 'The Blank Pennon', fr: 'Le fanion blanc' },
     text: { en: 'Tally counts from 2 instead of 3.', fr: 'Le Décompte part de 2 au lieu de 3.' },
-    lore: { en: 'It bears no device. He has never asked why.', fr: 'Il ne porte aucune devise. Il n’a jamais demandé pourquoi.' },
+    lore: { en: 'It bears no device. He has never asked why.', fr: 'Il ne porte aucune armoirie. Il n’a jamais demandé pourquoi.' },
     color: '#F2EEE4',
   },
   bellClapper: {
@@ -175,7 +175,7 @@ export const ITEMS: Record<string, ItemDef> = {
   ebbGirdle: {
     id: 'ebbGirdle',
     slot: 'charm',
-    name: { en: 'Saint Ebb’s girdle', fr: 'Ceinture de sainte Ebbe' },
+    name: { en: 'Saint Ebb’s girdle', fr: 'Ceinture de sainte Ebba' },
     text: { en: 'In the Rear, the wearer takes 1 less from every blow.', fr: 'À l’Arrière, le porteur subit 1 de moins de chaque coup.' },
     lore: { en: 'A knotted cord: one knot for every tide she counted from her rock.', fr: 'Une cordelette nouée : un nœud par marée qu’elle compta depuis son rocher.' },
     color: '#A8B8C0',

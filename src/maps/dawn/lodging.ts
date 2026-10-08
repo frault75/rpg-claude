@@ -10,7 +10,7 @@ import { EbbNightAmbience } from '../../audio/ambient';
 import { tr } from '../../i18n/i18n';
 import { bench, candle, coffer, pallet, writingDesk } from '../../pixel/furniture';
 import { GROUND_DEFAULT } from '../../pixel/terrain';
-import { ghostWords } from '../../pixel/underwriting';
+import { ghostText } from '../../pixel/underwriting';
 import { tiles } from '../../world3d/stage';
 import { backWall, dawnInterior, FLOOR, sideWall } from '../interior';
 import type { MapDef } from '../types';
@@ -75,7 +75,7 @@ export const LODGING: MapDef = {
           c.set('hoursSeen');
           await c.say('isot', { en: 'Your name, Hild. In every margin. Hundreds of times.', fr: 'Ton nom, Hild. Dans chaque marge. Des centaines de fois.' }, 'sad');
           await c.say('hild', { en: 'He used to write it on his slate when he was six, so he’d know I was coming back from the infirmary.', fr: 'Il l’écrivait sur son ardoise à six ans, pour savoir que je revenais de l’infirmerie.' }, 'grave');
-          await c.say('isot', { en: 'And this: the whole Book scraped clean, but for one name. That’s what MERCY is for.', fr: 'Et ceci : tout le Livre gratté, sauf un nom. C’est à ça que sert MERCY.' }, 'alarmed');
+          await c.say('isot', { en: 'And this: the whole Book scraped clean, but for one name. That’s what MERCY is for.', fr: 'Et ceci : tout le Livre gratté, sauf un nom. C’est à ça que sert MISÉRICORDE.' }, 'alarmed');
         }
       },
     },
@@ -87,7 +87,7 @@ export const LODGING: MapDef = {
       x: tiles(2.4),
       y: tiles(6.2) - 2,
       h: 22,
-      art: ghostWords(['A GIRL OF LYCHFORD', 'BORN IN THE GREY YEAR', '…………'], true),
+      art: ghostText([{ en: 'A GIRL OF LYCHFORD', fr: 'UNE FILLE DE LYCHFORD' }, { en: 'BORN IN THE GREY YEAR', fr: "NEE L'ANNEE GRISE" }, { en: '…………', fr: '…………' }], true),
       lostName: 'girl',
       revealed: async (c) => {
         await c.say('isot', { en: 'Born the year Hild nursed Lychford, and nobody wrote her in time. Not even a name. There’s room in the margin.', fr: 'Née l’année où Hild soignait Lychford, et personne ne l’a écrite à temps. Pas même un nom. Il reste de la place dans la marge.' }, 'sad');

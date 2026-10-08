@@ -6,10 +6,11 @@
  * the first time in ten years.
  */
 
+import { lang } from '../../i18n/i18n';
 import { bell, midiToHz } from '../../audio/instruments';
 import { textImage } from '../../pixel/font';
 import { coffer } from '../../pixel/furniture';
-import { ghostWords } from '../../pixel/underwriting';
+import { ghostText } from '../../pixel/underwriting';
 import { hex, PixelImage, ramp } from '../../pixel/pixel';
 import { GROUND_DEFAULT } from '../../pixel/terrain';
 import { tiles } from '../../world3d/stage';
@@ -24,10 +25,10 @@ const WALL_Y = tiles(2);
 
 /** The four bells, left to right as their ropes hang, and their notes. */
 const BELLS = [
-  { id: 'morning', name: 'MORNING', midi: 67 },
-  { id: 'singer', name: 'SINGER', midi: 64 },
-  { id: 'weeper', name: 'WEEPER', midi: 62 },
-  { id: 'tenor', name: 'TENOR', midi: 55 },
+  { id: 'morning', name: { en: 'MORNING', fr: 'MATIN' }, midi: 67 },
+  { id: 'singer', name: { en: 'SINGER', fr: 'CHANTRE' }, midi: 64 },
+  { id: 'weeper', name: { en: 'WEEPER', fr: 'LARME' }, midi: 62 },
+  { id: 'tenor', name: { en: 'TENOR', fr: 'TENOR' }, midi: 55 },
 ] as const;
 /** The rhyme's order: Weeper, Morning, Singer, and the Tenor last of all. */
 export const RINGING_ORDER = ['weeper', 'morning', 'singer', 'tenor'] as const;
@@ -133,9 +134,10 @@ export const BELLTOWER: MapDef = {
       x: ROPE_X[i]!,
       y: WALL_Y + 2,
       h: 51,
-      art: textImage([b.name], hex('#F0D090', 240)),
+      // In the player's language, so the skipping rhyme names what is on the wall.
+      art: () => textImage([b.name[lang()]], hex('#F0D090', 240)),
     })),
-    { id: 'name-hamo', x: tiles(2.2), y: WALL_Y + 2, h: 24, art: ghostWords(['HAMO', 'THE BELLRINGER']), lostName: 'hamo' },
+    { id: 'name-hamo', x: tiles(2.2), y: WALL_Y + 2, h: 24, art: ghostText([{ en: 'HAMO', fr: 'HAMO' }, { en: 'THE BELLRINGER', fr: 'LE SONNEUR' }]), lostName: 'hamo' },
   ],
   exits: [{ rect: [tiles(5.5), tiles(6.8), tiles(3), tiles(0.4)], to: 'churchyard', spawn: 'tower', when: (c) => !c.flag('bellRung') }],
   async enter(c) {
@@ -163,7 +165,7 @@ async function passingBell(c: MapContext): Promise<void> {
     await c.wait(2.2);
   }
   await c.narrate({ en: 'The passing bell. Its voice goes out over the snow, over the fen, for the first time in ten years.', fr: 'Le glas. Sa voix s’en va sur la neige, sur le marais, pour la première fois depuis dix ans.' });
-  await c.say('whit', { en: 'I know that sound. I know it the way you know your own name.', fr: 'Je connais ce son. Je le connais comme on connaît son propre nom.' });
+  await c.say('whit', { en: 'I know that sound. Better than my own name. That isn’t hard.', fr: 'Je connais ce son. Mieux que mon propre nom. Ce n’est pas difficile.' });
   // The bell keeps its own clapper: it must ring again, at the end.
   await c.find('bellClapper', { en: 'On a hook in the ringing chamber hangs the bell’s old clapper, cracked and replaced long ago. Whit takes it down and weighs it in his hand.', fr: 'À un crochet de la chambre des cloches pend l’ancien battant de la cloche, fêlé, remplacé il y a longtemps. Whit le décroche et le soupèse.' });
   await dunstanClimbs(c);
@@ -192,7 +194,7 @@ async function dunstanClimbs(c: MapContext): Promise<void> {
   await c.say('isot', { en: 'Hamo. It was written under the rust on the plaques. Hamo the bellringer, who rang the passing bell for the last time on the night of the Mercy.', fr: 'Hamo. C’était écrit sous la rouille des plaques. Hamo le sonneur, qui sonna le glas pour la dernière fois la nuit de la Miséricorde.' });
   await c.say('dunstan', { en: 'Hamo.', fr: 'Hamo.' });
   await c.say('dunstan', { en: 'He rang it for my father. I stood down there in the snow and hated him for it, for being so loud about it. Then he bought me a drink.', fr: 'Il l’a sonnée pour mon père. J’étais en bas dans la neige et je le détestais d’en faire tant de bruit. Et puis il m’a payé à boire.' });
-  await c.narrate({ en: 'Dunstan takes out the Underbook, wets a stub of pencil, and writes, slowly, in the margin of the last page: HAMO, WHO RANG.', fr: 'Dunstan sort l’Underbook, mouille un bout de crayon et écrit, lentement, dans la marge de la dernière page : HAMO, QUI SONNAIT.' });
+  await c.narrate({ en: 'Dunstan takes out the Underbook, wets a stub of pencil, and writes, slowly, in the margin of the last page: HAMO, WHO RANG.', fr: 'Dunstan sort le Sous-Livre, mouille un bout de crayon et écrit, lentement, dans la marge de la dernière page : HAMO, QUI SONNAIT.' });
   await c.say('dunstan', { en: 'There. Now he’s somewhere. Here, scribe: a bit of his rope. He’d want it to go on being pulled.', fr: 'Voilà. Maintenant il est quelque part. Tiens, scribe : un bout de sa corde. Il voudrait qu’on continue de la tirer.' });
   await returnName(c, 'hamo');
 }

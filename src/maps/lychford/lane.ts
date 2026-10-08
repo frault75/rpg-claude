@@ -106,7 +106,7 @@ export const LANE: MapDef = {
         await c.say('whit', { en: 'Down! In the hedge: bows.', fr: 'À terre ! Dans la haie : des arcs.' });
         await c.narrate({ en: 'Three hares stand up out of the snow, longbows drawn, as in the margins where the hunted hunt the hunters.', fr: 'Trois lièvres se dressent dans la neige, arcs bandés, comme dans les marges où le gibier chasse les chasseurs.' });
         await c.say('hild', { en: 'They aim at the back of the line. At you, child.', fr: 'Ils visent l’arrière de la file. Toi, petite.' }, 'stern');
-        await c.say('isot', { en: 'Then I’ll turn their arrows. A small mark above, the true word between.', fr: 'Alors je détournerai leurs flèches. Une petite marque au-dessus, le vrai mot entre.' }, 'stern');
+        await c.say('isot', { en: 'Then I’ll turn their arrows. A small mark above, the true word between.', fr: 'Alors je détournerai leurs flèches. Un petit signe au-dessus, le bon mot dans l’interligne.' }, 'stern');
         c.battle('f3');
       },
     },
@@ -132,9 +132,9 @@ export const LANE: MapDef = {
     if (from === 'start' && !c.flag('learnedEmend')) {
       c.letterbox(true);
       await c.wait(1.8);
-      await c.say('hild', { en: 'Lychford. The first village I nursed through the Grey Sweat. I haven’t seen it in ten years.', fr: 'Lychford. Le premier village que j’ai soigné pendant la Suée grise. Je ne l’ai pas revu depuis dix ans.' }, 'grave');
+      await c.say('hild', { en: 'Lychford. The first village I nursed through the Grey Sweat. I haven’t seen it in ten years.', fr: 'Lychford. Le premier village que j’ai soigné pendant la Suette grise. Je ne l’ai pas revu depuis dix ans.' }, 'grave');
       await c.say('isot', { en: 'Wystan used to say: never scrape, Isot. Emend.', fr: 'Wystan disait : ne gratte jamais, Isot. Amende.' }, 'sad');
-      await c.say('isot', { en: '“A small mark above, the true word between. The mistake stays visible. That’s the honesty of it.”', fr: '« Une petite marque au-dessus, le vrai mot entre. L’erreur reste visible. C’est ça, l’honnêteté. »' }, 'sad');
+      await c.say('isot', { en: '“A small mark above, the true word between. Let them see you got it wrong, Isot. It won’t kill you.”', fr: '« Un petit signe au-dessus, le bon mot dans l’interligne. Qu’on voie que tu t’es trompée, Isot. Ça ne te tuera pas. »' }, 'sad');
       c.set('learnedEmend');
       c.letterbox(false);
       await c.learn('isot', 'emend');

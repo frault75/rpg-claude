@@ -15,7 +15,7 @@ import type { Action, Input } from '../engine/input';
 import type { Scene } from '../engine/scene';
 import { session } from '../engine/session';
 import { t, tr } from '../i18n/i18n';
-import type { MapContext, MapDef, PageDef, Rect } from '../maps/types';
+import { type MapContext, type MapDef, type PageDef, type Rect, underArt } from '../maps/types';
 import { CHARACTERS, type Dir } from '../pixel/characters';
 import { hex, PixelImage } from '../pixel/pixel';
 import { TILE } from '../pixel/terrain';
@@ -166,7 +166,8 @@ export class MapScene implements Scene {
       this.npcs.set(n.id, a);
     }
     for (const u of def.underwriting ?? []) {
-      const b = Billboard.fromImage(u.art, { glow: u.art, unlit: true, castShadow: false, anchor: u.flat ? [u.art.w / 2, u.art.h / 2] : [u.art.w / 2, u.art.h - 1] });
+      const art = underArt(u);
+      const b = Billboard.fromImage(art, { glow: art, unlit: true, castShadow: false, anchor: u.flat ? [art.w / 2, art.h / 2] : [art.w / 2, art.h - 1] });
       b.x = u.x;
       b.y = u.y;
       // Heights of things and writing are above the ground they stand on.

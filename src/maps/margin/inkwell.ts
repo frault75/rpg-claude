@@ -112,7 +112,7 @@ async function afterTheBlot(c: MapContext): Promise<void> {
   await c.narrate({ en: 'He holds out his blank shield to Isot, and she understands which name he means.', fr: 'Il tend son bouclier blanc à Isot, et elle comprend de quel nom il parle.' });
   const ctx = c.audio.ctx;
   if (ctx) bell(ctx, c.audio.reverbIn, midiToHz(31), ctx.currentTime, 0.4, 10);
-  await c.say('ermeline', { en: 'Nine tolls at dawn. Then nothing. He’s hung his bell, and he means to ring the whole of Hollin clean.', fr: 'Neuf glas à l’aube. Puis plus rien. Il a pendu sa cloche, et il compte sonner tout Hollin jusqu’à ce qu’il soit propre.' });
+  await c.say('ermeline', { en: 'Nine tolls at dawn. Then nothing. He’s hung his bell, and he means to ring the whole of Hollin clean.', fr: 'Neuf coups à l’aube. Puis plus rien. Il a pendu sa cloche, et il compte laver tout Hollin à coups de cloche.' });
   await c.say('hild', { en: 'Every margin borders a book. Somewhere up there is the margin of Wystan’s psalter, and Wystan’s psalter is in the scriptorium.', fr: 'Chaque marge borde un livre. Quelque part là-haut, il y a la marge du psautier de Wystan, et le psautier de Wystan est au scriptorium.' }, 'stern');
   await c.narrate({ en: 'They climb a bar of gold, up and up, and out through the margin of an old psalter, into the scriptorium of Saint Ebb’s an hour before dawn.', fr: 'Ils grimpent une barre d’or, toujours plus haut, et sortent par la marge d’un vieux psautier, dans le scriptorium de Saint-Ebb, une heure avant l’aube.' });
   c.close();

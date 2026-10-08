@@ -39,7 +39,7 @@ export const RETURNS: Record<string, { xp: number; to: LocalText; keepsake: Loca
   gervase: {
     xp: 15,
     to: { en: 'to himself', fr: 'à lui-même' },
-    keepsake: { en: 'His last ribbon, and a quarter off for ever.', fr: 'Son dernier ruban, et un quart de moins pour toujours.' },
+    keepsake: { en: 'His last ribbon, and a quarter off for ever.', fr: 'Son dernier ruban, et un quart de remise pour toujours.' },
   },
 };
 

@@ -46,7 +46,7 @@ let wild: Billboard[] = [];
 
 export const HOLLOW: MapDef = {
   id: 'hollow',
-  card: { title: { en: 'The Blanchwood', fr: 'La Blanchewood' }, line: { en: 'The Charcoal Hollow', fr: 'La combe aux charbonniers' } },
+  card: { title: { en: 'The Blanchwood', fr: 'Le Bois-Blanc' }, line: { en: 'The Charcoal Hollow', fr: 'La combe aux charbonniers' } },
   walkable: '.dv',
   ground: GROUND,
   heights: HEIGHTS,
@@ -124,7 +124,7 @@ export const HOLLOW: MapDef = {
       run: async (c) => {
         c.letterbox(true);
         c.shake(2, 0.5);
-        await c.narrate({ en: 'Between the kilns a wodewose rises up, a mother, her hair gone white as the wood. Sparks scuttle round her feet like chicks: grylli of ember, from the vents.', fr: 'Entre les meules se dresse un homme sauvage, une mère, les poils devenus blancs comme le bois. Des étincelles trottent autour de ses pieds comme des poussins : des grylles de braise, sortis des évents.' });
+        await c.narrate({ en: 'Between the kilns a wodewose rises up, a mother, her hair gone white as the wood. Sparks scuttle round her feet like chicks: grylli of ember, from the vents.', fr: 'Entre les meules se dresse une femme sauvage, une mère, le poil devenu blanc comme le bois. Des étincelles trottent autour de ses pieds comme des poussins : des grylles de braise, sortis des évents.' });
         await c.say('hild', { en: 'She thinks we’ve come to put them out.', fr: 'Elle croit qu’on est venus les éteindre.' }, 'grave');
         await c.say('isot', { en: 'If we put one out, it bursts. And she can blow it back to life.', fr: 'Si on en éteint un, il éclate. Et elle peut le ranimer en soufflant.' }, 'alarmed');
         c.letterbox(false);
@@ -173,12 +173,12 @@ async function hermit(c: MapContext): Promise<void> {
     c.set('hermitMet');
     await c.say('hermit', { en: 'Mind the vents. They breathe.', fr: 'Attention aux évents. Ils respirent.' });
     await c.say('isot', { en: 'You keep them burning? The burners have been gone a hundred and fifty years.', fr: 'C’est vous qui les tenez allumées ? Les charbonniers sont partis il y a cent cinquante ans.' });
-    await c.say('hermit', { en: 'Somebody has to keep a fire. I can’t remember who for. Someone who’ll want to find her way back in the dark.', fr: 'Il faut bien que quelqu’un garde un feu. Je ne me rappelle plus pour qui. Quelqu’un qui voudra retrouver son chemin dans le noir.' });
-    await c.say('hild', { en: 'Her?', fr: 'Son chemin ?' });
-    await c.say('hermit', { en: 'Did I say her?', fr: 'J’ai dit ça ?' });
-    if (c.party.some((a) => a.id === 'whit')) await c.say('whit', { en: 'He has been waiting a long time.', fr: 'Il attend depuis longtemps.' });
+    await c.say('hermit', { en: 'Somebody has to keep a fire. I can’t remember who for. Someone who’ll want to find her way back in the dark.', fr: 'Il faut bien que quelqu’un garde un feu. Je ne me rappelle plus pour qui. Pour quelqu’un qui voudra rentrer dans le noir. Elle aura froid.' });
+    await c.say('hild', { en: 'Her?', fr: 'Elle ?' });
+    await c.say('hermit', { en: 'Did I say her?', fr: 'J’ai dit « elle » ?' });
+    if (c.party.some((a) => a.id === 'whit')) await c.say('whit', { en: 'He keeps looking at me. I do not mind it.', fr: 'Il ne cesse de me regarder. Cela ne me gêne pas.' });
   } else if (!g.lostNames.includes('maud')) {
-    await c.say('hermit', { en: 'Still burning. They always are.', fr: 'Ça brûle toujours. Ça brûle toujours.' });
+    await c.say('hermit', { en: 'Still burning. I don’t let them go out.', fr: 'Toujours allumées. Je ne les laisse jamais s’éteindre.' });
   }
   if (!g.lostNames.includes('maud')) return;
   const pick = await c.choose([

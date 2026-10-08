@@ -26,17 +26,18 @@ import {
   whoosh,
 } from '../audio/battleSfx';
 import { footstep, pageTurn, uiTick } from '../audio/sfx';
+import { aimOf } from '../battle/aim';
 import { ABILITIES, ENCOUNTERS, ENEMIES, PARTY_STATS } from '../battle/data';
 import { bell, midiToHz } from '../audio/instruments';
 import { Battle, type Refusal } from '../battle/engine';
 import {
   BANDEROLE_H,
-  BANDEROLE_W,
   type BanderoleLook,
   COMMAND_ROW,
   COMMAND_W,
   type CommandEntry,
   commandHeight,
+  banderoleWidth,
   drawBanderole,
   drawBanner,
   drawCallout,
@@ -227,11 +228,12 @@ interface BanderoleState {
   wiggle: number;
   x: number;
   y: number;
+  /** Width in logical units, fitted to what it says. */
+  w: number;
   look: string;
 }
 
 const ENV_ID = 'env';
-/** Show the 1–5 shortcuts beside the commands, except where fingers are the pointer. */
 /** The number keys that pick a row are shown at the keyboard only. */
 const keyHints = () => (Input.current?.prompts ?? 'keys') === 'keys';
 /** The enemy's name plate, between its head and its banderoles. */
@@ -1588,7 +1590,7 @@ export class BattleScene implements Scene {
   private intentAt(x: number, y: number): string | null {
     for (const [id, b] of this.banderoles) {
       if (b.appear < 0.5) continue;
-      if (x >= b.x && x <= b.x + BANDEROLE_W * this.z && y >= b.y && y <= b.y + BANDEROLE_H * this.z) return id;
+      if (x >= b.x && x <= b.x + b.w * this.z && y >= b.y && y <= b.y + BANDEROLE_H * this.z) return id;
     }
     return null;
   }
@@ -1597,7 +1599,9 @@ export class BattleScene implements Scene {
 
   private intentText(it: Intent): string {
     if (!this.battle.shows(it)) return t('battle.hidden');
-    return tr(it.label) + (it.rule ? ` — ${tr(it.rule)}` : '');
+    const aim = aimOf(this.battle, it);
+    const at = [aim ? tr(aim) : '', it.damage > 0 ? String(it.damage) : ''].filter(Boolean).join(' ');
+    return [tr(it.label), at, it.rule ? tr(it.rule) : ''].filter(Boolean).join(' — ');
   }
 
   private chips(u: Unit): { text: string; color: string }[] {
@@ -1718,9 +1722,11 @@ export class BattleScene implements Scene {
     }
     for (const it of this.shown.intents) {
       if (!this.banderoles.has(it.id)) {
-        const panel = this.ui.panel(BANDEROLE_W, BANDEROLE_H, 3);
-        panel.zoom = this.z;
-        this.banderoles.set(it.id, { panel, appear: 1, struck: it.cancelled ? 1 : 0, active: false, spent: false, wiggle: 0, x: 0, y: 0, look: it.id });
+        const b: BanderoleState = { panel: null as unknown as UiPanel, appear: 1, struck: it.cancelled ? 1 : 0, active: false, spent: false, wiggle: 0, x: 0, y: 0, w: 0, look: it.id };
+        b.w = banderoleWidth(this.lookOf(it, b));
+        b.panel = this.ui.panel(b.w, BANDEROLE_H, 3);
+        b.panel.zoom = this.z;
+        this.banderoles.set(it.id, b);
       }
     }
     this.layoutBanderoles();
@@ -1768,13 +1774,12 @@ export class BattleScene implements Scene {
   /** Stack each enemy's banderoles over its head and plate, nudged so nothing overlaps. */
   private layoutBanderoles(): void {
     const z = this.z;
-    const BW = BANDEROLE_W * z;
     const BH = BANDEROLE_H * z;
     const PH = PLATE_H * z;
     const placed: { x: number; y: number; w: number; h: number }[] = this.plates().map((p) => ({ x: p.x - 6 * z, y: p.y - 4 * z, w: p.w + 12 * z, h: 26 * z }));
     placed.push(this.commandZone());
     /** How much a banderole at (x, y) would cover what is already placed. */
-    const overlap = (x: number, y: number) =>
+    const overlap = (x: number, y: number, BW: number) =>
       placed.reduce((sum, p) => sum + Math.max(0, Math.min(x + BW, p.x + p.w) - Math.max(x, p.x)) * Math.max(0, Math.min(y + BH - 6, p.y + p.h) - Math.max(y, p.y)), 0);
     let env = 0;
     const byActor = new Map<string, number>();
@@ -1783,6 +1788,7 @@ export class BattleScene implements Scene {
     for (const it of order) {
       const b = this.banderoles.get(it.id);
       if (!b) continue;
+      const BW = b.w * z;
       if (it.actor === ENV_ID) {
         b.x = 20;
         b.y = 78 + env++ * (BH + 6);
@@ -1803,7 +1809,7 @@ export class BattleScene implements Scene {
       for (const dx of [0, -0.6, 0.6, -1.15, 1.15, -1.7, 1.7, -2.3, 2.3]) {
         const x = clampX(head.x - BW / 2 + dx * BW);
         for (let y = Math.max(76, base); y >= 76; y -= 8) {
-          const o = overlap(x, y);
+          const o = overlap(x, y, BW);
           if (o === 0) {
             spot = { x, y };
             break;
@@ -1819,34 +1825,52 @@ export class BattleScene implements Scene {
     }
   }
 
+  /** What a banderole shows for an intent. */
+  private lookOf(it: Intent, b: BanderoleState): BanderoleLook {
+    const timing = it.waiting ? t('battle.waits') : it.countdown > 0 ? t('battle.in', { n: it.countdown }) : '';
+    const rule = it.rule && this.battle.shows(it) ? tr(it.rule) : '';
+    const aim = aimOf(this.battle, it);
+    return {
+      order: it.order,
+      text: this.battle.shows(it) ? tr(it.label) : t('battle.hidden'),
+      aim: aim ? tr(aim) : '',
+      damage: it.damage,
+      note: [rule, timing].filter(Boolean).join(' · '),
+      hidden: !this.battle.shows(it),
+      struck: b.struck,
+      active: b.active || this.selectedIntent() === it.id || this.hoverIntent === it.id,
+      spent: b.spent && !b.active,
+      env: it.actor === ENV_ID,
+    };
+  }
+
   private drawBanderoles(): void {
+    let resized = false;
     for (const it of this.shown.intents) {
       const b = this.banderoles.get(it.id);
       if (!b) continue;
-      const timing = it.waiting ? t('battle.waits') : it.countdown > 0 ? t('battle.in', { n: it.countdown }) : '';
-      const rule = it.rule && this.battle.shows(it) ? tr(it.rule) : '';
-      const note = [rule, timing].filter(Boolean).join(' · ');
-      const selected = this.selectedIntent() === it.id;
-      const look: BanderoleLook = {
-        order: it.order,
-        text: this.battle.shows(it) ? tr(it.label) : t('battle.hidden'),
-        note,
-        hidden: !this.battle.shows(it),
-        struck: b.struck,
-        active: b.active || selected || this.hoverIntent === it.id,
-        spent: b.spent && !b.active,
-        env: it.actor === ENV_ID,
-      };
+      const look = this.lookOf(it, b);
+      // What it says changed its length (an Emend, the language): a scroll of the new size.
+      const w = banderoleWidth(look);
+      if (w !== b.w) {
+        this.ui.remove(b.panel);
+        b.panel = this.ui.panel(w, BANDEROLE_H, 3);
+        b.panel.zoom = this.z;
+        b.w = w;
+        b.look = '';
+        resized = true;
+      }
       const key = JSON.stringify(look);
       if (key !== b.look) {
         b.look = key;
-        b.panel.draw((c, w, h) => drawBanderole(c, w, h, look));
+        b.panel.draw((c, pw, ph) => drawBanderole(c, pw, ph, look));
       }
       const fallen = it.actor !== ENV_ID && this.shown.fallen.get(it.actor);
       b.panel.opacity = b.appear * (fallen ? 0 : 1);
       b.panel.x = b.x + (b.wiggle > 0 ? Math.sin(this.time * 50) * 5 * b.wiggle : 0);
       b.panel.y = b.y - (1 - b.appear) * 14;
     }
+    if (resized) this.layoutBanderoles();
   }
 
   private selectedIntent(): string | null {
@@ -1881,7 +1905,7 @@ export class BattleScene implements Scene {
             const f = this.fig(u.id);
             if (ban && f) {
               const p = this.r.mapToScreen(f.hx, f.hy, f.height * 0.6);
-              lines.push({ from: [ban.x + (BANDEROLE_W * this.z) / 2, ban.y + (BANDEROLE_H - 8) * this.z], to: [p.x, p.y] });
+              lines.push({ from: [ban.x + (ban.w * this.z) / 2, ban.y + (BANDEROLE_H - 8) * this.z], to: [p.x, p.y] });
             }
           }
         }
@@ -2035,7 +2059,7 @@ export class BattleScene implements Scene {
       const o = m.options()[m.cursor];
       if (o?.intent) {
         const b = this.banderoles.get(o.intent);
-        if (b) over = { x: b.x + (BANDEROLE_W * this.z) / 2, y: b.y - 6 };
+        if (b) over = { x: b.x + (b.w * this.z) / 2, y: b.y - 6 };
       } else if (o?.unit && (m.kind === 'target' || m.kind === 'root' || m.kind === 'step')) {
         const f = this.fig(o.unit);
         if (f) {
