@@ -10,7 +10,8 @@ import { acanthus, pageSky } from '../../world3d/margin';
 import type { SkyDef } from '../../world3d/sky';
 import type { Stage } from '../../world3d/stage';
 
-export const MARGIN_GROUND: GroundPalette = { ...GROUND_DEFAULT, gold: '#B48E30', grass: '#4CAA6C', dirt: '#85661E', vellum: '#D8CEB6' };
+// Where the gold stands up, its edge shows the raised gesso it is laid on.
+export const MARGIN_GROUND: GroundPalette = { ...GROUND_DEFAULT, gold: '#B48E30', grass: '#4CAA6C', dirt: '#85661E', vellum: '#D8CEB6', rock: '#E2D6BA', cliffTop: '#C9A23C' };
 export const MARGIN_SKY: SkyDef = { top: '#E8DCC0', horizon: '#F4ECD8', moon: null, stars: 0, clouds: 0.2, cloudColor: '#FFF8E8' };
 
 export function marginLight(r: WorldRenderer, dim = 0): void {

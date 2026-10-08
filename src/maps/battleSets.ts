@@ -12,6 +12,7 @@ import { armarium, candleStand, coffer, lectern, writingDesk } from '../pixel/fu
 import { gravestone, lanternPost, mooringPost, stoneCross } from '../pixel/props';
 import { GROUND_DEFAULT } from '../pixel/terrain';
 import { NIGHT_SKY } from '../world3d/sky';
+import { relief } from '../world3d/relief';
 import { type Stage, tiles } from '../world3d/stage';
 import { arcade } from './cloister';
 import { SNOW_GROUND, WINTER_NIGHT_SKY, WINTER_SKY, winterDay, winterNight } from './lychford/winter';
@@ -308,13 +309,21 @@ function cloisterGarth(r: WorldRenderer, st: Stage): BattleSet {
 
 const SNOWFIELD = Array.from({ length: 11 }, (_, y) => ' '.repeat(0) + (y >= 5 && y <= 7 ? 'd' : 'n').repeat(34));
 
+/** Behind an outdoor battle the ground banks up in two steps, so the fight has a backdrop. */
+function backdrop(seed: number): string[] {
+  return relief(34, 11, [
+    { at: [0, 0, 34, 4], h: 2, ragged: 's' },
+    { at: [0, 0, 34, 2], h: 3, ragged: 's' },
+  ], seed);
+}
+
 /** Lychford by day or night: the lane, the lych-gate, or the green ringed with lanterns. */
 function lychford(kind: 'lane' | 'lychgate' | 'green', r: WorldRenderer, st: Stage): BattleSet {
   const night = kind === 'green';
   if (night) winterNight(r);
   else winterDay(r);
   r.grade = { ...r.grade, focusBand: 60, focusRange: 220 };
-  st.ground({ ground: SNOWFIELD, heights: SNOWFIELD.map((row) => '0'.repeat(row.length)), seed: 41, palette: SNOW_GROUND });
+  st.ground({ ground: SNOWFIELD, heights: backdrop(41), seed: 41, palette: SNOW_GROUND });
   st.addSky(night ? { ...WINTER_NIGHT_SKY, moon: [180, 130] } : { ...WINTER_SKY }, 220);
   if (kind === 'lane') {
     for (let x = 0; x < tiles(34); x += 44) st.addImage(snowHedge(44, x), x + 22, tiles(3.4));
@@ -326,7 +335,7 @@ function lychford(kind: 'lane' | 'lychgate' | 'green', r: WorldRenderer, st: Sta
     st.addImage(yewTree(6), tiles(4), tiles(3));
     st.addImage(yewTree(8), tiles(30), tiles(3.2));
   } else {
-    for (const x of [tiles(4), tiles(13), tiles(22), tiles(30)]) st.addBuilding(cottage3D(x - 28, tiles(0.6), 56, 30, { seed: Math.floor(x), lit: true }));
+    for (const x of [tiles(4), tiles(13), tiles(22), tiles(30)]) st.addBuilding(cottage3D(x - 28, tiles(0.6), 56, 30, { seed: Math.floor(x), lit: true }), st.heightAt(x, tiles(1.5)));
     // Lanterns ring the green, kept low so the snow does not burn white under them.
     const lit = st.lights.length;
     for (let i = 0; i < 4; i++) {
@@ -379,14 +388,14 @@ function blanchwoodSet(kind: 'blanchwood' | 'gate', r: WorldRenderer, st: Stage)
   setDepth(r, depth);
   r.grade = { ...r.grade, focusBand: 60, focusRange: 220 };
   const field = Array.from({ length: 11 }, (_, y) => Array.from({ length: 34 }, (_, x) => (hash2(x, y, 3) < (kind === 'gate' ? 0.7 : 0.3) ? 'v' : y >= 5 && y <= 7 ? 'd' : '.')).join(''));
-  st.ground({ ground: field, heights: field.map((row) => '0'.repeat(row.length)), seed: 61, palette: WOOD_GROUND });
+  st.ground({ ground: field, heights: backdrop(61), seed: 61, palette: WOOD_GROUND });
   st.addSky({ ...WOOD_SKY }, 220);
   if (kind === 'gate') st.addArt(ninefoldGate(), tiles(17), tiles(3.4));
   for (let i = 0; i < 9; i++) {
     const x = tiles(1.5 + i * 3.9);
     if (kind === 'gate' && Math.abs(x - tiles(17)) < tiles(5)) continue;
     st.addImage(blanchedTree(i + 141, depth + hash2(i, 1, 5) * 0.2), x, tiles(2.4) + (i % 2) * 10);
-    if (i % 3 === 1) st.addImage(blanch(outlineBird(i), depth, i), x + 9, tiles(2.4) + (i % 2) * 10 - 2, { h: 38, shadow: false });
+    if (i % 3 === 1) st.addImage(blanch(outlineBird(i), depth, i), x + 9, tiles(2.4) + (i % 2) * 10 - 2, { h: st.heightAt(x, tiles(2.4) + (i % 2) * 10) + 38, shadow: false });
   }
   for (let i = 0; i < 4; i++) st.addImage(blanchedTree(i + 151, depth + 0.1), tiles(3 + i * 9), tiles(10.8));
   st.addEmitter({ kind: 'mote', area: [0, 0, tiles(34), tiles(11)], heights: [2, 60], count: 30, color: '#F4F0E6', size: 1.5, intensity: 0.35 }, 19);
@@ -418,7 +427,7 @@ function marginSet(kind: 'ivy' | 'fair' | 'inkwell', r: WorldRenderer, st: Stage
   const well = kind === 'inkwell';
   const field = Array.from({ length: 11 }, (_, y) => Array.from({ length: 34 }, (_, x) => (well && Math.hypot((x + 0.5 - 13.6) / 1.7, y + 0.5 - 6.4) < 2.6 ? '~' : 'o')).join(''));
   st.ground(
-    { ground: field, heights: field.map((row) => '0'.repeat(row.length)), seed: 67, palette: MARGIN_GROUND },
+    { ground: field, heights: backdrop(67), seed: 67, palette: MARGIN_GROUND },
     well ? { deep: '#08060E', mid: '#120E1E', shallow: '#221C34', ripple: '#3A3050', foam: '#5A4E70', glint: '#E8D8A8' } : undefined,
   );
   st.addSky({ ...MARGIN_SKY }, 220);

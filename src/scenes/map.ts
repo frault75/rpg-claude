@@ -158,7 +158,8 @@ export class MapScene implements Scene {
       const b = Billboard.fromImage(u.art, { glow: u.art, unlit: true, castShadow: false, anchor: u.flat ? [u.art.w / 2, u.art.h / 2] : [u.art.w / 2, u.art.h - 1] });
       b.x = u.x;
       b.y = u.y;
-      b.h = u.h;
+      // Heights of things and writing are above the ground they stand on.
+      b.h = this.stage.heightAt(u.x, u.y) + u.h;
       b.opacity = 0;
       b.visible = false;
       if (u.flat) b.mesh.rotation.x = -Math.PI / 2;
@@ -432,7 +433,7 @@ export class MapScene implements Scene {
     // A thing under the pointer: walk to it, then look.
     for (const th of this.def.things ?? []) {
       if (th.when && !th.when(this.ctx)) continue;
-      const s = this.r.mapToScreen(th.x, th.y, (th.h ?? 20) * 0.5);
+      const s = this.r.mapToScreen(th.x, th.y, this.heightAt(th.x, th.y) + (th.h ?? 20) * 0.5);
       if (Math.abs(s.x - x) < 36 && Math.abs(s.y - y) < 60) {
         this.goalThing = th.id;
         this.goal = this.findPath(th.x, th.y + 10) ?? this.findPath(th.x, th.y + 18);
@@ -554,7 +555,7 @@ export class MapScene implements Scene {
     if (th) {
       this.marker.x = th.x;
       this.marker.y = th.y + 1;
-      this.marker.h = (th.h ?? 30) + 10 + Math.round(Math.sin(this.time * 5) * 1.5);
+      this.marker.h = this.heightAt(th.x, th.y) + (th.h ?? 30) + 10 + Math.round(Math.sin(this.time * 5) * 1.5);
       this.marker.sync();
     }
 

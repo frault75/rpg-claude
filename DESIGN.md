@@ -1042,7 +1042,15 @@ It's the right choice for three reasons:
 
 **Camera and space.** The world is real 3D seen by a tilted orthographic camera, pitched 40° below the horizon. Maps are authored in art pixels as seen on screen (x right, y down the screen, h up from the ground), the way pixel artists draw them. The world is stretched so that every texel stays square on screen: depth is scaled by 1/sin of the pitch and height by 1/cos. There are 3 logical units per art pixel, so the 1280×720 view shows about 427×240 art pixels. Tiles are 16 art pixels.
 
-**Terrain.** Each tile stands at its own height, in steps of 8 art pixels. Tops carry the painted ground. Where a tile stands above its neighbour, a face drops to it: rock for natural ground, masonry for paved platforms, with ambient occlusion shading the ground at its foot. Stairs are built step by step, 4 steps (tread and riser) per tile, and the ground height slopes smoothly along them.
+**Terrain.** Each tile stands at its own height, in steps of 8 art pixels. Tops carry the painted ground. Where a tile stands above its neighbour, a face drops to it: rock for natural ground, masonry for paved platforms, with ambient occlusion shading the ground at its foot. Faces wear what lies on top: grass hangs over the lip and sits on the ledges, snow covers a winter bank with the stones showing through, and in the Margin the gold stands on its raised gesso. Stairs are built step by step, 4 steps (tread and riser) per tile, and the ground height slopes smoothly along them.
+
+**Relief.** No map is a flat board. The ground banks up behind the paths, rising toward the back of the scene where the camera sees its faces, and buildings stand on terraces where the land does:
+- the Sea Gate's island on its cliff;
+- Lychford's sunken lane, the village's north terrace, the church a step above its graves, the far shore of the mere;
+- the Blanchwood's banks;
+- the gold of the Margin on its gesso, and the Edge where the page ends.
+
+Behind every outdoor battle the ground rises in two steps. Banks bay in now and then rather than run ruler-straight. The places left level are level for a reason: rooms and the cloister garth, Ninefold Blank, which has been scraped flat, and the Ivy Road's catchword arches. A test walks each map from its entrances, climbing no more than a figure can, and checks that everyone and everything is still within reach.
 
 **Buildings** are textured volumes. Walls are boxes whose south face carries a painted elevation (coursed stone, doors, stained glass that glows at night). Buttresses stand out with set-offs and cast shadows. Roofs are gables and lean-tos of slate, towers end in spires, and walls are crowned with merlons. You can walk through an arch.
 
@@ -1523,6 +1531,7 @@ Each milestone is playable and arrives as its own PR, with build and tests green
 | **Done** | Boss phase changes on the field | High Water on the causeway (the shell cracks on a glowing spiral of writing, the tide breaks every second round over the Front and the Middle, Gaudry's torches come down from the Abbey); the Clean Page in the nave (the floor turns to ruled vellum, the wall to a page with the initial M of MERCY in gold, Aumery gilded in it) |
 | **Done** | The last page | The epilogue as the fifth illuminated page: the three small figures in its initial, the Lost Names found in red, FINIS in a cartouche set into the border, the score's only major chord, then the credits card; the title offers it again once the story is finished |
 | **Done** | Items in the story | The six items not carried from the start are found at story beats (§6), each with a line and its card; the clapper is the passing bell's old one, so the bell still rings at the end |
+| **Done** | Relief | Banks, terraces and steps on every outdoor map and behind every outdoor battle (§8.2), buildings on their terraces, snow-covered and gesso faces; nothing left out of reach |
 
 ---
 

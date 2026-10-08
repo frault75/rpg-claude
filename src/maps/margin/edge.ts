@@ -35,7 +35,7 @@ export const EDGE_MAP: MapDef = {
   spawns: { start: { x: tiles(3), y: tiles(7), dir: 'right' }, below: { x: tiles(EDGE + 3), y: tiles(7), dir: 'right' } },
   build(r, st) {
     marginLight(r);
-    st.ground({ ground: GROUND, heights: HEIGHTS, seed: 71, palette: { ...MARGIN_GROUND, rock: '#D8CCB0' } });
+    st.ground({ ground: GROUND, heights: HEIGHTS, seed: 71, palette: { ...MARGIN_GROUND, rock: '#D8CCB0', cliffTop: '#D8CEB6' } });
     st.addSky({ ...MARGIN_SKY }, 220);
     pageAbove(st, tiles(W));
     // The last of the scraped wood: ink outlines on blank vellum.

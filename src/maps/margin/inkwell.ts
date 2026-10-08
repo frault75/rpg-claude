@@ -16,6 +16,7 @@ import { textImage } from '../../pixel/font';
 import { hex } from '../../pixel/pixel';
 import type { Billboard } from '../../world3d/billboard';
 import { goldBar } from '../../world3d/margin';
+import { relief } from '../../world3d/relief';
 import { tiles } from '../../world3d/stage';
 import type { MapContext, MapDef } from '../types';
 import { acanthusRow, MARGIN_GROUND, MARGIN_SKY, marginLight, pageAbove } from './common';
@@ -29,11 +30,18 @@ const INK = { deep: '#08060E', mid: '#120E1E', shallow: '#221C34', ripple: '#3A3
 
 let word: Billboard | null = null;
 
+// The gold banks up behind the Ink-Well, so the well lies in a hollow at its foot.
+const HEIGHTS = relief(W, H, [
+  { at: [0, 0, W, 3], h: 2, ragged: 's' },
+  { at: [0, 0, W, 1], h: 3 },
+], 83);
+
 export const INKWELL: MapDef = {
   id: 'inkwell',
   card: { title: { en: 'The Margin', fr: 'La Marge' }, line: { en: 'The Ink-Well', fr: 'Le Puits d’encre' } },
   walkable: 'o',
   ground: GROUND,
+  heights: HEIGHTS,
   bounds: { minX: tiles(W / 2), maxX: tiles(W / 2), minY: tiles(6.6), maxY: tiles(7.4) },
   camera: { h: 4 },
   ambience: () => new MarginAmbience({ until: () => !!session.game.cleared.includes('b4') }),
@@ -42,7 +50,7 @@ export const INKWELL: MapDef = {
   spawns: { top: { x: tiles(3), y: tiles(10.6), dir: 'right' } },
   build(r, st) {
     marginLight(r, 0.6);
-    st.ground({ ground: GROUND, heights: GROUND.map((row) => '0'.repeat(row.length)), seed: 83, palette: MARGIN_GROUND }, INK);
+    st.ground({ ground: GROUND, heights: HEIGHTS, seed: 83, palette: MARGIN_GROUND }, INK);
     st.addSky({ ...MARGIN_SKY, top: '#8A7A58', horizon: '#C8B890' }, 220);
     pageAbove(st, tiles(W));
     acanthusRow(st, 0, tiles(W), tiles(2.4), 51, 76, 1.1);
