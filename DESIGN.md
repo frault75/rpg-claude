@@ -1496,7 +1496,7 @@ The game ships in **English and French**. The language is detected from the brow
 
 - **Every player-facing string is bilingual.** Interface strings are keyed tables, one per language, with named placeholders. Story lines and data (abilities, items, enemy names, intents, cards, subtitles) carry their text as `{ en, fr }` objects next to the content.
 - **Text drawn into images**, such as the logo's motto, is redrawn when the language changes.
-- **Terms.** The French follows the game's own vocabulary:
+- **Terms.** The French follows the game's own vocabulary. An ability's name is a plain word the player already knows, and its scribe's sense comes from the story: Isot *raye* and *corrige* as a copyist does (*ne gratte jamais, Isot. Corrige.*), where rarer words (*biffure*, *amender*) read as jargon.
 
 | English | French | English | French |
 |---|---|---|---|
@@ -1504,7 +1504,8 @@ The game ships in **English and French**. The language is detected from the brow
 | Tally | Décompte | Reckoning | Règlement |
 | Ink | Encre | Smudge | Bavure |
 | Penknife | Canif | Gloss | Glose |
-| Strike Through | Biffure | Emend | Amender |
+| Strike Through | Rayer | Emend | Corriger |
+| Step | Changer de place | | |
 | Rubric | Rubrique | Shove | Bousculer |
 | Shrive | Absoudre | Immure | Emmurer |
 | Squint | Hagioscope | Benison | Bénédiction |

@@ -133,7 +133,7 @@ export const LANE: MapDef = {
       c.letterbox(true);
       await c.wait(1.8);
       await c.say('hild', { en: 'Lychford. The first village I nursed through the Grey Sweat. I haven’t seen it in ten years.', fr: 'Lychford. Le premier village que j’ai soigné pendant la Suette grise. Je ne l’ai pas revu depuis dix ans.' }, 'grave');
-      await c.say('isot', { en: 'Wystan used to say: never scrape, Isot. Emend.', fr: 'Wystan disait : ne gratte jamais, Isot. Amende.' }, 'sad');
+      await c.say('isot', { en: 'Wystan used to say: never scrape, Isot. Emend.', fr: 'Wystan disait : ne gratte jamais, Isot. Corrige.' }, 'sad');
       await c.say('isot', { en: '“A small mark above, the true word between. Let them see you got it wrong, Isot. It won’t kill you.”', fr: '« Un petit signe au-dessus, le bon mot dans l’interligne. Qu’on voie que tu t’es trompée, Isot. Ça ne te tuera pas. »' }, 'sad');
       c.set('learnedEmend');
       c.letterbox(false);
