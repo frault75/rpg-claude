@@ -471,6 +471,8 @@ Ten names are hidden in underwriting across the five locations, two in each. The
 9. *Hamo the bellringer, who rang the passing bell for the last time on the night of the Mercy.*
 10. *A girl of Lychford, born in the Grey Year, who was never written in time.* (Isot gives her a name in the margin.)
 
+Where they lie: Little Joan in the penitent's cell and Brother Osric on the cloister wall (Saint Ebb's); Edda Thatcher on her own house and Hamo in the ringing chamber (Lychford); Maud and Gervase at the hermit's hearth (Ninefold Blank); Cutha and the Fishers in the Margin; Wat and the girl of Lychford in Chapter V. Reading one shows a card and adds it to the save.
+
 ---
 
 ## 4. Cinematics
@@ -1499,7 +1501,8 @@ Each milestone is playable and arrives as its own PR, with build and tests green
 | **Done** | Battle screen | The stage in the diorama, banderoles, command windows, refusals, animations from the event log, the estampie; B1 rises out of the sea on the Sea Gate's causeway |
 | **Done** | Chapter I | Maps and scripts for the scriptorium, penitent's cell and cloister; F1 and F2 on their own stages; autosave at every checkpoint; the debug jump menu |
 | **Done** | Chapter II | Lychford: the lane (Emend, F3, the pilgrims), the village by day and by night (the rhyme, Dunstan, Amabel's choice), the churchyard (F4, Hild's grave, Immure), the bell-tower puzzle (C5), the Mummers' Play (B2, Vigil), the raid (C6), the frozen mere's ford and the hook; winter ambience and carol; the ice terrain |
-| **Next** | Chapters III–V | All maps, scripts, fights, bosses, puzzles and Lost Names, every location's music, palette and light; the journal |
+| **Done** | Chapter III | The Blanchwood (F5) draining to grisaille as you walk; Ninefold Blank's faded path, the city in sepia underwriting, and the hermit's two Lost Names; Ninefold Gate (Squint, F6 with sealed edicts); the Blanching chase (C7); the Danse Macabre mural (the Emend upgrade); the ossuary (B3), FINIS (C8), the forgiveness choice, Read Aloud; the Phrygian theme that forgets its notes; Lost Names for chapters I–III |
+| **Next** | Chapters IV–V | All maps, scripts, fights, bosses, puzzles and Lost Names, every location's music, palette and light; the journal |
 | **Then** | Ending | Ending and epilogue, interludes, a tuning and audio-mix pass |
 
 ---

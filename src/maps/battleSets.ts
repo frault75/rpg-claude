@@ -20,6 +20,9 @@ import { CHARACTERS, drawCharacter, FRAMES } from '../pixel/characters';
 import { backWall, FLOOR, moonThrough, nightInterior, sideWall } from './interior';
 import { bush, yewTree } from '../pixel/nature';
 import { wellHead } from '../pixel/furniture';
+import { blanch, ninefoldGate, outlineBird } from '../world3d/blanchwood';
+import { blanchedTree, setDepth, WOOD_GROUND, WOOD_SKY, woodLight } from './blanchwood/common';
+import { paintBones } from './blanchwood/ossuary';
 
 export interface BattleSet {
   /** Camera: where it looks and from what height. */
@@ -355,6 +358,57 @@ function lychford(kind: 'lane' | 'lychgate' | 'green', r: WorldRenderer, st: Sta
   };
 }
 
+const TIGHT: [number, number][] = [
+  [tiles(15.6), tiles(7.0)],
+  [tiles(14.1), tiles(6.0)],
+  [tiles(12.7), tiles(7.2)],
+  [tiles(11.3), tiles(5.7)],
+];
+const PARTY_PLACES: [number, number][] = [
+  [tiles(19.4), tiles(6.5)],
+  [tiles(21.2), tiles(7.2)],
+  [tiles(23), tiles(7.9)],
+];
+
+/** The Blanchwood (F5) and Ninefold Gate (F6): grey trees on blank vellum. */
+function blanchwoodSet(kind: 'blanchwood' | 'gate', r: WorldRenderer, st: Stage): BattleSet {
+  const depth = kind === 'gate' ? 0.62 : 0.4;
+  woodLight(r, depth);
+  setDepth(r, depth);
+  r.grade = { ...r.grade, focusBand: 60, focusRange: 220 };
+  const field = Array.from({ length: 11 }, (_, y) => Array.from({ length: 34 }, (_, x) => (hash2(x, y, 3) < (kind === 'gate' ? 0.7 : 0.3) ? 'v' : y >= 5 && y <= 7 ? 'd' : '.')).join(''));
+  st.ground({ ground: field, heights: field.map((row) => '0'.repeat(row.length)), seed: 61, palette: WOOD_GROUND });
+  st.addSky({ ...WOOD_SKY }, 220);
+  if (kind === 'gate') st.addArt(ninefoldGate(), tiles(17), tiles(3.4));
+  for (let i = 0; i < 9; i++) {
+    const x = tiles(1.5 + i * 3.9);
+    if (kind === 'gate' && Math.abs(x - tiles(17)) < tiles(5)) continue;
+    st.addImage(blanchedTree(i + 141, depth + hash2(i, 1, 5) * 0.2), x, tiles(2.4) + (i % 2) * 10);
+    if (i % 3 === 1) st.addImage(blanch(outlineBird(i), depth, i), x + 9, tiles(2.4) + (i % 2) * 10 - 2, { h: 38, shadow: false });
+  }
+  for (let i = 0; i < 4; i++) st.addImage(blanchedTree(i + 151, depth + 0.1), tiles(3 + i * 9), tiles(10.8));
+  st.addEmitter({ kind: 'mote', area: [0, 0, tiles(34), tiles(11)], heights: [2, 60], count: 30, color: '#F4F0E6', size: 1.5, intensity: 0.35 }, 19);
+  return { camera: { x: tiles(17), y: tiles(5.8), h: 36 }, enemies: TIGHT, party: PARTY_PLACES, seaward: [tiles(17), tiles(9)] };
+}
+
+/** The ossuary under Knell Chapel (B3): bones in the walls, a ring of candles. */
+function ossuarySet(r: WorldRenderer, st: Stage): BattleSet {
+  nightInterior(r, { ambient: 0.45, moon: 0.1 });
+  r.grade = { ...r.grade, saturation: 0.6, exposure: 1.15, focusBand: 60, focusRange: 200 };
+  st.ground({ ground: ROOM, heights: ROOM.map((row) => '0'.repeat(row.length)), seed: 63, palette: { ...GROUND_DEFAULT, stone: FLOOR.stone } });
+  backWall(st, tiles(1), tiles(1), tiles(32), tiles(1), 80, { stone: '#7A746A', seed: 65, paint: paintBones });
+  for (let i = 0; i < 7; i++) {
+    const x = tiles(4 + i * 4.4);
+    st.addArt(candleStand(14), x, tiles(3.4));
+    st.addCandle(x, tiles(3.4), 17, 0.45, 60);
+  }
+  st.addLight(tiles(17), tiles(9.5), 36, 150, '#FFD2A0', 0.5);
+  st.addCandle(tiles(9), tiles(9.8), 4, 0.4, 60);
+  st.addCandle(tiles(26), tiles(9.6), 4, 0.4, 60);
+  st.addEmitter({ kind: 'mote', area: [tiles(1), tiles(2), tiles(32), tiles(8)], heights: [2, 40], count: 24, color: '#E8DCC0', size: 1.4, intensity: 0.3 }, 27);
+  return { camera: { x: tiles(17), y: tiles(5.8), h: 36 }, enemies: TIGHT, party: PARTY_PLACES, seaward: [tiles(17), tiles(9)] };
+}
+
 /** Build the set for a battle's stage. */
 export function dressBattle(stage: string, r: WorldRenderer, st: Stage): BattleSet {
   switch (stage) {
@@ -366,6 +420,11 @@ export function dressBattle(stage: string, r: WorldRenderer, st: Stage): BattleS
     case 'lychgate':
     case 'green':
       return lychford(stage, r, st);
+    case 'blanchwood':
+    case 'gate':
+      return blanchwoodSet(stage, r, st);
+    case 'ossuary':
+      return ossuarySet(r, st);
     default:
       return causeway(r, st);
   }

@@ -397,3 +397,182 @@ describe('Boss II: the Mummers’ Play', () => {
     expect(doctor.hp).toBe(8 - 7);
   });
 });
+
+describe('Prior Gaudry at Ninefold Gate', () => {
+  const party: CharId[] = ['whit', 'hild', 'isot'];
+
+  it('his edicts are sealed until Hild squints at them', () => {
+    const b = fight('f6', party);
+    const gaudry = b.enemies.find((e) => e.kind === 'gaudry')!;
+    const edict = b.intents.find((i) => i.actor === gaudry.id)!;
+    expect(b.shows(edict)).toBe(false);
+    b.act('hild', 'squint');
+    expect(b.shows(edict)).toBe(true);
+    expect(edict.label.en).toContain('EDICT');
+  });
+
+  it('whoever stands at the Front when the Edict lands kneels next round', () => {
+    const b = fight('f6', party);
+    b.endTurn();
+    expect(b.kneeling('whit')).toBe(true);
+    expect(b.check('whit', 'lance', { unit: b.standingEnemies()[0]!.id })).toBe('acted');
+    expect(b.check('hild', 'shove')).toBeNull();
+  });
+
+  it('stepping someone who has already acted to the Front takes the Edict for them', () => {
+    const b = fight('f6', party);
+    b.act('hild', 'shrive', { unit: 'isot' });
+    b.step(0, 1);
+    b.endTurn();
+    expect(b.kneeling('hild')).toBe(true);
+    expect(b.kneeling('whit')).toBe(false);
+  });
+});
+
+describe('Boss III: the Danse Macabre', () => {
+  const party: CharId[] = ['whit', 'hild', 'isot'];
+  const who = (b: Battle, kind: string) => b.enemies.find((e) => e.kind === kind)!;
+
+  it('every banderole is a “?” until it is Glossed, but the dance’s turn is always plain', () => {
+    const b = fight('b3', party);
+    const turn = b.intents.find((i) => i.actor === 'env')!;
+    expect(b.shows(turn)).toBe(true);
+    expect(b.intents.filter((i) => i.actor !== 'env').every((i) => !b.shows(i))).toBe(true);
+    b.act('isot', 'gloss', { unit: who(b, 'childDancer').id });
+    expect(b.intents.filter((i) => b.shows(i) && i.actor !== 'env').map((i) => i.actor)).toEqual([who(b, 'childDancer').id]);
+  });
+
+  it('the party’s blows pass through the followers; only the Child can be harmed', () => {
+    const b = fight('b3', party);
+    const pope = who(b, 'pope');
+    b.act('isot', 'penknife', { unit: pope.id });
+    expect(pope.hp).toBe(8);
+    expect(b.events.some((e) => e.type === 'pass' && e.unit === pope.id)).toBe(true);
+    b.act('whit', 'tally', { unit: who(b, 'childDancer').id });
+    b.act('hild', 'shove');
+    expect(pope.hp).toBe(8);
+    b.undo();
+    b.undo();
+    b.undo();
+    b.act('isot', 'penknife', { unit: who(b, 'childDancer').id });
+    expect(who(b, 'childDancer').hp).toBe(22);
+  });
+
+  it('the dance turns at every round’s end: each dancer one place back, the last to the front', () => {
+    const b = fight('b3', party);
+    const before = ['pope', 'king', 'childDancer', 'ploughman'].map((k) => who(b, k).place);
+    expect(before).toEqual([0, 1, 2, 3]);
+    b.endTurn();
+    expect(['pope', 'king', 'childDancer', 'ploughman'].map((k) => who(b, k).place)).toEqual([1, 2, 3, 0]);
+  });
+
+  it('striking through the turn holds the ring still', () => {
+    const b = fight('b3', party);
+    const turn = b.intents.find((i) => i.actor === 'env')!;
+    b.act('isot', 'strike', { intent: turn.id });
+    b.endTurn();
+    expect(['pope', 'king', 'childDancer', 'ploughman'].map((k) => who(b, k).place)).toEqual([0, 1, 2, 3]);
+  });
+
+  it('the Child calls the tune in round 2: every dancer acts twice in round 3, unless it is struck through', () => {
+    const b = fight('b3', party);
+    b.endTurn();
+    const tune = b.intents.find((i) => i.effects.some((e) => e.kind === 'tune'))!;
+    expect(tune.actor).toBe(who(b, 'childDancer').id);
+    b.endTurn();
+    const dancers = (x: Battle) => x.intents.filter((i) => i.actor !== 'env').length;
+    expect(dancers(b)).toBe(8);
+
+    const c = fight('b3', party);
+    c.endTurn();
+    c.act('isot', 'strike', { intent: c.intents.find((i) => i.effects.some((e) => e.kind === 'tune'))!.id });
+    c.endTurn();
+    expect(dancers(c)).toBe(4);
+  });
+
+  it('upgraded, Emend turns a follower’s blow onto the Child, for 2 Ink', () => {
+    const b = fight('b3', party);
+    const hand = b.intents.find((i) => i.actor === who(b, 'pope').id)!;
+    const child = who(b, 'childDancer');
+    expect(b.check('isot', 'emend', { intent: hand.id, to: child.id })).toBe('target');
+    const c = fight('b3', party, { emendAnywhere: true });
+    const hand2 = c.intents.find((i) => i.actor === who(c, 'pope').id)!;
+    expect(c.check('isot', 'emend', { intent: hand2.id, to: who(c, 'pope').id })).toBe('target');
+    expect(c.act('isot', 'emend', { intent: hand2.id, to: who(c, 'childDancer').id })).toBe(true);
+    expect(c.ink).toBe(0);
+    c.endTurn();
+    expect(who(c, 'childDancer').hp).toBe(21);
+    // The hand was taken by another dancer: the Front and Middle did not swap.
+    expect(c.allyAt(0)!.id).toBe('whit');
+  });
+
+  it('at half its HP the ring turns to Whit, and the followers’ blows pass through him', () => {
+    const b = fight('b3', party);
+    const child = who(b, 'childDancer');
+    child.hp = 13;
+    b.act('isot', 'penknife', { unit: child.id });
+    expect(b.events.some((e) => e.type === 'phase' && e.title.en === 'The Empty Place')).toBe(true);
+    const whitHp = b.unit('whit')!.hp;
+    b.endTurn();
+    // The Pope's hand at the Front (Whit) passes through him.
+    expect(b.unit('whit')!.hp).toBe(whitHp);
+    expect(b.events.some((e) => e.type === 'pass' && e.unit === 'whit')).toBe(true);
+  });
+
+  it('falls in a few rounds to a Squint, a Tally, a struck tune and tracking the Child', () => {
+    const b = fight('b3', party);
+    const child = () => who(b, 'childDancer');
+    // Round 1: find the Leader, set the Tally.
+    b.act('hild', 'squint');
+    b.act('whit', 'tally', { unit: child().id });
+    b.act('isot', 'penknife', { unit: child().id });
+    b.endTurn();
+    // Round 2: the tune is called; strike it through.
+    const tune = b.intents.find((i) => i.effects.some((e) => e.kind === 'tune'))!;
+    expect(b.act('isot', 'strike', { intent: tune.id })).toBe(true);
+    const hurt = [...b.party].sort((x, y) => x.hp - y.hp)[0]!;
+    b.act('hild', 'shrive', { unit: hurt.id });
+    b.endTurn();
+    // Then follow the Child round the ring.
+    for (let r = 0; r < 4 && b.result === 'ongoing'; r++) {
+      const c = child();
+      if (!b.check('whit', 'lance', { unit: c.id })) b.act('whit', 'lance', { unit: c.id });
+      if (!b.check('isot', 'penknife', { unit: c.id })) b.act('isot', 'penknife', { unit: c.id });
+      if (b.result === 'ongoing') {
+        if (b.standingEnemies()[0] === child() && !b.check('hild', 'shove')) b.act('hild', 'shove');
+        else {
+          const low = [...b.party].filter((x) => !x.fallen).sort((x, y) => x.hp - y.hp)[0]!;
+          if (!b.check('hild', 'shrive', { unit: low.id })) b.act('hild', 'shrive', { unit: low.id });
+        }
+      }
+      if (b.result === 'ongoing') b.endTurn();
+    }
+    expect(b.result).toBe('victory');
+    expect(b.round).toBeLessThanOrEqual(5);
+    expect(b.party.every((u) => !u.fallen)).toBe(true);
+  });
+
+  it('when the Child falls, the whole dance ends', () => {
+    const b = fight('b3', party);
+    const child = who(b, 'childDancer');
+    child.hp = 2;
+    b.act('isot', 'penknife', { unit: child.id });
+    expect(b.enemies.every((e) => e.fallen)).toBe(true);
+    expect(b.result).toBe('victory');
+  });
+});
+
+describe('the Blanchwood music', () => {
+  it('fills every bar of its tune exactly, four beats', async () => {
+    const { BLANCH_TUNE } = await import('../src/audio/blanchwood');
+    for (const bar of BLANCH_TUNE) expect(bar.reduce((s, [, n]) => s + n, 0)).toBe(4);
+  });
+
+  it('forgets more notes the deeper the wood', async () => {
+    const { forgotten } = await import('../src/audio/blanchwood');
+    const count = (d: number) => Array.from({ length: 400 }, (_, n) => forgotten(n, d)).filter(Boolean).length;
+    expect(count(0)).toBe(0);
+    expect(count(0.3)).toBeLessThan(count(0.7));
+    expect(count(1)).toBeGreaterThan(300);
+  });
+});

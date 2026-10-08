@@ -11,8 +11,8 @@ export const FRAME_W = 32;
 export const FRAME_H = 48;
 
 export type Dir = 'down' | 'up' | 'left' | 'right';
-export type Headwear = 'kerchief' | 'wimple' | 'helm' | 'mitre' | 'hood' | 'cap' | 'tallhat' | 'none';
-export type Held = 'quill' | 'book' | 'lance' | 'crozier' | 'stone' | 'sword' | 'bottle' | 'spade' | 'broom' | 'bow' | 'none';
+export type Headwear = 'kerchief' | 'wimple' | 'helm' | 'mitre' | 'hood' | 'cap' | 'tallhat' | 'crown' | 'tiara' | 'none';
+export type Held = 'quill' | 'book' | 'lance' | 'crozier' | 'stone' | 'sword' | 'bottle' | 'spade' | 'broom' | 'bow' | 'hammer' | 'club' | 'none';
 
 export interface CharSpec {
   id: string;
@@ -37,8 +37,14 @@ export interface CharSpec {
   mask?: string;
   /** A cross on the chest (Saint George's red cross). */
   cross?: string;
-  /** Drawn smaller (children). */
+  /** Drawn smaller (children) or larger. */
   scale?: number;
+  /** A skull for a face (the dancers of the Danse Macabre). */
+  skull?: boolean;
+  /** The hem in tatters. */
+  rags?: boolean;
+  /** Shaggy hair all over, long locks and a beard (the wodewose). */
+  fur?: boolean;
 }
 
 export const CHARACTERS: Record<string, CharSpec> = {
@@ -58,6 +64,14 @@ export const CHARACTERS: Record<string, CharSpec> = {
   goodwife: { id: 'goodwife', skin: '#EAC8AA', hair: '#7A4A2A', eyes: '#2A3A4A', headwear: 'kerchief', headwearColor: '#E8DCC8', robe: '#A63A4C', belt: '#5A3A2A', held: 'none' },
   child: { id: 'child', skin: '#F0CCAC', hair: '#B87A3A', eyes: '#2A3A5A', headwear: 'none', headwearColor: '#000000', robe: '#DA6A32', belt: '#6C4B2D', held: 'none', scale: 0.78 },
   child2: { id: 'child2', skin: '#E8C0A0', hair: '#3A2A1E', eyes: '#2A1E16', headwear: 'cap', headwearColor: '#2E8B74', robe: '#BC8D42', belt: '#6C4B2D', held: 'broom', scale: 0.78 },
+  // The Blanchwood.
+  gaudry: { id: 'gaudry', skin: '#E2B898', hair: '#6A5A4A', eyes: '#3A4A5A', headwear: 'none', headwearColor: '#000000', robe: '#5E606A', belt: '#2E2A26', held: 'hammer', scale: 1.12 },
+  ermeline: { id: 'ermeline', skin: '#ECCDB8', hair: '#3A2A20', eyes: '#3A3A44', headwear: 'wimple', headwearColor: '#E8E4DC', veil: '#5A5C66', robe: '#7A7C86', belt: '#3E404A', held: 'stone' },
+  wodewose: { id: 'wodewose', skin: '#C8B6A2', hair: '#F2EEE6', eyes: '#2A2A30', headwear: 'none', headwearColor: '#000000', robe: '#E2DCD0', held: 'club', fur: true, rags: true, scale: 1.22 },
+  pope: { id: 'pope', skin: '#E9DDC2', hair: '#D8CCB0', eyes: '#141010', headwear: 'tiara', headwearColor: '#F2EDE2', robe: '#E6DEC8', cape: '#A8322A', held: 'crozier', skull: true, rags: true },
+  king: { id: 'king', skin: '#E9DDC2', hair: '#D8CCB0', eyes: '#141010', headwear: 'crown', headwearColor: '#D8A838', robe: '#6B3C70', cape: '#2E4A8A', held: 'none', skull: true, rags: true },
+  ploughman: { id: 'ploughman', skin: '#E9DDC2', hair: '#D8CCB0', eyes: '#141010', headwear: 'cap', headwearColor: '#6C4B2D', robe: '#7A6A42', belt: '#4A3A20', held: 'spade', skull: true, rags: true },
+  childDancer: { id: 'childDancer', skin: '#E9DDC2', hair: '#E2D6BC', eyes: '#141010', headwear: 'none', headwearColor: '#000000', robe: '#A89878', belt: '#6C4B2D', held: 'none', skull: true, rags: true, scale: 0.74 },
   eadgyth: { id: 'eadgyth', skin: '#E8C6A8', hair: '#A8462A', eyes: '#2A4A3A', headwear: 'none', headwearColor: '#000000', robe: '#2E5A3A', cape: '#4A3A2A', belt: '#6A4A2A', held: 'bow' },
 };
 
@@ -152,7 +166,7 @@ function drawFront(img: PixelImage, s: CharSpec, front: boolean, p: Pose): void 
   if (!front && s.held === 'crozier') img.vline(7, 8, 46, GOLD[1]!);
 
   // ---- legs and feet ----
-  const shoe = s.armour ? SILVER : ramp('#3A2E2A', 4);
+  const shoe = s.armour ? SILVER : ramp(s.skull ? s.skin : '#3A2E2A', 4);
   const lf = p.step < 0 ? 1 : p.step > 0 ? -1 : 0; // left foot: forward lowers it by a pixel
   const rf = -lf;
   if (s.armour) {
@@ -176,6 +190,7 @@ function drawFront(img: PixelImage, s: CharSpec, front: boolean, p: Pose): void 
     if (y >= skirtEnd - 1) t = Math.max(0, t - 1);
     // A rim of light along the lit edge keeps the silhouette readable.
     if (x === x0 && y > sh + 1) t = Math.min(4, t + 1);
+    if (s.fur && (x * 5 + Math.floor(y / 2) * 3) % 4 === 0) t = Math.max(0, t - 1);
     return robe[t]!;
   };
   trapezoid(img, cx, sh, sh + 2, 3.6, 5.4, cloth);
@@ -349,6 +364,18 @@ function drawFront(img: PixelImage, s: CharSpec, front: boolean, p: Pose): void 
         img.set(Math.round(26 - (1 - k * k) * 3), y, WOOD[2]!);
       }
       img.vline(26, armR - 14, armR + 8, hex('#D8D0C0', 180));
+    } else if (s.held === 'hammer') {
+      // A bell-hammer: a long haft, a bronze head like a bell's clapper.
+      const bronze = ramp('#A87A3A', 5);
+      img.vline(24, armR - 16, armR + 4, WOOD[2]!);
+      img.vline(25, armR - 16, armR + 4, WOOD[0]!);
+      img.ellipse(25.5, armR - 17, 2.8, 2.4, (x) => bronze[x < 25 ? 4 : x < 27 ? 3 : 1]!);
+      img.set(24, armR - 18, bronze[4]!);
+    } else if (s.held === 'club') {
+      img.vline(24, armR - 12, armR + 2, WOOD[1]!);
+      img.vline(25, armR - 12, armR + 2, WOOD[0]!);
+      img.ellipse(24.5, armR - 13, 2.6, 3.4, (x) => WOOD[x < 25 ? 2 : 0]!);
+      img.set(23, armR - 15, WOOD[3]!);
     }
     if (s.cross) {
       const c = hex(s.cross);
@@ -391,6 +418,18 @@ function drawFront(img: PixelImage, s: CharSpec, front: boolean, p: Pose): void 
     img.set(19, hy + 2, hex('#E06A6A'));
     img.hline(14, 18, hy + 3, hex('#A82A2A'));
     img.set(13, hy + 2, hex('#A82A2A'));
+  } else if (front && s.skull) {
+    // A skull: deep sockets with a glint, a nose hole, a grin of teeth.
+    const dark = hex('#1A1410');
+    img.rect(13, hy - 1, 2, 2, dark);
+    img.rect(17, hy - 1, 2, 2, dark);
+    img.set(13, hy - 1, hex('#5A4A3A'));
+    img.set(16, hy + 1, dark);
+    img.hline(14, 18, hy + 3, skin[4]!);
+    for (const x of [14, 16, 18]) img.set(x, hy + 3, skin[1]!);
+    img.hline(14, 18, hy + 4, dark);
+    img.set(12, hy + 2, skin[1]!);
+    img.set(20, hy + 2, skin[0]!);
   } else if (front && s.headwear !== 'helm') {
     // A small face: eyes of two pixels, a hint of nose and mouth.
     const eye = hex(s.eyes);
@@ -412,8 +451,23 @@ function drawFront(img: PixelImage, s: CharSpec, front: boolean, p: Pose): void 
     }
   }
 
+  if (s.fur) {
+    // Long locks to the shoulders and a beard to the chest.
+    for (let y = hy - 3; y < sh + 4; y++) {
+      img.set(10, y, hair[3]!);
+      img.set(11, y, hair[2]!);
+      img.set(21, y, hair[1]!);
+      img.set(22, y, hair[0]!);
+    }
+    if (front) img.ellipse(hx, hy + 6, 4, 4, (x, y) => (y > hy + 3 ? hair[Math.min(4, lit(x, 11, 21))]! : null));
+  }
+
   // ---- hair and headwear ----
   switch (s.headwear) {
+    case 'crown':
+    case 'tiara':
+      crownOrTiara(img, s, hx, hy, hair, hw, front);
+      break;
     case 'kerchief': {
       const ht = (x: number) => hair[Math.min(4, lit(x, 10, 22))]!;
       if (front) {
@@ -600,7 +654,7 @@ function drawSide(img: PixelImage, s: CharSpec, p: Pose): void {
   }
   // Legs: a stride when walking.
   const stride = Math.round(p.step * 4);
-  const shoe = s.armour ? SILVER : ramp('#3A2E2A', 4);
+  const shoe = s.armour ? SILVER : ramp(s.skull ? s.skin : '#3A2E2A', 4);
   if (s.armour) {
     for (const [x0, k] of [
       [14 - stride, 4],
@@ -617,6 +671,7 @@ function drawSide(img: PixelImage, s: CharSpec, p: Pose): void {
     let t = sideLit(x, x0, x1);
     if (y >= skirtEnd - 1) t = Math.max(0, t - 1);
     if (x === x0 && y > sh + 1) t = Math.min(4, t + 1);
+    if (s.fur && (x * 5 + Math.floor(y / 2) * 3) % 4 === 0) t = Math.max(0, t - 1);
     return robe[t]!;
   };
   trapezoid(img, 16, sh, sh + 2, 3, 4.4, cloth);
@@ -697,6 +752,13 @@ function drawSide(img: PixelImage, s: CharSpec, p: Pose): void {
       const k = (y - (27 + by)) / 11;
       img.set(Math.round(hand - 2 - (1 - k * k) * 3), y, WOOD[2]!);
     }
+  } else if (s.held === 'hammer') {
+    const bronze = ramp('#A87A3A', 5);
+    img.line(hand + 1, 33 + by, hand - 5, 13 + by, WOOD[2]!);
+    img.ellipse(hand - 6, 11 + by, 3, 2.6, (x) => bronze[x < hand - 6 ? 4 : 2]!);
+  } else if (s.held === 'club') {
+    img.line(hand + 1, 32 + by, hand - 4, 19 + by, WOOD[1]!);
+    img.ellipse(hand - 5, 17 + by, 2.6, 3.2, WOOD[2]!);
   }
   if (s.mask) {
     const paper = ramp(s.mask, 4);
@@ -708,7 +770,14 @@ function drawSide(img: PixelImage, s: CharSpec, p: Pose): void {
   const hx = 15;
   const hy = 10 + by - p.breath;
   img.ellipse(hx, hy, 4.6, 5.6, (x) => skin[x < 13 ? 4 : x < 16 ? 3 : 2]!);
-  if (s.headwear !== 'helm') {
+  if (s.skull) {
+    const dark = hex('#1A1410');
+    img.rect(11, hy - 1, 2, 2, dark);
+    img.set(10, hy + 1, dark);
+    img.hline(10, 13, hy + 3, skin[4]!);
+    img.hline(10, 13, hy + 4, dark);
+    img.set(11, hy + 3, skin[1]!);
+  } else if (s.headwear !== 'helm') {
     img.set(10, hy + 1, skin[3]!); // nose
     img.set(12, hy, hex(s.eyes));
     img.set(12, hy + 1, hex('#1A1210'));
@@ -716,7 +785,15 @@ function drawSide(img: PixelImage, s: CharSpec, p: Pose): void {
     img.hline(11, 12, hy + 4, hex('#B06A60'));
     if (s.marks) img.set(14, hy + 2, hex('#8C8A8A'));
   }
+  if (s.fur) {
+    for (let y = hy - 3; y < sh + 5; y++) img.hline(16, 20, y, hair[y % 3 ? 2 : 1]!);
+    img.ellipse(hx - 2, hy + 6, 3, 3.6, (_x, y) => (y > hy + 3 ? hair[3]! : null));
+  }
   switch (s.headwear) {
+    case 'crown':
+    case 'tiara':
+      crownOrTiara(img, s, hx + 1, hy, hair, hw, false);
+      break;
     case 'kerchief':
       img.ellipse(hx + 1.5, hy - 0.5, 4.8, 5.6, (x, y) => (x > 14 || y < hy - 2 ? hair[x < 16 ? 2 : 1]! : null));
       for (let y = hy + 2; y < hy + 6; y++) img.hline(15, 20, y, hair[1]!);
@@ -788,11 +865,62 @@ function drawSide(img: PixelImage, s: CharSpec, p: Pose): void {
   }
 }
 
+/** A king's crown, or the Pope's triple tiara. */
+function crownOrTiara(img: PixelImage, s: CharSpec, hx: number, hy: number, hair: RGBA[], hw: RGBA[], front: boolean): void {
+  img.ellipse(hx, hy - 3, 5.2, 3.6, (x, y) => (y < hy - 1 ? hair[Math.min(4, lit(x, 10, 22))]! : null));
+  if (s.headwear === 'crown') {
+    img.rect(hx - 5, hy - 6, 11, 3, GOLD[2]!);
+    img.hline(hx - 5, hx + 5, hy - 6, GOLD[4]!);
+    for (const dx of [-5, -2, 1, 4]) {
+      img.vline(hx + dx, hy - 9, hy - 6, GOLD[3]!);
+      img.set(hx + dx, hy - 10, GOLD[4]!);
+    }
+    if (front) {
+      img.set(hx - 1, hy - 5, hex('#C8303A'));
+      img.set(hx + 2, hy - 5, hex('#3A5BB5'));
+    }
+    return;
+  }
+  img.poly(
+    [
+      [hx - 4.5, hy - 3],
+      [hx + 4.5, hy - 3],
+      [hx + 3.5, hy - 12],
+      [hx, hy - 15],
+      [hx - 3.5, hy - 12],
+    ],
+    (x) => hw[Math.min(4, lit(x, hx - 5, hx + 5) + 1)]!,
+  );
+  for (const y of [hy - 4, hy - 8, hy - 11]) img.hline(Math.round(hx - 4), Math.round(hx + 4), y, GOLD[y === hy - 4 ? 2 : 3]!);
+  img.vline(Math.round(hx), hy - 18, hy - 15, GOLD[4]!);
+  img.hline(Math.round(hx) - 1, Math.round(hx) + 1, hy - 17, GOLD[4]!);
+}
+
+/** A tattered hem: the bottom of the robe torn into a jagged edge. */
+function tatter(img: PixelImage, s: CharSpec): void {
+  for (let x = 3; x < 29; x++) {
+    const h = ((x * 73856093) ^ (s.id.length * 83492791)) >>> 0;
+    const torn = (h % 7) - 1;
+    for (let k = 0; k < torn; k++) {
+      const y = 43 - k;
+      if (x >= 11 && x <= 21 && y >= 42) continue;
+      img.set(x, y, [0, 0, 0, 0]);
+    }
+  }
+}
+
 /** Draw one frame of a character. */
 export function drawCharacter(s: CharSpec, dir: Dir, pose: Pose): PixelImage {
   const img = new PixelImage(FRAME_W, FRAME_H);
   if (dir === 'down' || dir === 'up') drawFront(img, s, dir === 'down', pose);
   else drawSide(img, s, pose);
+  if (s.rags) tatter(img, s);
+  if (s.skull) {
+    // Bare shins under the tattered hem.
+    const bone = ramp(s.skin, 5);
+    const legs = dir === 'down' || dir === 'up' ? [13, 18] : [14, 16];
+    for (let y = 39; y < 44; y++) for (const [i, x] of legs.entries()) img.set(x, y, bone[i ? 2 : 4]!);
+  }
   img.outline(null);
   if (dir === 'right') {
     const m = new PixelImage(FRAME_W, FRAME_H);

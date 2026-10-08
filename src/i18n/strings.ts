@@ -262,6 +262,9 @@ registerStrings('en', {
   'battle.gathers': 'Gathering…',
   'battle.vigil': 'Vigil!',
   'battle.rises': 'Rises!',
+  'battle.passes': 'Passes through',
+  'lostName.title': 'A Lost Name',
+  'battle.chooseEnemyEmend': 'Turn the blow onto this enemy (2 Ink).',
   'battle.victory': 'The margin is quiet',
   'battle.victoryLine': 'They scatter back into the border as sketches.',
   'battle.defeat': 'The ink runs',
@@ -295,6 +298,8 @@ registerStrings('en', {
   'status.doomed': 'Doomed',
   'status.readOnly': 'Must be Read',
   'status.guarded': 'Guarded',
+  'status.hollow': 'Hollow',
+  'status.leads': 'Leads the dance',
 });
 registerStrings('fr', {
   'battle.party': 'Le groupe',
@@ -327,6 +332,9 @@ registerStrings('fr', {
   'battle.gathers': 'Se ramasse…',
   'battle.vigil': 'Veille !',
   'battle.rises': 'Se relève !',
+  'battle.passes': 'Le traverse',
+  'lostName.title': 'Un nom perdu',
+  'battle.chooseEnemyEmend': 'Détourner le coup sur cet ennemi (2 Encre).',
   'battle.victory': 'La marge se tait',
   'battle.victoryLine': 'Ils retournent dans la bordure, à l’état d’esquisses.',
   'battle.defeat': 'L’encre coule',
@@ -360,6 +368,8 @@ registerStrings('fr', {
   'status.doomed': 'Condamné',
   'status.readOnly': 'Doit être Lu',
   'status.guarded': 'Protégé',
+  'status.hollow': 'Creux',
+  'status.leads': 'Mène la danse',
 });
 
 registerStrings('en', {

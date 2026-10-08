@@ -118,6 +118,8 @@ export interface Intent {
   cancelled: boolean;
   /** Held over into next round: postponed by Immure, or a wind-up still counting. */
   waiting: boolean;
+  /** Emended onto another enemy: the blow lands on them instead. */
+  turned?: boolean;
 }
 
 export type IntentEffect =
@@ -133,7 +135,11 @@ export type IntentEffect =
   | { kind: 'doom' }
   | { kind: 'raise' }
   | { kind: 'guard' }
-  | { kind: 'spawn'; enemy: string };
+  | { kind: 'spawn'; enemy: string }
+  /** Every dancer acts twice next round (the Danse Macabre's Leader). */
+  | { kind: 'tune' }
+  /** The dance turns: every enemy moves one place back, the last to the front. */
+  | { kind: 'turn' };
 
 export type AbilityId =
   | 'penknife'
@@ -184,6 +190,8 @@ export type BattleEvent =
   | { type: 'retarget'; intent: string }
   | { type: 'move'; unit: string; from: Place; to: Place }
   | { type: 'reckoning'; unit: string; amount: number }
+  /** A blow passes through a hollow dancer (or, after the Empty Place, through Whit). */
+  | { type: 'pass'; unit: string }
   | { type: 'vigil'; unit: string; by: string }
   | { type: 'fall'; unit: string }
   | { type: 'rise'; unit: string }

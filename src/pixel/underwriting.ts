@@ -7,6 +7,7 @@
  */
 
 import { hash2 } from '../engine/noise';
+import { textImage } from './font';
 import { bayer, hex, PixelImage, type RGBA, ramp } from './pixel';
 
 const GHOST = hex('#E8C88A', 220);
@@ -118,4 +119,9 @@ export function rubble(seed = 3): PixelImage {
   }
   img.outline(null);
   return img;
+}
+
+/** Words in the underwriting: pale ghost-ink on dark walls, or old sepia on bright ones. */
+export function ghostWords(lines: string[], sepia = false): PixelImage {
+  return textImage(lines, sepia ? hex('#6A4A28', 235) : GHOST);
 }

@@ -11,7 +11,7 @@ import { windowArch } from '../pixel/buildings';
 import { CHARACTERS } from '../pixel/characters';
 import { bench, bucket, candle, pallet } from '../pixel/furniture';
 import { GROUND_DEFAULT } from '../pixel/terrain';
-import { breach, ghostDoorway, rubble } from '../pixel/underwriting';
+import { breach, ghostDoorway, ghostWords, rubble } from '../pixel/underwriting';
 import { tiles } from '../world3d/stage';
 import { backWall, FLOOR, moonThrough, nightInterior, sideWall } from './interior';
 import type { MapContext, MapDef, Rect } from './types';
@@ -138,6 +138,8 @@ export const CELL: MapDef = {
       when: (c) => c.flag('hildAsked') && !c.flag('wallDown'),
       revealed: (c) => wallComesDown(c),
     },
+    // A Glossator's cache, scratched small by the window.
+    { id: 'name-joan', x: tiles(11), y: WALL_Y + 1, h: 30, art: ghostWords(['LITTLE JOAN', 'WHO NAMED THE HENS']), lostName: 'joan' },
   ],
   exits: [
     {

@@ -20,6 +20,8 @@ export interface BattleSetup {
   seed?: number;
   /** Gentle Hand: +50% HP, Ink refills by 2. */
   gentle?: boolean;
+  /** Emend upgraded at Knell Chapel: a blow can be turned onto another enemy (2 Ink). */
+  emendAnywhere?: boolean;
 }
 
 export interface ActTarget {
@@ -63,6 +65,7 @@ interface Snapshot {
   squinted: number;
   preview: Intent[] | null;
   revivals: number;
+  emptyPlace: boolean;
   eventsLen: number;
 }
 
@@ -93,7 +96,12 @@ export class Battle {
   private readonly abilities: Record<CharId, AbilityId[]>;
   private readonly equipment: BattleSetup['equipment'] & object;
   private readonly gentle: boolean;
+  readonly emendAnywhere: boolean;
   private readonly fighting: ReadonlySet<CharId>;
+  /** A tune was called: every dancer plans twice next round. */
+  private tuned = false;
+  /** The Danse Macabre's Leader is at half: the followers' blows pass through Whit. */
+  private emptyPlace = false;
   private nextIntentId = 1;
 
   constructor(setup: BattleSetup) {
@@ -103,6 +111,7 @@ export class Battle {
     this.rng = new Rng(setup.seed ?? 7);
     this.abilities = setup.abilities;
     this.gentle = !!setup.gentle;
+    this.emendAnywhere = !!setup.emendAnywhere;
     this.equipment = setup.equipment ?? {};
     this.fighting = new Set(setup.party.slice(0, 3));
     setup.party.slice(0, 3).forEach((c, i) => {
@@ -125,6 +134,7 @@ export class Battle {
       const size = e.size ?? 1;
       const st = freshStatuses();
       st.readOnly = !!e.readOnly;
+      st.hollow = !!e.hollow;
       this.units.push({ id: `e${i}`, side: 'enemy', kind, name: e.name, hp: e.hp, maxHp: e.hp, place, size, status: st, fallen: false, acted: false, phase: 0, hiddenIntents: !!e.hidden });
       place += size;
     });
@@ -220,13 +230,17 @@ export class Battle {
         for (const w of mine) this.intents.push({ ...w, waiting: false });
         continue;
       }
-      for (const spec of this.plan(e, this.round, () => this.rng.float())) {
-        const it = this.makeIntent(e.id, spec);
-        this.intents.push(it);
-        this.declare(it, e);
+      // A called tune: the dancers plan twice.
+      for (let k = 0; k < (this.tuned ? 2 : 1); k++) {
+        for (const spec of this.plan(e, this.round, () => this.rng.float())) {
+          const it = this.makeIntent(e.id, spec);
+          this.intents.push(it);
+          this.declare(it, e);
+        }
+        e.phase++;
       }
-      e.phase++;
     }
+    this.tuned = false;
     const env = this.def.env?.(this.round);
     if (env) this.intents.push(this.makeIntent('env', env));
     this.intents.forEach((it, i) => (it.order = i + 1));
@@ -305,13 +319,19 @@ export class Battle {
   private predict(): Intent[] {
     const out: Intent[] = [];
     const id = this.nextIntentId;
+    const tune = this.intents.some((i) => !i.cancelled && i.effects.some((e) => e.kind === 'tune') && !this.unit(i.actor)?.status.immured);
     for (const e of this.standingEnemies()) {
       const holding = this.intents.filter((i) => i.actor === e.id && i.countdown > 0 && !i.cancelled);
       if (holding.length) {
         for (const h of holding) out.push({ ...h, countdown: h.countdown - 1, id: `p${h.id}` });
         continue;
       }
-      for (const s of this.plan(e, this.round + 1, () => 0.5)) out.push({ ...this.makeIntent(e.id, s), id: `p${out.length}` });
+      for (let k = 0; k < (tune ? 2 : 1); k++) {
+        const saved = e.phase;
+        e.phase += k;
+        for (const s of this.plan(e, this.round + 1, () => 0.5)) out.push({ ...this.makeIntent(e.id, s), id: `p${out.length}` });
+        e.phase = saved;
+      }
     }
     this.nextIntentId = id;
     return out;
@@ -332,6 +352,7 @@ export class Battle {
       squinted: this.squinted,
       preview: this.preview,
       revivals: this.revivals,
+      emptyPlace: this.emptyPlace,
       eventsLen: this.events.length,
     });
   }
@@ -355,6 +376,7 @@ export class Battle {
     this.squinted = s.squinted;
     this.preview = s.preview;
     this.revivals = s.revivals;
+    this.emptyPlace = s.emptyPlace;
     this.events.length = s.eventsLen;
     this.result = 'ongoing';
     return true;
@@ -380,11 +402,12 @@ export class Battle {
     return true;
   }
 
-  /** Ink cost of an ability for its user right now. */
-  inkCost(user: Unit, ability: AbilityId): number {
+  /** Ink cost of an ability for its user right now (Emend costs 2 to name an enemy). */
+  inkCost(user: Unit, ability: AbilityId, target: ActTarget = {}): number {
     const def = ABILITIES[ability];
     if (!def.ink) return 0;
-    return def.ink + (user.status.smudged ? 1 : 0);
+    const naming = ability === 'emend' && !!target.to && this.unit(target.to)?.side === 'enemy' ? 1 : 0;
+    return def.ink + naming + (user.status.smudged ? 1 : 0);
   }
 
   hpCost(ability: AbilityId, user: Unit): number {
@@ -406,7 +429,7 @@ export class Battle {
     const def = ABILITIES[ability];
     if (def.oncePerBattle && this.usedOnce.has(ability)) return 'used';
     if (def.fromFront && u.place > 1) return 'from-front';
-    if (this.inkCost(u, ability) > this.ink) return 'ink';
+    if (this.inkCost(u, ability, target) > this.ink) return 'ink';
     const hp = this.hpCost(ability, u);
     if (hp && u.hp <= hp) return 'hp';
     const t = target.unit ? this.unit(target.unit) : undefined;
@@ -436,7 +459,8 @@ export class Battle {
         if (ability === 'emend') {
           if (!('place' in it.target || 'unit' in it.target) || it.damage <= 0) return 'not-single';
           const to = target.to ? this.unit(target.to) : undefined;
-          if (!to || to.side !== 'party' || to.fallen) return 'target';
+          if (!to || to.fallen) return 'target';
+          if (to.side === 'enemy' && (!this.emendAnywhere || to.id === it.actor || to.status.immured)) return 'target';
         }
         break;
       }
@@ -467,7 +491,7 @@ export class Battle {
     this.snapshot();
     const u = this.unit(userId)!;
     const t = target.unit ? this.unit(target.unit) : undefined;
-    const ink = this.inkCost(u, ability);
+    const ink = this.inkCost(u, ability, target);
     if (ink > 0) {
       this.ink -= ink;
       this.emit({ type: 'ink', amount: -ink });
@@ -510,6 +534,7 @@ export class Battle {
       case 'emend': {
         const it = this.intents.find((i) => i.id === target.intent)!;
         it.target = { unit: target.to! };
+        it.turned = this.unit(target.to!)!.side === 'enemy';
         this.emit({ type: 'retarget', intent: it.id });
         break;
       }
@@ -645,8 +670,17 @@ export class Battle {
       return;
     }
     this.emit({ type: 'intent', intent: it.id, actor: it.actor });
+    if (it.effects.some((e) => e.kind === 'turn')) this.turnDance();
+    if (it.effects.some((e) => e.kind === 'tune')) this.tuned = true;
     if ('self' in it.target) {
       if (actor) this.applyEffects(it, actor, actor);
+      return;
+    }
+    if (it.turned && 'unit' in it.target) {
+      // Emended onto another enemy: the blow lands there, and nothing else happens.
+      const t = this.unit(it.target.unit)!;
+      if (t.fallen || t.status.immured) this.emit({ type: 'fizzle', intent: it.id, reason: 'no-target' });
+      else this.hurt(t, it.damage, it.actor);
       return;
     }
     if ('unit' in it.target && this.unit(it.target.unit)?.side === 'enemy') {
@@ -731,6 +765,8 @@ export class Battle {
         case 'guard':
         case 'raise':
         case 'spawn':
+        case 'tune':
+        case 'turn':
           // Declared at the Omen, or handled by the boss scripts that use them.
           break;
       }
@@ -741,6 +777,13 @@ export class Battle {
 
   private hurt(u: Unit, amount: number, source: string): void {
     if (u.fallen || amount <= 0) return;
+    // Blows from the party pass through the hollow; after the Empty Place, the dance spares Whit.
+    const from = this.unit(source);
+    const byParty = from?.side === 'party' || source === 'reckoning';
+    if ((u.status.hollow && byParty) || (this.emptyPlace && u.id === 'whit' && from?.status.hollow)) {
+      this.emit({ type: 'pass', unit: u.id });
+      return;
+    }
     let a = amount;
     if (u.status.glossed) {
       a += 3;
@@ -761,6 +804,14 @@ export class Battle {
     if (u.hp <= 0) {
       this.fell(u, false);
       return;
+    }
+    if (!this.emptyPlace && ENEMIES[u.kind]?.leads && u.side === 'enemy' && u.hp * 2 <= u.maxHp) {
+      this.emptyPlace = true;
+      this.emit({
+        type: 'phase',
+        title: { en: 'The Empty Place', fr: 'La place vide' },
+        line: { en: 'The ring turns toward Whit: the followers’ blows pass through him.', fr: 'La ronde se tourne vers Whit : les coups des suivants le traversent.' },
+      });
     }
     if (a > 0 && u.status.tally !== null && source !== 'reckoning') {
       u.status.tally--;
@@ -794,7 +845,28 @@ export class Battle {
     u.status.tally = null;
     u.status.ward = 0;
     this.emit({ type: 'fall', unit: u.id });
+    // The one who leads falls, and the dance ends.
+    if (u.side === 'enemy' && ENEMIES[u.kind]?.leads)
+      for (const o of this.enemies)
+        if (!o.fallen && o.status.hollow) {
+          o.hp = 0;
+          o.fallen = true;
+          this.emit({ type: 'fall', unit: o.id });
+        }
     this.checkEnd();
+  }
+
+  /** The dance turns: every standing enemy moves one place back, and the last comes to the front. */
+  private turnDance(): void {
+    const line = this.standingEnemies();
+    if (line.length < 2) return;
+    const order = [line[line.length - 1]!, ...line.slice(0, -1)];
+    let place = 0;
+    for (const o of order) {
+      if (o.place !== place) this.emit({ type: 'move', unit: o.id, from: o.place, to: place });
+      o.place = place;
+      place += o.size;
+    }
   }
 
   /** Revivals so far: after the second, the masks crack and each costs the reviver 3 HP. */

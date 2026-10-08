@@ -104,7 +104,7 @@ export class PrologueScene implements Scene {
     r.grade = { exposure: 1.15, contrast: 1.08, saturation: 1.05, lift: [0.01, 0.006, 0], gain: [1.05, 1, 0.92], vignette: 1.4, grain: 0.03, bloom: 1.2, bloomThreshold: 0.65, dof: 1.2, focusBand: 50, focusRange: 160 };
     // A dark desk.
     const rows = Array.from({ length: 14 }, () => 'w'.repeat(20));
-    st.ground({ ground: rows, heights: rows.map((row) => '0'.repeat(row.length)), seed: 5, palette: { grass: '#4E7E48', dirt: '#5A3E2A', sand: '#C8B080', stone: '#6E6A66', wood: '#4A2E1E', snow: '#E6ECF4', rock: '#5A5650', ice: '#62788E', flowers: ['#FFFFFF'] } });
+    st.ground({ ground: rows, heights: rows.map((row) => '0'.repeat(row.length)), seed: 5, palette: { grass: '#4E7E48', dirt: '#5A3E2A', sand: '#C8B080', stone: '#6E6A66', wood: '#4A2E1E', snow: '#E6ECF4', rock: '#5A5650', ice: '#62788E', vellum: '#EDE3CC', flowers: ['#FFFFFF'] } });
 
     // The Great Page: a canvas texture that is written as the scene plays.
     this.pageCanvas.width = this.glowCanvas.width = PAGE.w * RES;

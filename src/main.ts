@@ -6,6 +6,7 @@
 import './i18n/strings';
 import { AudioEngine } from './audio/engine';
 import { CHAPTER_ONE_ABILITIES } from './battle/data';
+import type { CharId } from './story/state';
 import { DebugOverlay } from './debug/overlay';
 import { detectQuality, quality } from './engine/diorama/quality';
 import { WorldRenderer } from './engine/diorama/renderer';
@@ -73,7 +74,8 @@ function boot(): void {
     const game = newGame();
     game.map = 'scriptorium';
     game.party = ['isot'];
-    game.abilities = { ...CHAPTER_ONE_ABILITIES };
+    // A deep copy: abilities learned later must never touch the starting lists.
+    game.abilities = Object.fromEntries(Object.entries(CHAPTER_ONE_ABILITIES).map(([k, v]) => [k, [...v]])) as typeof game.abilities;
     game.inventory = ['wystansPumice', 'psalterChain', 'ebbShell'];
     game.equipment.isot.charm = 'wystansPumice';
     game.equipment.hild.relic = 'psalterChain';
@@ -183,17 +185,49 @@ function boot(): void {
     session.game.cleared.push('f1', 'f2', 'b1');
     session.game.chapter = 2;
   };
+  /** The state at the start of chapter III: Lychford behind them, its abilities learned. */
+  const chapterThree = (): void => {
+    chapterTwo();
+    const g = session.game;
+    g.cleared.push('f3', 'f4', 'b2');
+    g.chapter = 3;
+    g.abilities.isot.push('emend');
+    g.abilities.hild.push('immure');
+    g.abilities.whit.push('vigil');
+    Object.assign(g.flags, { learnedEmend: true, learnedImmure: true, bellRung: true, raidDone: true, crossed: true });
+  };
+  /** Ready to fight an encounter directly (debug menu, ?scene=battle): its chapter's party and abilities. */
+  const fightState = (id: string): void => {
+    const ch3 = ['f5', 'f6', 'b3'].includes(id);
+    const ch2 = ['f3', 'f4', 'b2'].includes(id);
+    if (ch3) chapterThree();
+    else if (ch2) chapterTwo();
+    else startGame();
+    const g = session.game;
+    g.party = ['isot', 'hild', 'whit'];
+    const learn = (c: CharId, a: string) => {
+      if (!g.abilities[c].includes(a)) g.abilities[c].push(a);
+    };
+    if (ch2 || ch3) {
+      learn('isot', 'emend');
+      learn('hild', 'immure');
+      learn('whit', 'vigil');
+    }
+    if (id === 'f6' || id === 'b3') learn('hild', 'squint');
+    if (id === 'b3') g.flags.emendUpgraded = true;
+  };
   const params = new URLSearchParams(location.search);
   const mapParam = params.get('map');
   if (mapParam && MAPS[mapParam]) {
-    // ?chapter=2 starts with the whole party, as after the Sea Gate.
-    if (Number(params.get('chapter') ?? 1) >= 2) chapterTwo();
+    // ?chapter=2 or 3 starts with the whole party and what it knows by then.
+    const chapter = Number(params.get('chapter') ?? 1);
+    if (chapter >= 3) chapterThree();
+    else if (chapter >= 2) chapterTwo();
     else startGame();
     scene = mapScene(mapParam, { spawn: params.get('spawn') ?? 'start' });
   } else if (params.get('scene') === 'battle') {
-    startGame();
-    session.game.party = ['isot', 'hild', 'whit'];
     const id = params.get('fight') ?? 'b1';
+    fightState(id);
     const again = (): Scene => battle(id, again);
     scene = again();
   } else if (params.get('scene') === 'seagate') {
@@ -276,12 +310,23 @@ function boot(): void {
             return mapScene('belltower', { spawn: 'door' });
           }, 0.3),
       },
-      ...['f1', 'f2', 'b1', 'f3', 'f4', 'b2'].map((id) => ({
+      { label: '→ blanchwood', run: () => transition(() => (chapterThree(), mapScene('wood', { spawn: 'start' })), 0.3) },
+      {
+        label: '→ knell chapel',
+        run: () =>
+          transition(() => {
+            chapterThree();
+            session.game.cleared.push('f5', 'f6');
+            session.game.abilities.hild.push('squint');
+            Object.assign(session.game.flags, { blanchingBegun: true, escaped: true });
+            return mapScene('chapel', { spawn: 'door' });
+          }, 0.3),
+      },
+      ...['f1', 'f2', 'b1', 'f3', 'f4', 'b2', 'f5', 'f6', 'b3'].map((id) => ({
         label: `→ fight ${id}`,
         run: () =>
           transition(() => {
-            startGame();
-            session.game.party = ['isot', 'hild', 'whit'];
+            fightState(id);
             const again = (): Scene => battle(id, again);
             return again();
           }, 0.3),

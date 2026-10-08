@@ -1,5 +1,11 @@
 /** Every explorable map by id. (The Sea Gate is still its own scene.) */
 
+import { CHAPEL } from './blanchwood/chapel';
+import { FLIGHT } from './blanchwood/flight';
+import { GATEHOUSE } from './blanchwood/gate';
+import { NINEFOLD } from './blanchwood/ninefold';
+import { OSSUARY } from './blanchwood/ossuary';
+import { WOOD } from './blanchwood/wood';
 import { CELL } from './cell';
 import { CLOISTER } from './cloister';
 import { BELLTOWER } from './lychford/belltower';
@@ -19,4 +25,10 @@ export const MAPS: Record<string, MapDef> = {
   churchyard: CHURCHYARD,
   belltower: BELLTOWER,
   mere: MERE,
+  wood: WOOD,
+  ninefold: NINEFOLD,
+  gate: GATEHOUSE,
+  flight: FLIGHT,
+  chapel: CHAPEL,
+  ossuary: OSSUARY,
 };

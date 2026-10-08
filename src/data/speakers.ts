@@ -28,6 +28,8 @@ export const SPEAKERS: Readonly<Record<string, Speaker>> = {
   slasher: { name: { en: 'Bold Slasher', fr: 'Le Hardi Tranchant' }, portrait: 'slasher', voice: 270 },
   doctor: { name: { en: 'Doctor Ball', fr: 'Docteur Ball' }, portrait: 'doctor', voice: 300 },
   presenter: { name: { en: 'The presenter', fr: 'Le présentateur' }, portrait: 'child2', voice: 620 },
-  gaudry: { name: { en: 'Prior Gaudry', fr: 'Le prieur Gaudry' }, portrait: 'brother', voice: 210 },
+  gaudry: { name: { en: 'Prior Gaudry', fr: 'Le prieur Gaudry' }, portrait: 'gaudry', voice: 210 },
+  ermeline: { name: { en: 'Sister Ermeline', fr: 'Sœur Ermeline' }, portrait: 'ermeline', voice: 420 },
+  dancer: { name: { en: 'The Child', fr: 'L’Enfant' }, portrait: 'childDancer', voice: 640 },
   eadgyth: { name: { en: 'Eadgyth the Uncrowned', fr: 'Eadgyth la Sans-Couronne' }, portrait: 'eadgyth', voice: 380 },
 };
