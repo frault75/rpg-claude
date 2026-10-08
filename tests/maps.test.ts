@@ -97,6 +97,33 @@ describe('the maps', () => {
     });
   }
 
+  it('a bank cannot be climbed: the top of the sunken lane\'s bank is out of reach', () => {
+    const m = MAPS.lane!;
+    const model = new TerrainModel({ ground: m.ground, heights: m.heights ?? [], seed: 1 });
+    const cols = m.ground[0]!.length * 4;
+    const rows = m.ground.length * 4;
+    const seen = new Uint8Array(cols * rows);
+    const s = m.spawns.start!;
+    const stack: [number, number][] = [[Math.floor(s.x / 4), Math.floor(s.y / 4)]];
+    seen[stack[0]![1] * cols + stack[0]![0]] = 1;
+    while (stack.length) {
+      const [cx, cy] = stack.pop()!;
+      const h = model.heightAt(cx * 4 + 2, cy * 4 + 2);
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
+        const nx = cx + dx;
+        const ny = cy + dy;
+        if (nx < 0 || ny < 0 || nx >= cols || ny >= rows || seen[ny * cols + nx]) continue;
+        if (Math.abs(model.heightAt(nx * 4 + 2, ny * 4 + 2) - h) > 7) continue;
+        seen[ny * cols + nx] = 1;
+        stack.push([nx, ny]);
+      }
+    }
+    const at = (tx: number, ty: number) => seen[(ty * 4 + 2) * cols + tx * 4 + 2];
+    expect(model.tileHeight(5, 2)).toBeGreaterThan(7);
+    expect(at(5, 2), 'on the bank').toBe(0);
+    expect(at(5, 7), 'on the road').toBe(1);
+  });
+
   it('relief lifts its rectangles, and a ragged edge only ever pulls back', () => {
     const r = relief(6, 4, [{ at: [0, 0, 6, 2], h: 2, ragged: 's' }, { at: [4, 0, 2, 1], h: 5 }], 3);
     expect(r).toHaveLength(4);

@@ -58,6 +58,8 @@ export class Billboard {
   flip = false;
   /** Drawn smaller or larger about the feet (children). */
   scale = 1;
+  /** What a figure bumps into at its foot: a width in art pixels, or false to walk through. */
+  footprint?: number | false;
   private readonly cols: number;
   private readonly rows: number;
   private flashV = 0;

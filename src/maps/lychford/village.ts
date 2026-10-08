@@ -133,7 +133,7 @@ export const VILLAGE: MapDef = {
     st.addImage(pineTree(32, true), tiles(17), tiles(2.6));
     st.addArt(barrel(7), tiles(13.6), tiles(4.4));
     st.addArt(crate(8), tiles(14.6), tiles(4.6));
-    st.addImage(snowHedge(60, 4), tiles(12), tiles(16.8));
+    st.addImage(snowHedge(60, 4), tiles(12), tiles(16.8), { solid: 58 });
     if (dark) {
       // The burning tower, beyond the roofs to the north-east, once the raid begins.
       if (session.game.cleared.includes('b2')) {

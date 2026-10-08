@@ -72,20 +72,40 @@ export class Stage {
     return b;
   }
 
-  /** Stand an image up at (x, y), its anchor (default bottom centre) on the ground. */
-  addImage(img: PixelImage, x: number, y: number, opts: { h?: number; glow?: PixelImage | null; anchor?: readonly [number, number]; flip?: boolean; shadow?: boolean } = {}): Billboard {
+  /**
+   * Stand an image up at (x, y), its anchor (default bottom centre) on the ground. Standing
+   * decor is solid at its foot unless `solid` says otherwise (a width, or false to walk through).
+   */
+  addImage(img: PixelImage, x: number, y: number, opts: { h?: number; glow?: PixelImage | null; anchor?: readonly [number, number]; flip?: boolean; shadow?: boolean; solid?: number | false } = {}): Billboard {
     const b = Billboard.fromImage(img, { glow: opts.glow ?? null, anchor: opts.anchor ?? [img.w / 2, img.h - 1], castShadow: opts.shadow ?? true });
     b.x = x;
     b.y = y;
     b.h = opts.h ?? this.heightAt(x, y);
     b.flip = !!opts.flip;
+    b.footprint = opts.solid;
     this.billboards.push(b);
     this.scene.add(b.mesh);
     return b;
   }
 
+  /**
+   * What standing decor a figure bumps into: the foot of everything on the ground and tall
+   * enough to be in the way (a third of its width, the trunk of a tree), unless it asked for
+   * another width or to be walked through. Hung, floating and small things have none.
+   */
+  footprints(): [number, number, number, number][] {
+    const out: [number, number, number, number][] = [];
+    for (const b of this.billboards) {
+      if (b.footprint === false) continue;
+      if (b.footprint === undefined && (b.frameH * b.scale < 18 || Math.abs(b.h - this.heightAt(b.x, b.y)) > 2)) continue;
+      const w = b.footprint ?? Math.max(6, Math.min(30, b.frameW * b.scale * 0.32));
+      out.push([b.x - w / 2, b.y - 3, w, 5]);
+    }
+    return out;
+  }
+
   /** Stand generated art (with its glow and lights) at (x, y). */
-  addArt(art: Art & { anchor: readonly [number, number] }, x: number, y: number, opts: { h?: number; flip?: boolean } = {}): Billboard {
+  addArt(art: Art & { anchor: readonly [number, number] }, x: number, y: number, opts: { h?: number; flip?: boolean; solid?: number | false } = {}): Billboard {
     const glow = art.e.data.some((v, i) => i % 4 !== 3 && v > 0) ? art.e : null;
     const b = this.addImage(art.a, x, y, { ...opts, glow, anchor: art.anchor });
     for (const l of art.lights) this.addLight(x + (l.x - art.anchor[0]), y + 1, b.h + (art.anchor[1] - l.y), l.r, l.color, l.intensity);

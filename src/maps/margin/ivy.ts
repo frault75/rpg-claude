@@ -112,7 +112,7 @@ export const IVY: MapDef = {
     // The walls of acanthus with their catchword arches.
     const blocked: Rect[] = [];
     JUNCTION_X.forEach((jx, j) => {
-      OPTIONS[j]!.forEach((word, k) => st.addImage(catchwordArch(word, j * 3 + k), jx, tiles(OPENING_Y[k]! + 0.9)));
+      OPTIONS[j]!.forEach((word, k) => st.addImage(catchwordArch(word, j * 3 + k), jx, tiles(OPENING_Y[k]! + 0.9), { solid: false }));
       const solid: [number, number][] = [
         [0, 1.9],
         [3.3, 5.8],

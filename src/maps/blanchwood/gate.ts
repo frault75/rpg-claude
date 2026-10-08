@@ -47,7 +47,7 @@ export const GATEHOUSE: MapDef = {
     woodLight(r, 0.62);
     st.ground({ ground: GROUND, heights: HEIGHTS, seed: 41, palette: WOOD_GROUND });
     st.addSky({ ...WOOD_SKY }, 200);
-    st.addArt(ninefoldGate(), GATE[0], GATE[1]);
+    st.addArt(ninefoldGate(), GATE[0], GATE[1], { solid: false });
     for (let i = 0; i < 6; i++) st.addImage(blanchedTree(i + 71, 0.35 + i * 0.07), tiles(2 + i * 2.6), tiles(2.6) + (i % 2) * 10);
     for (let i = 0; i < 4; i++) st.addImage(blanchedTree(i + 81, 0.5 + i * 0.08), tiles(4 + i * 6), tiles(11.8));
     st.addEmitter({ kind: 'mote', area: [0, 0, tiles(W), tiles(H)], heights: [2, 50], count: 26, color: '#F8F4EC', size: 1.4, intensity: 0.35 }, 29);

@@ -197,7 +197,7 @@ export function dressSeaGate(r: WorldRenderer, st: Stage): SeaGateSet {
       [29.4, 16.2, 2],
       [26.4, 18.6, 3],
     ] as const)
-      st.addImage(reeds(s), tiles(x), tiles(y));
+      st.addImage(reeds(s), tiles(x), tiles(y), { solid: false });
     for (const [x, y, s, k] of [
       [4.2, 21.2, 1, 1.2],
       [25.5, 20.6, 2, 1],

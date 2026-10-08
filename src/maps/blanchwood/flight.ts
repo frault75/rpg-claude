@@ -113,7 +113,7 @@ export const FLIGHT: MapDef = {
       trees.push({ b, x: l[0] });
       blocked.push(l);
     });
-    wave = st.addImage(waveImage(), WAVE_START - 130, tiles(H) + 4, { shadow: false });
+    wave = st.addImage(waveImage(), WAVE_START - 130, tiles(H) + 4, { shadow: false, solid: false });
     wave.glow = 1;
     return { blocked };
   },

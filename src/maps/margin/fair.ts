@@ -57,7 +57,7 @@ export const FAIR: MapDef = {
     acanthusRow(st, 0, tiles(W), tiles(2.2), 21, 84);
     acanthusRow(st, tiles(1), tiles(W), tiles(16.4), 27, 120, 0.9);
     for (let x = 0; x < tiles(W); x += 120) st.addImage(goldBar(110, 14, x), x + 55, tiles(1.2));
-    for (let x = tiles(4); x < tiles(W); x += 150) st.addImage(ivy(80, x), x, tiles(13.4));
+    for (let x = tiles(4); x < tiles(W); x += 150) st.addImage(ivy(80, x), x, tiles(13.4), { solid: false });
     // The Abbot's congregation of geese, in rows before his pulpit.
     for (let i = 0; i < 7; i++) st.addImage(goose(i), PULPIT[0] - 30 + (i % 4) * 18, PULPIT[1] + 22 + Math.floor(i / 4) * 14, { flip: false });
     st.addImage(goldBar(30, 10, 9), PULPIT[0], PULPIT[1] + 6, { h: 0 });

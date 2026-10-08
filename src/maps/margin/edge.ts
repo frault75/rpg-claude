@@ -44,7 +44,7 @@ export const EDGE_MAP: MapDef = {
     acanthusRow(st, tiles(EDGE + 2), tiles(W), tiles(3.4), 3, 74, 1.1);
     acanthusRow(st, tiles(EDGE + 4), tiles(W), tiles(13.6), 8, 96, 0.9);
     for (let x = tiles(EDGE + 1); x < tiles(W); x += 90) st.addImage(goldBar(86, 14, x), x + 43, tiles(5.2));
-    for (let x = tiles(EDGE + 1); x < tiles(W); x += 84) st.addImage(ivy(80, x), x + 40, tiles(10.4));
+    for (let x = tiles(EDGE + 1); x < tiles(W); x += 84) st.addImage(ivy(80, x), x + 40, tiles(10.4), { solid: false });
     st.addEmitter({ kind: 'glint', area: [tiles(EDGE), tiles(1), tiles(W - EDGE), tiles(12)], heights: [2, 60], count: 22, color: '#FFF4C8', size: 1.6, intensity: 1.2 }, 31);
     return { blocked: [] };
   },

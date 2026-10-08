@@ -89,7 +89,7 @@ export const CHURCHYARD: MapDef = {
     const blocked: Rect[] = [];
     const church = st.addBuilding(parishChurch3D(CHURCH_X, CHURCH_Y), st.heightAt(CHURCH_X + 60, CHURCH_Y + 20));
     blocked.push(...church.footprints);
-    st.addArt(lychGate(), ...GATE);
+    st.addArt(lychGate(), ...GATE, { solid: false });
     blocked.push([GATE[0] - 30, GATE[1] - 4, 18, 5], [GATE[0] + 12, GATE[1] - 4, 18, 5]);
     // Graves, all of them older than the Mercy.
     let k = 0;

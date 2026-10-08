@@ -69,7 +69,7 @@ export const LANE: MapDef = {
       st.addImage(snowHedge(44, x), x + 22, tiles(5.6));
       blocked.push([x, tiles(5.3), 44, 6]);
     }
-    for (let x = 10; x < tiles(W); x += 60) st.addImage(snowHedge(50, x + 7), x + 25, tiles(11.6));
+    for (let x = 10; x < tiles(W); x += 60) st.addImage(snowHedge(50, x + 7), x + 25, tiles(11.6), { solid: 48 });
     // Bare trees of the fen behind, a few pines.
     for (let i = 0; i < 12; i++) {
       const x = tiles(1.5) + i * tiles(3.3) + ((i * 37) % 19);
@@ -79,8 +79,8 @@ export const LANE: MapDef = {
     st.addArt(stoneCross(5), tiles(14), tiles(5.4));
     blocked.push([tiles(14) - 5, tiles(5.4) - 3, 10, 4]);
     st.addImage(rock(6, 0.7), tiles(28), tiles(9.6));
-    st.addImage(reeds(4, '#A89A6A'), tiles(5), tiles(9.4));
-    st.addImage(reeds(8, '#A89A6A'), tiles(31), tiles(4.6));
+    st.addImage(reeds(4, '#A89A6A'), tiles(5), tiles(9.4), { solid: false });
+    st.addImage(reeds(8, '#A89A6A'), tiles(31), tiles(4.6), { solid: false });
     snowfall(st, tiles(W), tiles(13), 80);
     return { blocked };
   },

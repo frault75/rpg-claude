@@ -95,8 +95,8 @@ export const MERE: MapDef = {
     ] as const)
       st.addFlame(x, y, 22, { light: 70 });
     st.addEmitter({ kind: 'ember', area: [0, tiles(1), tiles(3), tiles(2)], heights: [40, 90], count: 18, color: '#FFA040', size: 1.6, intensity: 1.6 }, 3);
-    for (let i = 0; i < 8; i++) st.addImage(reeds(i, '#9A8A5A'), tiles(30.4 + (i % 3)), tiles(1 + i * 1.5));
-    for (let i = 0; i < 4; i++) st.addImage(reeds(i + 9, '#9A8A5A'), tiles(1 + (i % 2)), tiles(0.8 + i * 3.2));
+    for (let i = 0; i < 8; i++) st.addImage(reeds(i, '#9A8A5A'), tiles(30.4 + (i % 3)), tiles(1 + i * 1.5), { solid: false });
+    for (let i = 0; i < 4; i++) st.addImage(reeds(i + 9, '#9A8A5A'), tiles(1 + (i % 2)), tiles(0.8 + i * 3.2), { solid: false });
     st.addImage(bareTree(41, 1.1), tiles(32.6), tiles(3));
     st.addImage(bareTree(42, 0.9), tiles(32), tiles(11.6));
     st.addEmitter({ kind: 'glint', area: [tiles(4), 0, tiles(26), tiles(H)], heights: [0.5, 0.5], count: 6, color: '#E8F0FF', size: 1.4, intensity: 0.8 }, 9);

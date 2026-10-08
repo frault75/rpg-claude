@@ -110,7 +110,7 @@ export class MapScene implements Scene {
     this.name = def.id;
     const st = (this.stage = new Stage(r));
     const set = def.build(r, st);
-    this.blocked.push(...set.blocked);
+    this.blocked.push(...set.blocked, ...st.footprints());
     this.posts.push(...(set.posts ?? []));
     const g = session.game;
     g.map = def.id;
@@ -196,7 +196,13 @@ export class MapScene implements Scene {
 
   /** Can a figure stand at (x, y), coming from height h? */
   canStand(x: number, y: number, h = this.player.h, ignore?: Actor): boolean {
+    return this.obstruction(x, y, h, ignore) === 0;
+  }
+
+  /** How much is in the way of a figure at (x, y): 0 means it can stand there. */
+  private obstruction(x: number, y: number, h = this.player.h, ignore?: Actor): number {
     const d = this.def;
+    let n = 0;
     for (const [dx, dy] of [
       [0, 0],
       [-4, 0],
@@ -207,16 +213,16 @@ export class MapScene implements Scene {
       const px = x + dx;
       const py = y + dy;
       const ch = d.ground[Math.floor(py / TILE)]?.[Math.floor(px / TILE)] ?? ' ';
-      if (!d.walkable.includes(ch)) return false;
-      if (Math.abs(this.heightAt(px, py) - h) > 7) return false;
-      for (const [bx, by, bw, bd] of this.blocked) if (px >= bx && px < bx + bw && py >= by && py < by + bd) return false;
+      if (!d.walkable.includes(ch)) n++;
+      else if (Math.abs(this.heightAt(px, py) - h) > 7) n++;
+      else if (this.blocked.some(([bx, by, bw, bd]) => px >= bx && px < bx + bw && py >= by && py < by + bd)) n++;
     }
-    for (const [cx, cy, r] of this.posts) if (((x - cx) / r) ** 2 + ((y - cy) / (r * 0.6)) ** 2 < 1) return false;
+    for (const [cx, cy, r] of this.posts) if (((x - cx) / r) ** 2 + ((y - cy) / (r * 0.6)) ** 2 < 1) n++;
     for (const [id, a] of this.npcs) {
       if (a === ignore || !this.npcHere(id)) continue;
-      if (((x - a.x) / 9) ** 2 + ((y - a.y) / 5) ** 2 < 1) return false;
+      if (((x - a.x) / 9) ** 2 + ((y - a.y) / 5) ** 2 < 1) n++;
     }
-    return true;
+    return n;
   }
 
   private npcHere(id: string): boolean {
@@ -495,8 +501,12 @@ export class MapScene implements Scene {
       const sp = p.speed * dt * Math.min(1, Math.hypot(mx, my) * 1.2);
       let dx = (mx / len) * sp;
       let dy = (my / len) * sp;
-      if (!this.canStand(p.x + dx, p.y)) dx = 0;
-      if (!this.canStand(p.x + dx, p.y + dy)) dy = 0;
+      // A figure caught in something (put there by a scene) may always step out of it,
+      // never further in.
+      const caught = this.obstruction(p.x, p.y);
+      const ok = (x: number, y: number) => (caught ? this.obstruction(x, y) <= caught : this.canStand(x, y));
+      if (!ok(p.x + dx, p.y)) dx = 0;
+      if (!ok(p.x + dx, p.y + dy)) dy = 0;
       if (dx || dy) p.step(dx, dy, dt);
       else {
         p.face(mx, my);
