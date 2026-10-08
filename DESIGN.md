@@ -815,7 +815,7 @@ Every boss is a puzzle with **more than one solution**, and each one leans on a 
 
 - **HP 24**, drawn large across the 1st and 2nd places. It repeats a three-round cycle:
   1. **Horns out:** *Lashes the Front · 5* (Close). It comes out of its shell as it declares this, so it is vulnerable all round.
-  2. **Withdraws into its shell:** Shelled from the Omen, through your phase. A second banderole warns: *Gathers the tide… (next: everyone · 3)*.
+  2. **Withdraws into its shell:** Shelled from the Omen, through your phase, and it *licks its wounds: heals 4* as the intent resolves. A second banderole warns: *Gathers the tide… (next: everyone · 3)*.
   3. **Slime tide:** *Drenches everyone · 3*. It is still Shelled.
 - **The Tide** is an environment banderole at the edge of the field: *a wave breaks over the Front · 2 every third round.*
 - **Solutions.**
@@ -823,7 +823,7 @@ Every boss is a puzzle with **more than one solution**, and each one leans on a 
   - Strike Through the withdrawal. The snail stays out of its shell until it next withdraws, three rounds later.
   - Strike Through the slime tide.
   - Step Hild into the Front before the lash.
-- **Teaches** that intents are promises and that countdowns can be aimed.
+- **Teaches** that intents are promises and that countdowns can be aimed. Measured with a solver over the engine: a player who only attacks the front still wins, but in about eight rounds and badly hurt (the shell caps each hit at 1 and the snail heals in it); a Tally timed for the horns wins in five; Striking Through the withdrawal wins in four with the party barely touched.
 
 #### Boss II: The Mummers' Play
 *Lychford's players have performed the same Midwinter play every night for ten years. In the play the Doctor raises the slain, and in a world without death, he really can.*
@@ -1507,7 +1507,7 @@ Each milestone is playable and arrives as its own PR, with build and tests green
 | **Done** | Journal and interludes | The Journal page and its J shortcut; the four interludes as illuminated pages on the desk by candlelight (historiated initial, vine border and bezants, a drollery at the foot, the prose inked in under a pen of light, solo psaltery and chant, a page turn into the chapter card) |
 | **Done** | Battle text on phones | On a small screen (a phone held sideways) the banderoles, name plates, incoming blows and numbers are shown up to 1.45× larger and the windows a little larger, sharp at their new size; the banderoles find room for themselves; larger text in the settings adds to it everywhere |
 | **Done** | Audio mix | Every location's score measured through the master over 40 seconds of play and trimmed (src/audio/mix.ts): exploration within about 1 dB of −32 dB RMS (it was spread over 4 dB), battles 2 dB above, Wystan's vine and the deep Blanchwood quieter on purpose |
-| **Next** | Polish | Tuning the fights against a first playthrough |
+| **Done** | Fight tuning | A solver over the engine (a plain player, one who reads one idea, and a beam search) measured every fight: the ordinary fights fall to plain fighting, as they should; the Danse Macabre, the Blot and the Writing need their puzzle; the Great Snail did not, so it now licks its wounds in its shell. A test plays every fight to keep it that way |
 
 ---
 

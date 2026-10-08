@@ -260,7 +260,7 @@ describe('Boss I: the Great Snail', () => {
     expect(b.events[reck + 1]).toMatchObject({ type: 'damage', unit: 'e0', amount: 1 });
   });
 
-  it('falls in round 4 to a Tally timed for its horns', () => {
+  it('falls to a Tally timed for its horns, though it licks its wounds in its shell', () => {
     const b = fight('b1', party, { abilities: CHAPTER_ONE_ABILITIES });
     const snail = b.unit('e0')!;
     // Round 1: horns out. Gloss, then Lance for 7, Shove for 2.
@@ -276,6 +276,8 @@ describe('Boss I: the Great Snail', () => {
     b.act('isot', 'penknife', { unit: 'e0' });
     expect(snail.hp).toBe(13);
     b.endTurn();
+    // In its shell it licked its wounds.
+    expect(snail.hp).toBe(17);
     // Round 3: the slime tide and the sea; strike through the slime, set the Tally.
     expect(b.intents.map((i) => i.actor)).toEqual(['e0', 'env']);
     b.act('isot', 'strike', { intent: b.intents[0]!.id });
@@ -287,8 +289,25 @@ describe('Boss I: the Great Snail', () => {
     b.act('isot', 'gloss', { unit: 'e0' });
     b.act('whit', 'lance', { unit: 'e0' });
     b.act('hild', 'shove');
-    expect(b.result).toBe('victory');
     expect(b.events.some((e) => e.type === 'reckoning' && e.amount === 7)).toBe(true);
+    expect(snail.hp).toBe(1);
+    b.endTurn();
+    // Round 5: one more blow, even through the shell.
+    b.act('whit', 'lance', { unit: 'e0' });
+    expect(b.result).toBe('victory');
+  });
+
+  it('Striking Through the withdrawal keeps it out of its shell and from licking its wounds', () => {
+    const b = fight('b1', party, { abilities: CHAPTER_ONE_ABILITIES });
+    const snail = b.unit('e0')!;
+    b.endTurn();
+    const hp = snail.hp;
+    const withdraw = b.intents.find((i) => i.effects.some((e) => e.kind === 'shell'))!;
+    expect(snail.status.shelled).toBe(true);
+    b.act('isot', 'strike', { intent: withdraw.id });
+    expect(snail.status.shelled).toBe(false);
+    b.endTurn();
+    expect(snail.hp).toBe(hp);
   });
 });
 
