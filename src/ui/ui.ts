@@ -32,6 +32,10 @@ export class UiPanel {
   visible = true;
   /** Draw order among panels (higher on top). */
   order = 0;
+  /** Shown this much larger, drawn at the matching resolution so it stays sharp. */
+  zoom = 1;
+  /** The point of the panel that stays put when it is zoomed (0..1 across and down). */
+  anchor: [number, number] = [0, 0];
   private drawFn: Draw | null = null;
   private scale = 0;
 
@@ -84,7 +88,11 @@ export class UiPanel {
   sync(): void {
     const m = this.mesh;
     m.visible = this.visible && this.opacity > 0.001;
-    m.position.set(this.x + this.w / 2, VIEW_H - (this.y + this.h / 2), 0);
+    const z = this.zoom;
+    const left = this.x + this.w * this.anchor[0] * (1 - z);
+    const top = this.y + this.h * this.anchor[1] * (1 - z);
+    m.scale.set(z, z, 1);
+    m.position.set(left + (this.w * z) / 2, VIEW_H - (top + (this.h * z) / 2), 0);
     m.material.opacity = this.opacity;
     m.renderOrder = this.order;
   }
@@ -126,7 +134,7 @@ export class UiLayer {
   sync(): void {
     const s = this.r.uiScale;
     for (const p of this.panels) {
-      p.setScale(s);
+      p.setScale(s * p.zoom);
       p.sync();
     }
   }

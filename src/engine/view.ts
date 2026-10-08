@@ -28,3 +28,13 @@ export function windowToView(px: number, py: number, box: Box): { x: number; y: 
   if (x < 0 || y < 0 || x > VIEW_W || y > VIEW_H) return null;
   return { x, y };
 }
+
+/**
+ * How much larger to show small text (battle banderoles, name plates, numbers) when the
+ * game area is small on screen, as on a phone held sideways: from 1 at 560 CSS pixels
+ * tall and up, to 1.45 at about 390. Larger text in the settings adds a little more.
+ */
+export function textZoom(areaHeight: number, large = false): number {
+  const base = Math.min(1.45, Math.max(1, 560 / Math.max(1, areaHeight)));
+  return large ? Math.min(1.6, base * 1.15) : base;
+}
