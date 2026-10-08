@@ -94,11 +94,16 @@ describe('the Lost Names', () => {
 });
 
 describe('the interludes', () => {
-  it('there are four, one between each pair of chapters, each leading to a real spawn', async () => {
+  it('there are four between the chapters, each leading to a real spawn, and the last page', async () => {
     const { INTERLUDES } = await import('../src/story/interludes');
-    expect(Object.keys(INTERLUDES).map(Number)).toEqual([1, 2, 3, 4]);
+    expect(Object.keys(INTERLUDES).map(Number)).toEqual([1, 2, 3, 4, 5]);
     for (const [n, it] of Object.entries(INTERLUDES)) {
       expect(it.chapter.n).toBe(Number(n) + 1);
+      // The last page leads back to the title.
+      if (it.finale) {
+        expect(it.next.map).toBe('title');
+        continue;
+      }
       const map = MAPS[it.next.map];
       expect(map, `interlude ${n} → ${it.next.map}`).toBeDefined();
       expect(map!.spawns[it.next.spawn], `interlude ${n} → ${it.next.map}.${it.next.spawn}`).toBeDefined();

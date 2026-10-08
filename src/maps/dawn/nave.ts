@@ -10,17 +10,14 @@
  */
 
 import { bell, midiToHz } from '../../audio/instruments';
-import { psaltery } from '../../audio/blanchwood';
 import { EbbNightAmbience } from '../../audio/ambient';
 import { fizzleSound } from '../../audio/battleSfx';
 import { session } from '../../engine/session';
-import { tr } from '../../i18n/i18n';
 import { ashlar, newArt } from '../../pixel/buildings';
 import { CHARACTERS } from '../../pixel/characters';
 import { candleStand, coffer, lectern } from '../../pixel/furniture';
 import { hex, PixelImage, ramp } from '../../pixel/pixel';
 import { GROUND_DEFAULT } from '../../pixel/terrain';
-import { lostNameText } from '../../story/lostNames';
 import type { Billboard } from '../../world3d/billboard';
 import { tiles } from '../../world3d/stage';
 import { backWall, dawnInterior, FLOOR, sideWall } from '../interior';
@@ -306,25 +303,9 @@ async function goldLineByLine(c: MapContext): Promise<void> {
   await c.narrate({ en: 'The day after the first funeral in Hollin in ten years, Eadgyth is crowned at Holmcaster.', fr: 'Le lendemain des premières funérailles en Hollin depuis dix ans, Eadgyth est couronnée à Holmcaster.' });
   c.close();
   await c.narrate({ en: 'Aumery asked to be walled into Hild’s empty anchorhold, and was. Isot, Keeper of the Book, writes Ninefold back into it a street a day, from Ermeline’s litany and the Glossators’ Underbooks.', fr: 'Aumery demanda à être muré dans la réclusoire vide de Hild, et le fut. Isot, Gardienne du Livre, y réécrit Ninefold une rue par jour, d’après la litanie d’Ermeline et les Underbooks des Glossateurs.' });
-  // The last page of her chronicle, with every Lost Name found in red in its margin.
-  const names = g.lostNames.map((id) => ({ text: tr(lostNameText(id, g)), red: true }));
-  await c.page({
-    title: { en: 'Epilogue. Explicit.', fr: 'Épilogue. Explicit.' },
-    lines: [
-      { text: tr({ en: 'Here ends the Book of the Mercy.', fr: 'Ici finit le Livre de la Miséricorde.' }), red: true },
-      { text: tr({ en: 'I keep the Book of Names now. I write every name in a plain hand, and I leave room at the end of each line.', fr: 'Je tiens le Livre des Noms, à présent. J’écris chaque nom d’une main simple, et je laisse de la place au bout de chaque ligne.' }) },
-      { text: tr({ en: 'My brothers ask why I have drawn three small figures in the margin of this last page: a scribe, an anchoress, and a knight with a white shield.', fr: 'Mes frères demandent pourquoi j’ai dessiné trois petites figures dans la marge de cette dernière page : une scribe, une recluse, et un chevalier au bouclier blanc.' }) },
-      { text: tr({ en: 'I tell them the margin is where we keep what matters and does not fit.', fr: 'Je leur dis que la marge est l’endroit où l’on garde ce qui compte et ne tient pas ailleurs.' }) },
-      { text: tr({ en: 'Some evenings, when the tide is out, a white figure walks the causeway. He waves. I wave back. He is in no hurry for mine, and I have asked him to read it slowly.', fr: 'Certains soirs, à marée basse, une silhouette blanche marche sur la chaussée. Il fait signe. Je réponds. Il n’est pas pressé pour le mien, et je lui ai demandé de le lire lentement.' }) },
-      ...names,
-      { text: 'FINIS', red: true },
-    ],
-  });
-  // The score's only major chord.
-  if (ctx) for (const [i, m] of [55, 59, 62, 67, 71].entries()) psaltery(ctx, c.audio.bus('music'), m, ctx.currentTime + i * 0.12, 0.08);
-  await c.narrate({ en: 'Palimpsest. Written, drawn and scored entirely in code: no image, no sound file, no font file. Thank you for reading it to the end.', fr: 'Palimpsest. Écrit, dessiné et mis en musique entièrement en code : aucune image, aucun fichier son, aucun fichier de police. Merci de l’avoir lu jusqu’au bout.' });
+  // The last page of her chronicle, with every Lost Name found in red, and the credits.
   g.flags.finished = true;
   g.chapter = 6;
   c.save();
-  c.goto('title', 'start');
+  c.interlude(5);
 }

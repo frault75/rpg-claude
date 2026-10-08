@@ -9,7 +9,7 @@ import type { GameState } from './state';
 
 export function chapterTitle(n: number): { title: LocalText; name: LocalText } {
   if (n <= 1) return { title: { en: 'Chapter I', fr: 'Chapitre I' }, name: { en: 'The Scraping', fr: 'Le Grattage' } };
-  const it = Object.values(INTERLUDES).find((i) => i.chapter.n === n);
+  const it = n <= 5 ? Object.values(INTERLUDES).find((i) => i.chapter.n === n) : undefined;
   if (it) return { title: it.chapter.title, name: it.chapter.name };
   return { title: { en: 'Explicit', fr: 'Explicit' }, name: { en: 'Here ends the Book of the Mercy', fr: 'Ici finit le Livre de la Miséricorde' } };
 }

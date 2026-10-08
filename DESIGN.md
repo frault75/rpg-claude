@@ -1250,7 +1250,7 @@ It is taught in the first minute and it drives every puzzle, which keeps the sys
 The abbey of Saint Ebb's at night, seen by a camera that drifts slowly along the island, with the lamps lit and the sea moving below. The logo (§8.8) inks itself in and glints. Then **Press any key** (on touch screens, **Touch to begin**); this first press also starts the audio. A short column of choices appears under the logo, each lit by the gold manicule when chosen:
 
 - **New game:** the prologue (§3.3).
-- **Continue:** the latest save, autosave or manual (§12).
+- **Continue:** the latest save, autosave or manual (§12). Once the story is finished, it reads **The last page** instead and opens the epilogue page again, as a keepsake.
 - **Settings** (§10.8).
 - **Credits.**
 
@@ -1509,6 +1509,7 @@ Each milestone is playable and arrives as its own PR, with build and tests green
 | **Done** | Audio mix | Every location's score measured through the master over 40 seconds of play and trimmed (src/audio/mix.ts): exploration within about 1 dB of −32 dB RMS (it was spread over 4 dB), battles 2 dB above, Wystan's vine and the deep Blanchwood quieter on purpose |
 | **Done** | Fight tuning | A solver over the engine (a plain player, one who reads one idea, and a beam search) measured every fight: the ordinary fights fall to plain fighting, as they should; the Danse Macabre, the Blot and the Writing need their puzzle; the Great Snail did not, so it now licks its wounds in its shell. A test plays every fight to keep it that way |
 | **Done** | Boss phase changes on the field | High Water on the causeway (the shell cracks on a glowing spiral of writing, the tide breaks every second round over the Front and the Middle, Gaudry's torches come down from the Abbey); the Clean Page in the nave (the floor turns to ruled vellum, the wall to a page with the initial M of MERCY in gold, Aumery gilded in it) |
+| **Done** | The last page | The epilogue as the fifth illuminated page: the three small figures in its initial, the Lost Names found in red, FINIS in a cartouche set into the border, the score's only major chord, then the credits card; the title offers it again once the story is finished |
 
 ---
 
