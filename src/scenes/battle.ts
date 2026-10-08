@@ -65,6 +65,7 @@ import { type AbilityId, type BattleEvent, type Intent, PLACE_NAMES, type Unit }
 import type { DebugInfo } from '../debug/overlay';
 import type { WorldRenderer } from '../engine/diorama/renderer';
 import { type Action, Input } from '../engine/input';
+import { TouchControls } from '../engine/touch';
 import { prefs } from '../engine/prefs';
 import type { Scene } from '../engine/scene';
 import { session } from '../engine/session';
@@ -1989,6 +1990,15 @@ export class BattleScene implements Scene {
     const PH = PLATE_H * z;
     const placed: { x: number; y: number; w: number; h: number }[] = this.plates().map((p) => ({ x: p.x - 6 * z, y: p.y - 4 * z, w: p.w + 12 * z, h: 26 * z }));
     placed.push(this.commandZone());
+    // Nor under a finger's buttons on a touch screen.
+    const box = this.r.viewport;
+    for (const rc of TouchControls.current?.rects() ?? []) {
+      const x = ((rc.left - box.x) / box.w) * VIEW_W;
+      const y = ((rc.top - box.y) / box.h) * VIEW_H;
+      const w = (rc.width / box.w) * VIEW_W;
+      const h = (rc.height / box.h) * VIEW_H;
+      if (x + w > 0 && x < VIEW_W) placed.push({ x: x - 6, y: y - 6, w: w + 12, h: h + 12 });
+    }
     // Nor over the marks above whoever is about to be struck.
     const hits = new Map<string, number>();
     for (const it of this.battle.intents) {

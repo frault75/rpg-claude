@@ -460,7 +460,9 @@ function boot(): void {
   const relayout = () => {
     renderer.resize();
     menu.layout(renderer.viewport);
+    touch.setFrame(renderer.viewport);
   };
+  touch.setFrame(renderer.viewport);
   window.addEventListener('resize', relayout);
   // Phones change size without a resize event when toolbars hide or the game goes full screen.
   window.visualViewport?.addEventListener('resize', relayout);
