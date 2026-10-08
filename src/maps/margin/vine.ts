@@ -105,6 +105,8 @@ async function wystansVine(c: MapContext): Promise<void> {
   c.letterbox(false);
   await c.learn('isot', 'rubric');
   c.letterbox(true);
+  await c.say('wystan', { en: 'And take my vermilion. There is nothing in the Margin worth reading first.', fr: 'Et prends mon vermillon. Rien dans la Marge ne vaut d’être lu en premier.' });
+  await c.find('vermilionPot');
   await c.say('wystan', { en: 'Every name that is scraped drains down to the Ink-Well at the bottom of the Margin. The first word ever scraped still lies there, at the very bottom.', fr: 'Chaque nom gratté s’écoule jusqu’au Puits d’encre, tout au fond de la Marge. Le premier mot jamais gratté y repose encore, tout au fond.' });
   await c.say('whit', { en: 'Then I’ll go and get my name.', fr: 'Alors j’irai chercher mon nom.' });
   await c.narrate({ en: 'It is the first thing he has chosen.', fr: 'C’est la première chose qu’il ait choisie.' });

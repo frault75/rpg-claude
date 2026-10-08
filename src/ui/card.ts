@@ -30,8 +30,11 @@ export class LocationCard {
       c.fillRect(0, 0, w, h);
       c.textAlign = 'center';
       c.textBaseline = 'middle';
-      c.font = `500 44px ${SERIF}`;
+      // Long names (an item's, a chapter's) set smaller rather than spill off the card.
       const caps = title.toUpperCase().split('').join(' ');
+      let size = 44;
+      c.font = `500 ${size}px ${SERIF}`;
+      while (size > 22 && c.measureText(caps).width > w - 60) c.font = `500 ${--size}px ${SERIF}`;
       c.fillStyle = 'rgba(0,0,0,0.7)';
       c.fillText(caps, w / 2 + 2, 62 + 2);
       const tg = c.createLinearGradient(0, 40, 0, 84);
@@ -55,7 +58,9 @@ export class LocationCard {
         c.fillRect(-4, -4, 8, 8);
         c.restore();
       }
-      c.font = `italic 24px ${SERIF}`;
+      let lineSize = 24;
+      c.font = `italic ${lineSize}px ${SERIF}`;
+      while (lineSize > 15 && c.measureText(line).width > w - 30) c.font = `italic ${--lineSize}px ${SERIF}`;
       c.fillStyle = 'rgba(0,0,0,0.7)';
       c.fillText(line, w / 2 + 1.5, 124 + 1.5);
       c.fillStyle = '#E6DCC4';

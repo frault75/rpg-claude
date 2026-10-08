@@ -159,6 +159,8 @@ export interface MapContext {
   /** End the chapter with interlude `n` (a page of Isot's chronicle), then its next map. */
   interlude(n: number): void;
   save(): void;
+  /** An item is found at a story beat (DESIGN.md §6): a line saying how, then its card. Once only. */
+  find(item: string, how?: LocalText): Promise<void>;
   /** A character learns an ability at a story beat (DESIGN.md §5.6). */
   learn(who: CharId, ability: import('../battle/types').AbilityId): Promise<void>;
   /** Show a close-up page that the raking light can read (resolves when closed). */
