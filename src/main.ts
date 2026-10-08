@@ -60,6 +60,7 @@ function boot(): void {
     if ((s.graphics.resolution === 'auto' ? null : s.graphics.resolution) !== renderer.fixedScale) renderer.setFixedScale(s.graphics.resolution === 'auto' ? null : s.graphics.resolution);
     input.keys = structuredClone(s.controls.keys);
     input.pad = structuredClone(s.controls.pad);
+    input.prefer(s.controls.prompts);
     touch.configure({ size: s.controls.touchSize, opacity: s.controls.touchOpacity, leftHanded: s.controls.leftHanded });
     Object.assign(prefs, {
       textCps: TEXT_SPEEDS[s.gameplay.textSpeed],

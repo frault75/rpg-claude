@@ -86,6 +86,11 @@ registerStrings('en', {
   'settings.resolution.auto': 'Adaptive',
   'settings.controls': 'Controls',
   'settings.keyboard': 'Keyboard',
+  'settings.prompts': 'Hints show',
+  'settings.prompts.auto': 'What I play with',
+  'settings.prompts.keys': 'Keyboard',
+  'settings.prompts.pad': 'Gamepad',
+  'settings.prompts.touch': 'Touch screen',
   'settings.gamepad': 'Gamepad',
   'settings.touch': 'Touch',
   'settings.rebind': 'Press a key…',
@@ -131,6 +136,7 @@ registerStrings('en', {
   'action.rake': 'Raking light',
   'action.journal': 'Journal',
   'title.press': 'Press any key',
+  'title.pressPad': 'Press any button',
   'title.tap': 'Touch to begin',
   'title.new': 'New game',
   'title.continue': 'Continue',
@@ -227,6 +233,11 @@ registerStrings('fr', {
   'settings.resolution.auto': 'Adaptative',
   'settings.controls': 'Commandes',
   'settings.keyboard': 'Clavier',
+  'settings.prompts': 'Indications',
+  'settings.prompts.auto': 'Selon ce que j’utilise',
+  'settings.prompts.keys': 'Clavier',
+  'settings.prompts.pad': 'Manette',
+  'settings.prompts.touch': 'Écran tactile',
   'settings.gamepad': 'Manette',
   'settings.touch': 'Tactile',
   'settings.rebind': 'Appuyez sur une touche…',
@@ -272,6 +283,7 @@ registerStrings('fr', {
   'action.rake': 'Lumière rasante',
   'action.journal': 'Journal',
   'title.press': 'Appuyez sur une touche',
+  'title.pressPad': 'Appuyez sur un bouton',
   'title.tap': "Touchez l'écran",
   'title.new': 'Nouvelle partie',
   'title.continue': 'Continuer',
@@ -285,7 +297,7 @@ registerStrings('fr', {
 });
 
 registerStrings('en', {
-  'prologue.skip': 'Skip: Esc / B',
+  'prologue.skip': 'Skip: {menu}',
   'interlude.turn': 'Turn the page',
   'chapter.1': 'Chapter I',
   'chapter.1.name': 'The Scraping',
@@ -293,7 +305,7 @@ registerStrings('en', {
   'chapter.2.name': 'The Village Without Graves',
 });
 registerStrings('fr', {
-  'prologue.skip': 'Passer : Échap / B',
+  'prologue.skip': 'Passer : {menu}',
   'interlude.turn': 'Tourner la page',
   'chapter.1': 'Chapitre I',
   'chapter.1.name': 'Le Grattage',
@@ -479,10 +491,10 @@ registerStrings('fr', {
 });
 
 registerStrings('en', {
-  'page.help': 'Hold R, the right button, Y or the candle to tilt it · Enter to close',
+  'page.help': 'Hold {rake} to tilt the candle · {confirm} to close',
   'map.look': 'Look',
 });
 registerStrings('fr', {
-  'page.help': 'Maintenez R, le bouton droit, Y ou la bougie pour l’incliner · Entrée pour fermer',
+  'page.help': 'Maintenez {rake} pour incliner la bougie · {confirm} pour fermer',
   'map.look': 'Regarder',
 });

@@ -7,7 +7,7 @@
 import { type Difficulty, DIFFICULTIES } from '../battle/growth';
 import type { Lang } from '../i18n/i18n';
 import type { Tier } from './diorama/quality';
-import { BINDABLE, DEFAULT_KEYS, DEFAULT_PAD, type KeyBindings, type PadBindings } from './input';
+import { BINDABLE, DEFAULT_KEYS, DEFAULT_PAD, type Device, type KeyBindings, type PadBindings } from './input';
 import type { KeyValueStore } from './save';
 
 export const SETTINGS_KEY = 'palimpsest:settings:v1';
@@ -30,7 +30,7 @@ export interface Settings {
     /** 'auto' adapts to the frame time; a number fixes the render scale. */
     resolution: 'auto' | number;
   };
-  controls: { keys: KeyBindings; pad: PadBindings; touchSize: number; touchOpacity: number; leftHanded: boolean; vibration: boolean };
+  controls: { keys: KeyBindings; pad: PadBindings; touchSize: number; touchOpacity: number; leftHanded: boolean; vibration: boolean; prompts: 'auto' | Device };
   gameplay: { textSpeed: TextSpeed; battleSpeed: 'normal' | 'fast'; difficulty: Difficulty };
   access: { shake: boolean; flashes: boolean; textSize: 'normal' | 'large' };
 }
@@ -40,7 +40,7 @@ export function defaultSettings(): Settings {
     language: 'auto',
     audio: { master: 0.8, music: 0.7, ambience: 0.7, sfx: 0.8, voices: 0.6 },
     graphics: { quality: 'auto', shadows: true, reflections: true, bloom: true, dof: true, fog: true, grain: true, brightness: 1, resolution: 'auto' },
-    controls: { keys: structuredClone(DEFAULT_KEYS), pad: structuredClone(DEFAULT_PAD), touchSize: 1, touchOpacity: 0.85, leftHanded: false, vibration: true },
+    controls: { keys: structuredClone(DEFAULT_KEYS), pad: structuredClone(DEFAULT_PAD), touchSize: 1, touchOpacity: 0.85, leftHanded: false, vibration: true, prompts: 'auto' },
     gameplay: { textSpeed: 'normal', battleSpeed: 'normal', difficulty: 'normal' },
     access: { shake: true, flashes: true, textSize: 'normal' },
   };
@@ -97,6 +97,7 @@ export function parseSettings(raw: string | null): Settings {
       touchOpacity: num(c.touchOpacity, 0.85, 0.2, 1),
       leftHanded: bool(c.leftHanded, false),
       vibration: bool(c.vibration, true),
+      prompts: pick(c.prompts, d.controls.prompts, ['auto', 'keys', 'pad', 'touch'] as const),
     },
     gameplay: {
       textSpeed: pick(p.textSpeed, d.gameplay.textSpeed, ['slow', 'normal', 'fast', 'instant'] as const),

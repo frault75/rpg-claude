@@ -1,6 +1,6 @@
 /** Post-processing shaders for the diorama: depth of field, fog, bloom, grade. */
 
-import { NOISE_GLSL } from './glsl';
+import { NOISE_GLSL, SAFE_GLSL } from './glsl';
 
 export const QUAD_VERT = /* glsl */ `
 varying vec2 vUv;
@@ -16,12 +16,13 @@ uniform vec2 uTexel;
 uniform float uThreshold;
 uniform float uKnee;
 varying vec2 vUv;
+${SAFE_GLSL}
 void main() {
   vec3 c = vec3(0.0);
-  c += texture2D(tMap, vUv + uTexel * vec2(-1.0, -1.0)).rgb;
-  c += texture2D(tMap, vUv + uTexel * vec2(1.0, -1.0)).rgb;
-  c += texture2D(tMap, vUv + uTexel * vec2(-1.0, 1.0)).rgb;
-  c += texture2D(tMap, vUv + uTexel * vec2(1.0, 1.0)).rgb;
+  c += safeColor(texture2D(tMap, vUv + uTexel * vec2(-1.0, -1.0)).rgb);
+  c += safeColor(texture2D(tMap, vUv + uTexel * vec2(1.0, -1.0)).rgb);
+  c += safeColor(texture2D(tMap, vUv + uTexel * vec2(-1.0, 1.0)).rgb);
+  c += safeColor(texture2D(tMap, vUv + uTexel * vec2(1.0, 1.0)).rgb);
   c *= 0.25;
   float br = max(c.r, max(c.g, c.b));
   float soft = clamp(br - uThreshold + uKnee, 0.0, 2.0 * uKnee);
@@ -35,7 +36,8 @@ export const DOWN_FRAG = /* glsl */ `
 uniform sampler2D tMap;
 uniform vec2 uTexel;
 varying vec2 vUv;
-vec3 s(vec2 o) { return texture2D(tMap, vUv + o * uTexel).rgb; }
+${SAFE_GLSL}
+vec3 s(vec2 o) { return safeColor(texture2D(tMap, vUv + o * uTexel).rgb); }
 void main() {
   vec3 a = s(vec2(-2.0, -2.0)), b = s(vec2(0.0, -2.0)), c = s(vec2(2.0, -2.0));
   vec3 d = s(vec2(-1.0, -1.0)), e = s(vec2(1.0, -1.0));
@@ -120,6 +122,7 @@ uniform vec2 uResolution;
 varying vec2 vUv;
 
 ${NOISE_GLSL}
+${SAFE_GLSL}
 
 vec3 shoulder(vec3 c) {
   vec3 x = max(c - 0.86, 0.0);
@@ -138,16 +141,17 @@ void main() {
     vec2 o = (uv - 0.5) * uAberration * 0.012;
     sharp = vec3(texture2D(tScene, uv + o).r, texture2D(tScene, uv).g, texture2D(tScene, uv - o).b);
   } else sharp = texture2D(tScene, uv).rgb;
+  sharp = safeColor(sharp);
 
   vec3 col = sharp;
   if (uDof > 0.0) {
     float coc = smoothstep(uFocusBand, uFocusBand + uFocusRange, abs(-viewZ - uFocusZ)) * uDof;
-    vec3 small = texture2D(tBlurSmall, uv).rgb;
-    vec3 large = texture2D(tBlurLarge, uv).rgb;
+    vec3 small = safeColor(texture2D(tBlurSmall, uv).rgb);
+    vec3 large = safeColor(texture2D(tBlurLarge, uv).rgb);
     col = mix(col, small, smoothstep(0.0, 0.55, coc));
     col = mix(col, large, smoothstep(0.45, 1.0, coc));
   }
-  vec3 bloom = texture2D(tBloom, uv).rgb;
+  vec3 bloom = safeColor(texture2D(tBloom, uv).rgb);
 
   // Fog: by distance from the camera, and a mist lying low over the water.
   float fog = smoothstep(uFogDist.x, uFogDist.y, -viewZ) * uFogMax;

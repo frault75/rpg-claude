@@ -31,6 +31,8 @@ import { Billboard, pixelTexture } from '../world3d/billboard';
 import { Stage } from '../world3d/stage';
 import { ITEMS } from '../data/equipment';
 import { withCaches } from '../maps/caches';
+import { Hint } from '../ui/hint';
+import { withControls } from '../ui/prompts';
 
 /** What a map asks of the game around it. */
 export interface MapHooks {
@@ -83,6 +85,7 @@ export class MapScene implements Scene {
   private readonly ui: UiLayer;
   private readonly dialogue: Dialogue;
   private readonly cardUi: LocationCard;
+  private readonly hint: Hint;
   private readonly letterboxUi: Letterbox;
   readonly director: Director;
   private readonly unsubs: (() => void)[] = [];
@@ -144,6 +147,7 @@ export class MapScene implements Scene {
     this.ui = new UiLayer(r);
     this.dialogue = new Dialogue(this.ui, audio);
     this.cardUi = new LocationCard(this.ui);
+    this.hint = new Hint(this.ui);
     this.letterboxUi = new Letterbox(this.ui);
     this.director = new Director(r, def.bounds);
     this.marker = new Billboard(chalk(), 9, 11, { anchor: [4, 10], unlit: true, castShadow: false });
@@ -175,6 +179,7 @@ export class MapScene implements Scene {
     }
 
     this.unsubs.push(
+      input.onDevice(() => this.hint.redraw()),
       input.onAction((a) => this.onAction(a)),
       input.onPointer((px, py) => {
         const p = r.windowToScreen(px, py);
@@ -395,6 +400,7 @@ export class MapScene implements Scene {
       },
       page: (def) => this.openPage(def),
       shop: (stall) => this.hooks.shop(stall),
+      hint: (text, o = {}) => this.hint.show(() => tr(withControls(text)), o.seconds ?? 9, o.until ?? null),
     };
     return ctx;
   }
@@ -666,6 +672,8 @@ export class MapScene implements Scene {
     if (!this.leaving) this.r.screen.fade = Math.max(0, 1 - this.time / 1.2);
     this.dialogue.update(dt);
     this.cardUi.update(dt);
+    if (this.hint.until && this.input.isHeld(this.hint.until)) this.hint.done();
+    this.hint.update(dt);
     this.letterboxUi.update(dt);
     this.stage.update(dt, this.time);
   }

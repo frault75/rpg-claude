@@ -44,7 +44,7 @@ export class TitleScene implements Scene {
 
   constructor(
     private readonly r: WorldRenderer,
-    input: Input,
+    private readonly input: Input,
     private readonly audio: AudioEngine,
     private readonly hooks: TitleHooks,
   ) {
@@ -67,6 +67,7 @@ export class TitleScene implements Scene {
         this.drawPrompt();
         if (this.menu.open) this.menu.render();
       }),
+      input.onDevice(() => this.drawPrompt()),
     );
     // Any key or touch starts; afterwards the menu takes the actions.
     this.unsubs.push(
@@ -85,8 +86,8 @@ export class TitleScene implements Scene {
   }
 
   private drawPrompt(): void {
-    const coarse = typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches;
-    const text = t(coarse ? 'title.tap' : 'title.press');
+    const d = this.input.prompts;
+    const text = t(d === 'touch' ? 'title.tap' : d === 'pad' ? 'title.pressPad' : 'title.press');
     this.prompt.draw((c, w, h) => {
       const bg = c.createRadialGradient(w / 2, h / 2, 4, w / 2, h / 2, w / 2);
       bg.addColorStop(0, 'rgba(4, 8, 24, 0.6)');

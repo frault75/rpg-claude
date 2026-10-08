@@ -4,6 +4,7 @@
  * ghost of the old ink shows in the grain.
  */
 
+import { controlParams } from './prompts';
 import { prefs } from '../engine/prefs';
 import { t } from '../i18n/i18n';
 import { VIEW_H, VIEW_W } from '../engine/view';
@@ -120,7 +121,7 @@ export class PageView {
       c.beginPath();
       c.roundRect(w / 2 - 250, h - 44, 500, 32, 16);
       c.fill();
-      shadowText(c, t('page.help'), w / 2, h - 22, INK.text);
+      shadowText(c, t('page.help', controlParams()), w / 2, h - 22, INK.text);
     });
   }
 
