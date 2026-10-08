@@ -710,3 +710,119 @@ describe('the Margin music', () => {
     expect([0, 1, 2, 3].map(hocket)).toEqual([0, 1, 0, 1]);
   });
 });
+
+describe('Boss V: Aumery and the Writing of FINIS', () => {
+  const party: CharId[] = ['whit', 'hild', 'isot'];
+  const FINAL: Record<CharId, AbilityId[]> = { ...ALL, isot: [...ALL.isot, 'inscribe'] };
+  const fin = (extra: Partial<BattleSetup> = {}) => fight('b5', party, { abilities: FINAL, emendAnywhere: true, ...extra });
+  const aumery = (b: Battle) => b.enemies.find((e) => e.kind === 'aumery')!;
+
+  it('Isot writes at the lectern in the Rear, and only there', () => {
+    const b = fin();
+    expect(b.check('isot', 'inscribe')).toBeNull();
+    b.step(1, 2);
+    expect(b.check('isot', 'inscribe')).toBe('lectern');
+    b.undo();
+    expect(b.act('isot', 'inscribe')).toBe(true);
+    expect(b.letters).toBe(1);
+    expect(fight('b4', party, { abilities: FINAL }).check('isot', 'inscribe')).toBe('lectern');
+  });
+
+  it('a letter smudges if she is hurt in the round she wrote it; Immure keeps it', () => {
+    const b = fin();
+    b.endTurn();
+    b.endTurn();
+    // Round 3: "Pumices the page: Isot · 4".
+    expect(b.intents.some((i) => i.label.en.startsWith('Pumices'))).toBe(true);
+    b.act('isot', 'inscribe');
+    b.endTurn();
+    expect(b.letters).toBe(0);
+
+    const c = fin();
+    c.endTurn();
+    c.endTurn();
+    c.act('isot', 'inscribe');
+    c.act('hild', 'immure', { unit: 'isot' });
+    c.endTurn();
+    expect(c.letters).toBe(1);
+  });
+
+  it('he cannot be felled, and every 10 damage makes him falter and lose his next intent', () => {
+    const b = fin();
+    expect(b.check('whit', 'read', { unit: aumery(b).id })).toBe('too-strong');
+    aumery(b).hp = 3;
+    b.act('whit', 'lance', { unit: aumery(b).id });
+    expect(aumery(b).hp).toBe(1);
+    expect(aumery(b).fallen).toBe(false);
+
+    const c = fin();
+    const edict = c.intents.find((i) => i.actor === aumery(c).id)!;
+    c.unit(aumery(c).id)!.status.glossed = true;
+    c.act('isot', 'rubric', { unit: 'whit' });
+    // A doubled Lance and the Gloss: 8 + 3 = 11, past 10.
+    c.act('whit', 'lance', { unit: aumery(c).id });
+    expect(c.events.some((e) => e.type === 'falter')).toBe(true);
+    expect(c.intents.find((i) => i.id === edict.id)!.cancelled).toBe(true);
+  });
+
+  it('“Scrapes WHIT from the page”: Whit is Forgotten and cannot act for two rounds', () => {
+    const b = fin();
+    b.endTurn();
+    expect(b.intents.some((i) => i.label.en.startsWith('Scrapes WHIT'))).toBe(true);
+    b.endTurn();
+    expect(b.check('whit', 'lance', { unit: aumery(b).id })).toBe('acted');
+    b.endTurn();
+    expect(b.check('whit', 'tally', { unit: aumery(b).id })).toBe('acted');
+    b.endTurn();
+    expect(b.check('whit', 'tally', { unit: aumery(b).id })).toBeNull();
+  });
+
+  it('after the N the Clean Page; after the fourth letter he gathers the pumice to scrape them all', () => {
+    const b = fin();
+    for (let k = 0; k < 4; k++) {
+      b.act('isot', 'inscribe');
+      b.act('hild', 'immure', { unit: 'isot' });
+      if (k === 2) expect(b.phases.has('cleanPage')).toBe(true);
+      b.endTurn();
+      // Keep Hild able to wall her in again.
+      b.unit('hild')!.hp = 22;
+    }
+    expect(b.letters).toBe(4);
+    const gather = b.intents.find((i) => i.effects.some((e) => e.kind === 'scrapeLetters'))!;
+    expect(gather.countdown).toBe(1);
+    b.endTurn();
+    b.endTurn();
+    expect(b.letters).toBe(0);
+  });
+
+  it('can be won: write, wall her in, and keep the others standing', () => {
+    const b = fin();
+    for (let r = 0; r < 12 && b.result === 'ongoing'; r++) {
+      if (!b.check('isot', 'inscribe')) b.act('isot', 'inscribe');
+      if (b.result !== 'ongoing') break;
+      if (!b.check('hild', 'immure', { unit: 'isot' })) b.act('hild', 'immure', { unit: 'isot' });
+      else {
+        const low = [...b.party].filter((x) => !x.fallen).sort((x, y) => x.hp - y.hp)[0]!;
+        if (!b.check('hild', 'shrive', { unit: low.id })) b.act('hild', 'shrive', { unit: low.id });
+      }
+      const first = b.standingEnemies()[0]!;
+      if (!b.check('whit', 'lance', { unit: first.id })) b.act('whit', 'lance', { unit: first.id });
+      b.endTurn();
+    }
+    expect(b.result).toBe('victory');
+    expect(b.letters).toBe(5);
+  });
+
+  it('the fifth letter wins; if Isot falls, all is lost', () => {
+    const b = fin();
+    b.letters = 4;
+    b.act('isot', 'inscribe');
+    expect(b.result).toBe('victory');
+    const c = fin();
+    c.unit('isot')!.hp = 1;
+    c.endTurn();
+    c.endTurn();
+    c.endTurn();
+    expect(c.result).toBe('defeat');
+  });
+});

@@ -12,7 +12,7 @@ import { armarium, bench, candle, candleStand, coffer, lectern, psalter, stool, 
 import { GROUND_DEFAULT } from '../pixel/terrain';
 import { Billboard, pixelTexture } from '../world3d/billboard';
 import { tiles } from '../world3d/stage';
-import { backWall, FLOOR, moonThrough, nightInterior, sideWall } from './interior';
+import { backWall, dawnInterior, FLOOR, moonThrough, nightInterior, sideWall } from './interior';
 import type { MapContext, MapDef, Rect } from './types';
 
 const GROUND = [
@@ -31,15 +31,21 @@ const GROUND = [
   '                          ',
 ];
 
-const WALL_Y = tiles(2);
+export const WALL_Y = tiles(2);
 const ISOT_DESK: [number, number] = [tiles(6.5), tiles(6)];
-const WYSTAN_DESK: [number, number] = [tiles(6.5), tiles(9.4)];
+export const WYSTAN_DESK: [number, number] = [tiles(6.5), tiles(9.4)];
 const CUTHWIN_DESK: [number, number] = [tiles(14.5), tiles(6)];
-const LECTERN: [number, number] = [tiles(19.5), tiles(6.6)];
-const DOOR_X = tiles(22.5);
+export const LECTERN: [number, number] = [tiles(19.5), tiles(6.6)];
+export const DOOR_X = tiles(22.5);
 
 /** The two grylli that climb off the page, shown before the fight. */
 let grylli: Billboard[] = [];
+
+/** Build the room as it is at dawn on Ebba's feast (chapter V): rose light, the lectern bare. */
+let dawn = false;
+export function scriptoriumAtDawn(on: boolean): void {
+  dawn = on;
+}
 
 export const SCRIPTORIUM: MapDef = {
   id: 'scriptorium',
@@ -56,7 +62,8 @@ export const SCRIPTORIUM: MapDef = {
     door: { x: DOOR_X, y: WALL_Y + 14, dir: 'down' },
   },
   build(r, st) {
-    nightInterior(r);
+    if (dawn) dawnInterior(r);
+    else nightInterior(r);
     st.ground({ ground: GROUND, heights: GROUND.map((row) => '0'.repeat(row.length)), seed: 12, palette: { ...GROUND_DEFAULT, stone: FLOOR.stone } });
     // The north wall: three lancets of plain glass, a red frieze, the door to the cloister walk.
     const windows = [tiles(4.9), tiles(10.3), tiles(16.0)].map((x) => ({ x: x - tiles(1), w: 16, h: 36, top: 10 }));
@@ -96,7 +103,7 @@ export const SCRIPTORIUM: MapDef = {
     st.addArt(candle(), CUTHWIN_DESK[0] - 11, CUTHWIN_DESK[1] - 9, { h: 9 });
     st.addCandle(CUTHWIN_DESK[0] - 11, CUTHWIN_DESK[1] - 9, 16, 0.32, 40);
     // The lectern and the Book of Names, between two tall candles.
-    st.addArt(lectern(), ...LECTERN);
+    st.addArt(lectern(3, dawn), ...LECTERN);
     blocked.push([LECTERN[0] - 12, LECTERN[1] - 6, 24, 7]);
     for (const dx of [-22, 22]) {
       st.addArt(candleStand(), LECTERN[0] + dx, LECTERN[1] + 2);

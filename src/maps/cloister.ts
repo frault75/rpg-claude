@@ -16,7 +16,7 @@ import { GROUND_DEFAULT } from '../pixel/terrain';
 import { ghostDoor, ghostWords } from '../pixel/underwriting';
 import { NIGHT_SKY } from '../world3d/sky';
 import { tiles } from '../world3d/stage';
-import { backWall, sideWall } from './interior';
+import { backWall, dawnInterior, sideWall } from './interior';
 import type { MapContext, MapDef, Rect } from './types';
 
 const GROUND = [
@@ -35,11 +35,11 @@ const GROUND = [
   '                            ',
 ];
 
-const WALL_Y = tiles(2);
+export const WALL_Y = tiles(2);
 const WALL_H = 72;
 const PAINTED_X = tiles(2.6);
-const CHURCH_X = tiles(25);
-const WELL: [number, number] = [tiles(13), tiles(7.6)];
+export const CHURCH_X = tiles(25);
+export const WELL: [number, number] = [tiles(13), tiles(7.6)];
 
 /** The cloister arcade: round arches on short columns, the dark walk behind them. */
 export function arcade(a: ReturnType<typeof newArt>, w: number, h: number): void {
@@ -75,6 +75,12 @@ export function arcade(a: ReturnType<typeof newArt>, w: number, h: number): void
   }
 }
 
+/** Build the garth as it is at dawn on Ebba's feast (chapter V). */
+let dawn = false;
+export function cloisterAtDawn(on: boolean): void {
+  dawn = on;
+}
+
 export const CLOISTER: MapDef = {
   id: 'cloister',
   card: { title: { en: 'Saint Ebb’s', fr: 'Saint-Ebb' }, line: { en: 'The Cloister, by moonlight', fr: 'Le cloître, au clair de lune' } },
@@ -105,7 +111,10 @@ export const CLOISTER: MapDef = {
     };
     r.grade = { exposure: 1.14, contrast: 1.06, saturation: 1.05, lift: [0.01, 0.015, 0.045], gain: [0.97, 1, 1.05], vignette: 1, grain: 0.02, bloom: 0.9, bloomThreshold: 0.74, dof: 0.8, focusBand: 100, focusRange: 300 };
     st.ground({ ground: GROUND, heights: GROUND.map((row) => '0'.repeat(row.length)), seed: 33, palette: { ...GROUND_DEFAULT, grass: '#4E7E48', stone: '#8A8680' } });
-    st.addSky({ ...NIGHT_SKY, moon: [140, 150] });
+    if (dawn) {
+      dawnInterior(r, { outdoor: true });
+      st.addSky({ top: '#7A6A9A', horizon: '#F4B8A0', moon: null, stars: 0, clouds: 0.6, cloudColor: '#F8D0C0' });
+    } else st.addSky({ ...NIGHT_SKY, moon: [140, 150] });
     const w = tiles(26);
     backWall(st, tiles(1), tiles(1), w, tiles(1), WALL_H, {
       seed: 51,

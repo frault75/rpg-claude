@@ -68,7 +68,7 @@ describe('chapter II puzzles', () => {
 });
 
 describe('the Lost Names', () => {
-  it('every cache names a Lost Name, two in each place so far', async () => {
+  it('every cache names a Lost Name, two in each place, all ten placed', async () => {
     const { LOST_NAMES } = await import('../src/story/lostNames');
     const where: Record<string, string[]> = {};
     for (const [id, m] of Object.entries(MAPS))
@@ -83,6 +83,8 @@ describe('the Lost Names', () => {
     expect([...(where.village ?? []), ...(where.belltower ?? [])]).toHaveLength(2);
     expect(where.ninefold).toHaveLength(2);
     expect(where.fair).toHaveLength(2);
+    expect([...(where.dawnCloister ?? []), ...(where.lodging ?? [])]).toHaveLength(2);
+    expect(new Set(found)).toEqual(new Set(Object.keys(LOST_NAMES)));
   });
 
   it('the catchwords spell the Abbey motto', async () => {

@@ -471,7 +471,7 @@ Ten names are hidden in underwriting across the five locations, two in each. The
 9. *Hamo the bellringer, who rang the passing bell for the last time on the night of the Mercy.*
 10. *A girl of Lychford, born in the Grey Year, who was never written in time.* (Isot gives her a name in the margin.)
 
-Where they lie: Little Joan in the penitent's cell and Brother Osric on the cloister wall (Saint Ebb's); Edda Thatcher on her own house and Hamo in the ringing chamber (Lychford); Maud and Gervase at the hermit's hearth (Ninefold Blank); Cutha and the Fishers in the Margin; Wat and the girl of Lychford in Chapter V. Reading one shows a card and adds it to the save.
+Where they lie: Little Joan in the penitent's cell and Brother Osric on the cloister wall (Saint Ebb's); Edda Thatcher on her own house and Hamo in the ringing chamber (Lychford); Maud and Gervase at the hermit's hearth (Ninefold Blank); Cutha and the Fishers in the Margin; Wat on the cloister wall at dawn, by the church door, and the girl of Lychford on the infirmary roll in the Abbot's lodging (Chapter V). Reading one shows a card and adds it to the save.
 
 ---
 
@@ -1503,8 +1503,8 @@ Each milestone is playable and arrives as its own PR, with build and tests green
 | **Done** | Chapter II | Lychford: the lane (Emend, F3, the pilgrims), the village by day and by night (the rhyme, Dunstan, Amabel's choice), the churchyard (F4, Hild's grave, Immure), the bell-tower puzzle (C5), the Mummers' Play (B2, Vigil), the raid (C6), the frozen mere's ford and the hook; winter ambience and carol; the ice terrain |
 | **Done** | Chapter III | The Blanchwood (F5) draining to grisaille as you walk; Ninefold Blank's faded path, the city in sepia underwriting, and the hermit's two Lost Names; Ninefold Gate (Squint, F6 with sealed edicts); the Blanching chase (C7); the Danse Macabre mural (the Emend upgrade); the ossuary (B3), FINIS (C8), the forgiveness choice, Read Aloud; the Phrygian theme that forgets its notes; Lost Names for chapters I–III |
 | **Done** | Chapter IV | The Edge (C9) off the page into the Margin; the Ivy Gate (F7, the caladrius's marked doom, Read Aloud); the catchword arches spelling WHAT · IS · WRITTEN · IS · HELD; the Drollery Fair, the Abbot of Unreason, Amabel as a hen, the optional F8 and two Lost Names; Wystan's Vine (C10, the confession choice, Rubric); the Fall of Names (C11, Whit's first promise); the Ink-Well (B4: Blotlets, harvested Ink, the Rasure); Ermeline written back; the F Lydian hocket; burnished gold ground with punchwork |
-| **Next** | Chapter V and the ending | The Writing at Saint Ebb's, F9, Boss V, the ending and epilogue; the journal |
-| **Then** | Ending | Ending and epilogue, interludes, a tuning and audio-mix pass |
+| **Done** | Chapter V and the ending | Saint Ebb's at dawn: MERCY's first toll and the scraped half of the motto (C12); the Abbot's lodging and his Book of Hours; the cloister (F9, Gaudry's hammer); the nave, its bands of colour blanking one per toll; Brother and Sister (C13, Benison and Inscribe); Boss V, the Writing of FINIS (letters at the Rear, smudging, Falter, Forgotten, the Clean Page); Gold, Line by Line (C14) and the farewells; the epilogue page with every Lost Name found, in red; the last two Lost Names (Wat in the cloister, the Grey Year girl in the lodging, whom Isot names Ebba) |
+| **Next** | Polish | The journal, interludes, a tuning and audio-mix pass, larger battle text on phones |
 
 ---
 

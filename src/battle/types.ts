@@ -48,6 +48,8 @@ export interface Statuses {
   doomed: boolean;
   /** Can't be targeted by the party this round (Saint George stands guard). */
   guarded: boolean;
+  /** Rounds left scraped from the page: can't act (Aumery's "Scrapes WHIT"). */
+  forgotten: number;
 }
 
 export function freshStatuses(): Statuses {
@@ -67,6 +69,7 @@ export function freshStatuses(): Statuses {
     kneeling: false,
     doomed: false,
     guarded: false,
+    forgotten: 0,
   };
 }
 
@@ -141,7 +144,11 @@ export type IntentEffect =
   /** The dance turns: every enemy moves one place back, the last to the front. */
   | { kind: 'turn' }
   /** Ermeline scrapes Isot's inkhorn: −1 Ink (the Blot's Rasure). */
-  | { kind: 'drain' };
+  | { kind: 'drain' }
+  /** Scraped from the page: can't act for this many rounds. */
+  | { kind: 'forget'; rounds: number }
+  /** Every letter of FINIS written so far is scraped away. */
+  | { kind: 'scrapeLetters' };
 
 export type AbilityId =
   | 'penknife'
@@ -157,7 +164,8 @@ export type AbilityId =
   | 'lance'
   | 'tally'
   | 'vigil'
-  | 'read';
+  | 'read'
+  | 'inscribe';
 
 export type AbilityTarget = 'enemy' | 'ally' | 'anyUnit' | 'intent' | 'none' | 'fallenOrAlly';
 
@@ -194,6 +202,10 @@ export type BattleEvent =
   | { type: 'reckoning'; unit: string; amount: number }
   /** A blow passes through a hollow dancer (or, after the Empty Place, through Whit). */
   | { type: 'pass'; unit: string }
+  /** A letter of FINIS written, or lost (smudged, scraped); `count` is how many stand now. */
+  | { type: 'letter'; count: number; lost: boolean }
+  /** Damage enough to make a boss falter: its next intent is lost. */
+  | { type: 'falter'; unit: string }
   | { type: 'vigil'; unit: string; by: string }
   | { type: 'fall'; unit: string }
   | { type: 'rise'; unit: string }

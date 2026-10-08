@@ -198,10 +198,12 @@ function boot(): void {
   };
   /** Ready to fight an encounter directly (debug menu, ?scene=battle): its chapter's party and abilities. */
   const fightState = (id: string): void => {
-    const ch4 = ['f7', 'f8', 'b4'].includes(id);
+    const ch5 = ['f9', 'b5'].includes(id);
+    const ch4 = ['f7', 'f8', 'b4'].includes(id) || ch5;
     const ch3 = ['f5', 'f6', 'b3'].includes(id) || ch4;
     const ch2 = ['f3', 'f4', 'b2'].includes(id);
-    if (ch4) chapterFour();
+    if (ch5) chapterFive();
+    else if (ch4) chapterFour();
     else if (ch3) chapterThree();
     else if (ch2) chapterTwo();
     else startGame();
@@ -218,7 +220,11 @@ function boot(): void {
     if (id === 'f6' || id === 'b3' || ch4) learn('hild', 'squint');
     if (id === 'b3' || ch4) g.flags.emendUpgraded = true;
     if (ch4) learn('whit', 'read');
-    if (id === 'b4') learn('isot', 'rubric');
+    if (id === 'b4' || ch5) learn('isot', 'rubric');
+    if (id === 'b5') {
+      learn('hild', 'benison');
+      learn('isot', 'inscribe');
+    }
   };
   /** The state at the start of chapter IV: the Blanchwood behind them, Whit able to read. */
   const chapterFour = (): void => {
@@ -231,12 +237,23 @@ function boot(): void {
     Object.assign(g.flags, { emendUpgraded: true, finisRead: true, muralRestored: true, escaped: true, blanchingBegun: true });
     g.lostNames.push('maud', 'gervase');
   };
+  /** The state at the start of chapter V: out of the Margin, Rubric learned, Ermeline named. */
+  const chapterFive = (): void => {
+    chapterFour();
+    const g = session.game;
+    g.cleared.push('f7', 'b4');
+    g.chapter = 5;
+    g.abilities.isot.push('rubric');
+    Object.assign(g.flags, { steppedOff: true, cw4: true, f7Done: true, wystanMet: true, confessed: true, fallOfNames: true, ermelineOut: true, inkhornFilled: true });
+    g.lostNames.push('fishers');
+  };
   const params = new URLSearchParams(location.search);
   const mapParam = params.get('map');
   if (mapParam && MAPS[mapParam]) {
     // ?chapter=2 or 3 starts with the whole party and what it knows by then.
     const chapter = Number(params.get('chapter') ?? 1);
-    if (chapter >= 4) chapterFour();
+    if (chapter >= 5) chapterFive();
+    else if (chapter >= 4) chapterFour();
     else if (chapter >= 3) chapterThree();
     else if (chapter >= 2) chapterTwo();
     else startGame();
@@ -339,7 +356,18 @@ function boot(): void {
           }, 0.3),
       },
       { label: '→ the margin', run: () => transition(() => (chapterFour(), mapScene('edge', { spawn: 'start' })), 0.3) },
-      ...['f1', 'f2', 'b1', 'f3', 'f4', 'b2', 'f5', 'f6', 'b3', 'f7', 'f8', 'b4'].map((id) => ({
+      { label: '→ saint ebb’s at dawn', run: () => transition(() => (chapterFive(), mapScene('dawnScriptorium', { spawn: 'psalter' })), 0.3) },
+      {
+        label: '→ the nave',
+        run: () =>
+          transition(() => {
+            chapterFive();
+            session.game.cleared.push('f9');
+            Object.assign(session.game.flags, { mercyTolled: true, hammerDown: true });
+            return mapScene('nave', { spawn: 'doors' });
+          }, 0.3),
+      },
+      ...['f1', 'f2', 'b1', 'f3', 'f4', 'b2', 'f5', 'f6', 'b3', 'f7', 'f8', 'b4', 'f9', 'b5'].map((id) => ({
         label: `→ fight ${id}`,
         run: () =>
           transition(() => {

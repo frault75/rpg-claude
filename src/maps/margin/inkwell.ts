@@ -112,7 +112,5 @@ async function afterTheBlot(c: MapContext): Promise<void> {
   c.card({ en: 'Chapter V', fr: 'Chapitre V' }, { en: 'The Writing', fr: 'L’Écriture' });
   await c.wait(4);
   session.game.chapter = 5;
-  c.save();
-  await c.narrate({ en: 'Chapter V is still being written. Thank you for reading this far.', fr: 'Le chapitre V est encore en cours d’écriture. Merci d’avoir lu jusqu’ici.' });
-  c.goto('title', 'start');
+  c.goto('dawnScriptorium', 'psalter');
 }
