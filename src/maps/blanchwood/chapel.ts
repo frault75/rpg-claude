@@ -124,7 +124,7 @@ async function restored(c: MapContext): Promise<void> {
   if (stair) stair.visible = true;
   await c.say('isot', { en: 'Each Death leads the next one down. A correction can point anywhere. Not only away from us.', fr: 'Chaque Mort conduit la suivante vers le bas. Une correction peut pointer n’importe où. Pas seulement loin de nous.' });
   c.set('emendUpgraded');
-  c.card({ en: 'Emend', fr: 'Amender' }, { en: 'Isot · A blow can now be turned onto another enemy (2 Ink).', fr: 'Isot · Un coup peut maintenant être détourné sur un autre ennemi (2 Encre).' });
+  c.card({ en: 'Emend', fr: 'Corriger' }, { en: 'Isot · A blow can now be turned onto another enemy (2 Ink).', fr: 'Isot · Un coup peut maintenant être détourné sur un autre ennemi (2 Encre).' });
   await c.wait(2.4);
   await c.say('isot', { en: 'That one. The knight’s Death. It has no face, only a blank shield.', fr: 'Celle-là. La Mort du chevalier. Elle n’a pas de visage, seulement un bouclier blanc.' });
   const w = c.party.find((a) => a.id === 'whit');

@@ -127,7 +127,7 @@ export const ITEMS: Record<string, ItemDef> = {
     id: 'haresFoot',
     slot: 'charm',
     name: { en: 'Hare’s-foot brush', fr: 'Patte de lièvre' },
-    text: { en: 'The free Step can be taken twice each round.', fr: 'Le Pas gratuit peut se faire deux fois par tour.' },
+    text: { en: 'The free Step can be taken twice each round.', fr: 'On peut changer de place deux fois par tour, toujours gratuitement.' },
     lore: { en: 'Gilders sweep the loose gold away with one. This one still wants to run.', fr: 'Les doreurs s’en servent pour chasser l’or en trop. Celle-ci veut encore courir.' },
     color: '#B89A70',
     price: 30,

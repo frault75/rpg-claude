@@ -7,8 +7,8 @@ import type { AbilityDef, AbilityId, IntentEffect, Target } from './types';
 export const ABILITIES: Record<AbilityId, AbilityDef> = {
   penknife: { id: 'penknife', name: { en: 'Penknife', fr: 'Canif' }, owner: 'isot', target: 'enemy', text: { en: '2 damage to any enemy.', fr: '2 dégâts à n’importe quel ennemi.' } },
   gloss: { id: 'gloss', name: { en: 'Gloss', fr: 'Glose' }, owner: 'isot', target: 'enemy', text: { en: 'Reveal its intent; the next blow it takes deals 3 more.', fr: 'Révèle son intention ; le prochain coup qu’il reçoit fait 3 de plus.' } },
-  strike: { id: 'strike', name: { en: 'Strike Through', fr: 'Biffure' }, owner: 'isot', ink: 2, target: 'intent', text: { en: 'Cancel one enemy intent this round.', fr: 'Annule une intention ennemie ce tour-ci.' } },
-  emend: { id: 'emend', name: { en: 'Emend', fr: 'Amender' }, owner: 'isot', ink: 1, target: 'intent', text: { en: 'Turn a single blow onto another ally.', fr: 'Détourne un coup unique sur un autre allié.' } },
+  strike: { id: 'strike', name: { en: 'Strike Through', fr: 'Rayer' }, owner: 'isot', ink: 2, target: 'intent', text: { en: 'Cross out one enemy intent: it does not happen this round.', fr: 'Raye une intention ennemie : elle n’a pas lieu ce tour-ci.' } },
+  emend: { id: 'emend', name: { en: 'Emend', fr: 'Corriger' }, owner: 'isot', ink: 1, target: 'intent', text: { en: 'Change whom a single blow strikes: another ally takes it.', fr: 'Corrige la cible d’un coup unique : il tombe sur un autre allié.' } },
   rubric: { id: 'rubric', name: { en: 'Rubric', fr: 'Rubrique' }, owner: 'isot', ink: 1, target: 'ally', text: { en: 'An ally’s next ability this round is doubled.', fr: 'La prochaine capacité d’un allié ce tour-ci est doublée.' } },
   shove: { id: 'shove', name: { en: 'Shove', fr: 'Bousculer' }, owner: 'hild', target: 'none', fromFront: true, text: { en: '2 damage to the 1st enemy, then push it to the back.', fr: '2 dégâts au 1er ennemi, puis le repousse au fond.' } },
   shrive: { id: 'shrive', name: { en: 'Shrive', fr: 'Absoudre' }, owner: 'hild', hp: 3, target: 'fallenOrAlly', text: { en: 'An ally regains 6 HP, or a fallen ally rises with 6.', fr: 'Un allié regagne 6 PV, ou un allié tombé se relève avec 6.' } },
@@ -316,7 +316,7 @@ export const ENEMIES: Record<string, EnemyDef> = {
       hp: 15,
       id: 'rasure',
       title: { en: 'The Rasure', fr: 'La Rature' },
-      line: { en: 'Ermeline’s outline surfaces in the ink and scrapes at Isot’s inkhorn every round. Emend her stroke to free her.', fr: 'Le contour d’Ermeline remonte dans l’encre et gratte la corne d’Isot à chaque tour. Amendez son geste pour la libérer.' },
+      line: { en: 'Ermeline’s outline surfaces in the ink and scrapes at Isot’s inkhorn every round. Emend her stroke to free her.', fr: 'Le contour d’Ermeline remonte dans l’encre et gratte la corne d’Isot à chaque tour. Corrigez son geste pour la libérer.' },
     },
     behave: (c) => {
       const k = c.phase % 3;
@@ -362,7 +362,7 @@ export const ENEMIES: Record<string, EnemyDef> = {
         case 1:
           return [{ label: { en: 'Scrapes WHIT from the page', fr: 'Gratte WHIT de la page' }, rule: { en: 'Whit is Forgotten for 2 rounds', fr: 'Whit est Oublié pendant 2 tours' }, target: { unit: 'whit' }, reach: 'any', effects: [{ kind: 'forget', rounds: 2 }] }];
         case 2:
-          return [{ label: { en: 'Pumices the page', fr: 'Ponce la page' }, rule: { en: 'Aimed at her by name: a Step won’t save her', fr: 'Visée par son nom : un Pas ne la sauvera pas' }, target: { unit: 'isot' }, damage: 4, reach: 'any' }];
+          return [{ label: { en: 'Pumices the page', fr: 'Ponce la page' }, rule: { en: 'Aimed at her by name: a Step won’t save her', fr: 'Visée par son nom : changer de place ne la sauvera pas' }, target: { unit: 'isot' }, damage: 4, reach: 'any' }];
         case 3:
           return [{ label: { en: 'Preaches', fr: 'Prêche' }, rule: { en: 'Ward 6', fr: 'Garde 6' }, target: { self: true }, reach: 'any', effects: [{ kind: 'wardAlly', amount: 6 }] }];
         default:
@@ -577,7 +577,7 @@ export const ENCOUNTERS: Record<string, EncounterDef> = {
     stage: 'inkwell',
     env: (_round, phases) =>
       phases.has('rasure') && !phases.has('ermelineFree')
-        ? { label: { en: 'Ermeline scrapes at the inkhorn', fr: 'Ermeline gratte la corne à encre' }, rule: { en: '−1 Ink. Emend her stroke onto an enemy to free her', fr: '−1 Encre. Amendez son geste vers un ennemi pour la libérer' }, target: { unit: 'isot' }, reach: 'any', effects: [{ kind: 'drain' }] }
+        ? { label: { en: 'Ermeline scrapes at the inkhorn', fr: 'Ermeline gratte la corne à encre' }, rule: { en: '−1 Ink. Emend her stroke onto an enemy to free her', fr: '−1 Encre. Corrigez son geste vers un ennemi pour la libérer' }, target: { unit: 'isot' }, reach: 'any', effects: [{ kind: 'drain' }] }
         : null,
   },
   s4: { id: 's4', name: { en: 'The sweepers', fr: 'Les balayeurs' }, party: ['whit', 'hild', 'isot'], enemies: ['inkhornHound', 'inkhornHound', 'inkhornHound', 'scrapedBrother'], stage: 'undercroft' },
