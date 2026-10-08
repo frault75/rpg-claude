@@ -212,6 +212,6 @@ export type BattleEvent =
   | { type: 'spawn'; unit: string }
   | { type: 'ink'; amount: number }
   | { type: 'round'; round: number }
-  | { type: 'phase'; title: LocalText; line: LocalText }
+  | { type: 'phase'; title: LocalText; line: LocalText; id?: string }
   | { type: 'victory' }
   | { type: 'defeat' };

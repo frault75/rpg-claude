@@ -1508,6 +1508,7 @@ Each milestone is playable and arrives as its own PR, with build and tests green
 | **Done** | Battle text on phones | On a small screen (a phone held sideways) the banderoles, name plates, incoming blows and numbers are shown up to 1.45× larger and the windows a little larger, sharp at their new size; the banderoles find room for themselves; larger text in the settings adds to it everywhere |
 | **Done** | Audio mix | Every location's score measured through the master over 40 seconds of play and trimmed (src/audio/mix.ts): exploration within about 1 dB of −32 dB RMS (it was spread over 4 dB), battles 2 dB above, Wystan's vine and the deep Blanchwood quieter on purpose |
 | **Done** | Fight tuning | A solver over the engine (a plain player, one who reads one idea, and a beam search) measured every fight: the ordinary fights fall to plain fighting, as they should; the Danse Macabre, the Blot and the Writing need their puzzle; the Great Snail did not, so it now licks its wounds in its shell. A test plays every fight to keep it that way |
+| **Done** | Boss phase changes on the field | High Water on the causeway (the shell cracks on a glowing spiral of writing, the tide breaks every second round over the Front and the Middle, Gaudry's torches come down from the Abbey); the Clean Page in the nave (the floor turns to ruled vellum, the wall to a page with the initial M of MERCY in gold, Aumery gilded in it) |
 
 ---
 
