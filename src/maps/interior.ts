@@ -116,7 +116,8 @@ export function dawnInterior(r: WorldRenderer, o: { outdoor?: boolean } = {}): v
     fogMax: 0.36,
     mist: [8, 0.4, 0.008],
     mistDrift: [0.03, 0.01],
-    background: [0.5, 0.36, 0.42],
+    // Outside a room is dark, as at night; only the open sky takes the dawn's colour.
+    background: o.outdoor ? [0.5, 0.36, 0.42] : [0.075, 0.05, 0.06],
   };
   r.grade = {
     exposure: o.outdoor ? 0.95 : 1.12,
