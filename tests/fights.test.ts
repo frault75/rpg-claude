@@ -30,7 +30,9 @@ describe('the fights, played at the level the story brings', () => {
     expect(hp(quick)).toBeGreaterThan(hp(slog) + 10);
   });
 
-  it('the Danse Macabre and the Blot cannot be won without reading them', () => {
+  it('the Danse Macabre, the Blot and the Heap cannot be won without reading them', () => {
+    expect(play('b6').result).not.toBe('victory');
+    expect(play('b6', 'story').result).not.toBe('victory');
     expect(play('b3').result).not.toBe('victory');
     expect(play('b4').result).not.toBe('victory');
     expect(play('b4', 'story').result).not.toBe('victory');

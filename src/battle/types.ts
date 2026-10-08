@@ -50,6 +50,8 @@ export interface Statuses {
   guarded: boolean;
   /** Rounds left scraped from the page: can't act (Aumery's "Scrapes WHIT"). */
   forgotten: number;
+  /** Letters of its own name given back in the margin (a scraped Brother leaves when it is whole). */
+  named: number;
 }
 
 export function freshStatuses(): Statuses {
@@ -70,6 +72,7 @@ export function freshStatuses(): Statuses {
     doomed: false,
     guarded: false,
     forgotten: 0,
+    named: 0,
   };
 }
 
@@ -92,6 +95,8 @@ export interface Unit {
   phase: number;
   /** Intents shown with "?" until revealed. */
   hiddenIntents: boolean;
+  /** Gone from the fight by remembering its name, not fallen to a blow. */
+  left?: boolean;
 }
 
 export type Target =
@@ -152,7 +157,13 @@ export type IntentEffect =
   /** The blow's damage, as dealt, heals the one who struck (the corpse-candles take warmth). */
   | { kind: 'leech' }
   /** The target is Glossed: their next wound is +3 (an ape-scribe copying Isot's Gloss). */
-  | { kind: 'gloss' };
+  | { kind: 'gloss' }
+  /** The margin swept clean: the letters of its name given back so far are lost (a scraped Brother). */
+  | { kind: 'unname' }
+  /** Written over: back to the HP it had when the round began (a palimpsest knight). */
+  | { kind: 'rewrite' }
+  /** A letter of the word it is trying to become (the Heap). */
+  | { kind: 'letter' };
 
 export type AbilityId =
   | 'penknife'
@@ -208,12 +219,14 @@ export type BattleEvent =
   | { type: 'reckoning'; unit: string; amount: number }
   /** A blow passes through a hollow dancer (or, after the Empty Place, through Whit). */
   | { type: 'pass'; unit: string }
-  /** A letter of FINIS written, or lost (smudged, scraped); `count` is how many stand now. */
+  /** A letter of FINIS written, or lost (smudged, scraped); or of the Heap's word. `count` is how many stand now. */
   | { type: 'letter'; count: number; lost: boolean }
   /** Damage enough to make a boss falter: its next intent is lost. */
   | { type: 'falter'; unit: string }
   | { type: 'vigil'; unit: string; by: string }
   | { type: 'fall'; unit: string }
+  /** It remembers its name and leaves the fight (a scraped Brother, and his hounds). */
+  | { type: 'leave'; unit: string }
   /** A fall turned aside (Gervase's Ribbon): the ally stays at 1 HP. */
   | { type: 'spared'; unit: string }
   | { type: 'rise'; unit: string }

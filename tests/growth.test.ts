@@ -126,7 +126,7 @@ describe('difficulty', () => {
   it('a warning of a blow to come is kept true too', () => {
     expect(relabel({ en: 'next: everyone · 3', fr: 'ensuite : tous · 3' }, 3, 4)).toEqual({ en: 'next: everyone · 4', fr: 'ensuite : tous · 4' });
     const snail = ENEMIES.greatSnail!;
-    const spec = snail.behave({ round: 2, phase: 1, hp: 24, maxHp: 24, place: 0, allies: [], party: [], fallen: [], letters: 0, phases: new Set(), rng: () => 0.5 });
+    const spec = snail.behave({ round: 2, phase: 1, hp: 24, maxHp: 24, place: 0, named: 0, allies: [], party: [], fallen: [], letters: 0, phases: new Set(), rng: () => 0.5 });
     expect(spec.some((s) => s.foretells === 3)).toBe(true);
   });
 

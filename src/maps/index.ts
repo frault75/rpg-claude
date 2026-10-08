@@ -26,6 +26,7 @@ import { MERE } from './lychford/mere';
 import { MILL_MAP } from './lychford/mill';
 import { VILLAGE } from './lychford/village';
 import { SCRIPTORIUM } from './scriptorium';
+import { UNDERCROFT } from './undercroft';
 import type { MapDef } from './types';
 
 export const MAPS: Record<string, MapDef> = {
@@ -52,6 +53,7 @@ export const MAPS: Record<string, MapDef> = {
   vine: VINE,
   inkwell: INKWELL,
   dawnScriptorium: DAWN_SCRIPTORIUM,
+  undercroft: UNDERCROFT,
   lodging: LODGING,
   dawnCloister: DAWN_CLOISTER,
   nave: NAVE,

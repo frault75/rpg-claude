@@ -8,11 +8,19 @@
  */
 
 import { EbbNightAmbience } from '../../audio/ambient';
-import { bell, midiToHz } from '../../audio/instruments';
+import { bell, midiToHz, sing } from '../../audio/instruments';
+import { session } from '../../engine/session';
+import { CHARACTERS } from '../../pixel/characters';
 import { ghostWords } from '../../pixel/underwriting';
+import { isReturned, returnName } from '../../story/returns';
 import { tiles } from '../../world3d/stage';
-import { DOOR_X, LECTERN, SCRIPTORIUM, scriptoriumAtDawn, WALL_Y, WYSTAN_DESK } from '../scriptorium';
+import { pedlar } from '../gervase';
+import { CUTHWIN_DESK, DOOR_X, LECTERN, SCRIPTORIUM, scriptoriumAtDawn, WALL_Y, WYSTAN_DESK } from '../scriptorium';
 import type { MapContext, MapDef } from '../types';
+import { drawLowDoor, LOW_DOOR_X } from './lowDoor';
+
+/** Gervase's last stall, by the low door down to the Undercroft. */
+const GERVASE = pedlar('undercroft', LOW_DOOR_X + 20, WALL_Y + 12, 'down');
 
 /** One toll of MERCY: the white ring goes out, and the colour drains for a moment. */
 export async function mercyTolls(c: MapContext, n: number): Promise<void> {
@@ -50,16 +58,27 @@ export const DAWN_SCRIPTORIUM: MapDef = {
   ambience: () => new EbbNightAmbience(),
   checkpoint: true,
   candle: true,
-  spawns: { psalter: { x: WYSTAN_DESK[0] + 16, y: WYSTAN_DESK[1] + 6, dir: 'up' }, door: { x: DOOR_X, y: WALL_Y + 14, dir: 'down' } },
+  spawns: {
+    psalter: { x: WYSTAN_DESK[0] + 16, y: WYSTAN_DESK[1] + 6, dir: 'up' },
+    door: { x: DOOR_X, y: WALL_Y + 14, dir: 'down' },
+    undercroft: { x: LOW_DOOR_X, y: WALL_Y + 14, dir: 'down' },
+  },
   build(r, st) {
     scriptoriumAtDawn(true);
     const set = SCRIPTORIUM.build(r, st);
     scriptoriumAtDawn(false);
+    if (session.game.flags.undercroftOpen) drawLowDoor(st, WALL_Y);
     return set;
   },
-  npcs: [],
+  npcs: [
+    // Cuthwin never left his desk. He is humming.
+    { id: 'cuthwin', speaker: 'cuthwin', spec: CHARACTERS.scribe!, x: CUTHWIN_DESK[0], y: CUTHWIN_DESK[1] - 9, dir: 'down' },
+    GERVASE.npc,
+  ],
   zones: [],
   things: [
+    GERVASE.thing,
+    { id: 'cuthwin', x: CUTHWIN_DESK[0], y: CUTHWIN_DESK[1] - 9, h: 44, run: (c) => cuthwin(c) },
     {
       id: 'lectern',
       x: LECTERN[0],
@@ -84,7 +103,10 @@ export const DAWN_SCRIPTORIUM: MapDef = {
       },
     },
   ],
-  exits: [{ rect: [DOOR_X - 12, WALL_Y, 24, 6], to: 'lodging', spawn: 'door', when: (c) => c.flag('mercyTolled') }],
+  exits: [
+    { rect: [DOOR_X - 12, WALL_Y, 24, 6], to: 'lodging', spawn: 'door', when: (c) => c.flag('mercyTolled') },
+    { rect: [LOW_DOOR_X - 10, WALL_Y, 20, 6], to: 'undercroft', spawn: 'stair', when: (c) => c.flag('undercroftOpen') },
+  ],
   async enter(c, from) {
     if (from !== 'psalter' || c.flag('mercyTolled')) return;
     c.set('mercyTolled');
@@ -101,3 +123,39 @@ export const DAWN_SCRIPTORIUM: MapDef = {
   },
 };
 
+
+/** Cuthwin at his desk at dawn, humming the flat note; and Brother Osric, if his name was read. */
+async function cuthwin(c: MapContext): Promise<void> {
+  const g = session.game;
+  const hum = (flat: boolean) => {
+    const ctx = c.audio.ctx;
+    if (!ctx) return;
+    const t = ctx.currentTime;
+    for (const [k, m] of [62, 64, 62, 59].entries()) sing(ctx, c.audio.reverbIn, m - (flat && k === 3 ? 0.5 : 0), t + k * 0.45, 0.5, 0.05);
+  };
+  if (isReturned(g, 'osric')) {
+    hum(true);
+    await c.say('cuthwin', { en: 'Flat on the Amen. He’d be pleased.', fr: 'Faux sur l’Amen. Ça lui ferait plaisir.' });
+    return;
+  }
+  hum(true);
+  await c.narrate({ en: 'Brother Cuthwin has not left his desk. He is humming the Amen of the night office, and it goes flat at the end, a quarter of a tone, every time.', fr: 'Frère Cuthwin n’a pas quitté son pupitre. Il fredonne l’Amen de l’office de nuit, et la fin descend, d’un quart de ton, à chaque fois.' });
+  await c.say('cuthwin', { en: 'I can never get that note. Ten years. It’s like singing next to a hole.', fr: 'Je n’arrive jamais à avoir cette note. Dix ans. C’est comme chanter à côté d’un trou.' });
+  if (!g.lostNames.includes('osric')) return;
+  const pick = await c.choose([
+    { en: 'Read him the name from the cloister wall.', fr: 'Lui lire le nom du mur du cloître.' },
+    { en: 'Let him hum.', fr: 'Le laisser fredonner.' },
+  ]);
+  if (pick !== 0) return;
+  await c.say('isot', { en: '“Brother Osric, who sang a quarter-tone flat for forty years and was loved anyway.” It was on the cloister wall, under the whitewash.', fr: '« Frère Osric, qui chanta un quart de ton trop bas pendant quarante ans, et fut aimé quand même. » C’était sur le mur du cloître, sous la chaux.' }, 'sad');
+  await c.wait(0.8);
+  await c.say('cuthwin', { en: '…Osric.', fr: '…Osric.' });
+  await c.say('cuthwin', { en: 'He stood on my left in choir. Thirty years. He was always flat on the Amen, and I always went flat with him, so he wouldn’t be alone in it.', fr: 'Il se tenait à ma gauche au chœur. Trente ans. Il était toujours faux sur l’Amen, et je descendais toujours avec lui, pour qu’il n’y soit pas seul.' });
+  await c.say('cuthwin', { en: 'And then I went on going flat. For ten years. With nobody.', fr: 'Et puis j’ai continué à descendre. Pendant dix ans. Avec personne.' });
+  await c.say('hild', { en: 'Not with nobody. With him. You just didn’t know his name.', fr: 'Pas avec personne. Avec lui. Tu ne savais simplement plus son nom.' }, 'warm');
+  await c.narrate({ en: 'Cuthwin opens the drawer of his desk and takes out a little wooden pitch-pipe, worn dark where a thumb held it.', fr: 'Cuthwin ouvre le tiroir de son pupitre et en sort un petit diapason de bois, noirci là où un pouce le tenait.' });
+  await c.say('cuthwin', { en: 'It was in my stall. I never knew whose. It’s a quarter-tone flat. Of course it is. Take it. I don’t need it now.', fr: 'Il était dans ma stalle. Je n’ai jamais su à qui. Il est faux d’un quart de ton. Évidemment. Prends-le. Je n’en ai plus besoin.' });
+  hum(true);
+  await c.narrate({ en: 'He hums the Amen again. It goes flat at the end, the same as before, and this time it sounds like two voices.', fr: 'Il fredonne l’Amen encore. La fin descend, comme avant, et cette fois on dirait deux voix.' });
+  await returnName(c, 'osric');
+}

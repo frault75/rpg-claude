@@ -774,10 +774,216 @@ export function emberGryllusArt(seed = 8): EnemyArt {
   return { ...base, a, e };
 }
 
+// ---------------------------------------------------------------------------------------
+// The Undercroft. An inkhorn hound: a cow's horn of ink, the kind a scribe hangs at the
+// desk, gone feral. The wide end is its mouth, wet and black; the tip curls up for a tail.
+
+function houndFrame(bob: number, lunge: number, seed: number): { a: PixelImage; e: PixelImage } {
+  const W = 50;
+  const H = 30;
+  const img = new PixelImage(W, H);
+  const glow = new PixelImage(W, H);
+  const horn = ramp('#D8B878', 6, 0.7);
+  const ink = ramp('#1A1826', 4);
+  const by = 15 + bob;
+  const dx = Math.round(lunge * 4);
+  // Legs of ink, thin, the near pair a step ahead.
+  for (const [x, k] of [
+    [12, 0],
+    [16, 1],
+    [27, 0],
+    [31, 1],
+  ] as const) {
+    const lean = (k ? 1 : -1) * (lunge > 0 ? 2 : bob);
+    img.line(x + dx, by + 4, x + dx + lean, H - 2, ink[k + 1]!);
+    img.set(x + dx + lean + 1, H - 2, ink[k + 1]!);
+  }
+  // The horn: a curved cone from the tail tip (left, up) to the open mouth (right).
+  for (let i = 0; i <= 30; i++) {
+    const t = i / 30;
+    const cx = 6 + t * 30 + dx;
+    const cy = by - 6 * (1 - t) * (1 - t) + 2 * t;
+    const r = 1 + t * 6.5;
+    for (let y = Math.floor(cy - r); y <= Math.ceil(cy + r); y++)
+      for (let x = Math.floor(cx - 1); x <= Math.ceil(cx + 1); x++) {
+        const ny = (y + 0.5 - cy) / r;
+        if (Math.abs(ny) > 1) continue;
+        // Growth rings round the horn, and the light from above.
+        const ring = Math.floor(t * 9 + hash2(i, 0, seed) * 0.3) % 2 ? -0.5 : 0;
+        img.set(x, y, tone(horn, 3.4 - ny * 2.2 + ring - (1 - t) * 0.8, x, y));
+      }
+  }
+  // Out of the horn's open end, a hound's head of wet ink: pricked ears, a long snout, and
+  // a jaw that hangs open, dripping.
+  const mx = 37 + dx;
+  const hy = by - 2;
+  img.ellipse(mx + 1, hy, 4.4, 4, (x, y, nx, ny) => tone(ink, 1.2 + sphere(nx, ny) * 2.8, x, y));
+  for (let x = mx + 3; x <= mx + 10; x++) {
+    img.set(x, hy - 1, ink[3]!);
+    img.set(x, hy, ink[2]!);
+  }
+  img.set(mx + 10, hy - 1, hex('#0A0810'));
+  const jaw = lunge > 0 ? 3 : 2;
+  img.line(mx + 2, hy + 2, mx + 8, hy + jaw + 1, ink[1]!);
+  for (const x of [mx + 5, mx + 7, mx + 9]) img.set(x, hy + 1, hex('#EDE3CC'));
+  img.set(mx + 7, hy + jaw + 2, hex('#A83A28'));
+  // Ink drooling from the jaw.
+  img.vline(mx + 6, hy + jaw + 2, hy + jaw + 4 + (bob > 0 ? 1 : 0), ink[1]!);
+  // Ears, pricked, and an eye that catches the light.
+  img.line(mx - 2, hy - 3, mx - 3, hy - 8, ink[2]!);
+  img.line(mx - 1, hy - 3, mx - 2, hy - 7, ink[3]!);
+  img.line(mx + 1, hy - 3, mx + 1, hy - 8, ink[2]!);
+  img.set(mx + 2, hy - 2, hex('#F4F0E0'));
+  glow.set(mx + 2, hy - 2, hex('#A8A890'));
+  img.outline(null);
+  return { a: img, e: glow };
+}
+
+export function inkhornHoundArt(seed = 21): EnemyArt {
+  return sheetOf([houndFrame(0, 0, seed), houndFrame(1, 0, seed), houndFrame(1, 0, seed), houndFrame(0, 0, seed), houndFrame(0, 1, seed)], { idle: [0, 1, 2, 3], lunge: [4] }, [24, 29]);
+}
+
+// A stray letter: a capital scraped off a page and blown loose, in vermilion with a
+// flourish of azurite, drifting a hand's breadth off the floor.
+
+const CAPITALS: Record<string, string[]> = {
+  A: ['..##..', '.#..#.', '#....#', '######', '#....#', '#....#'],
+  D: ['#####.', '#....#', '#....#', '#....#', '#....#', '#####.'],
+  S: ['.####.', '#.....', '.####.', '.....#', '.....#', '#####.'],
+  U: ['#....#', '#....#', '#....#', '#....#', '#....#', '.####.'],
+  M: ['#....#', '##..##', '#.##.#', '#....#', '#....#', '#....#'],
+  E: ['######', '#.....', '####..', '#.....', '#.....', '######'],
+  I: ['.####.', '..##..', '..##..', '..##..', '..##..', '.####.'],
+  N: ['#....#', '##...#', '#.#..#', '#..#.#', '#...##', '#....#'],
+  O: ['.####.', '#....#', '#....#', '#....#', '#....#', '.####.'],
+  R: ['#####.', '#....#', '#####.', '#..#..', '#...#.', '#....#'],
+  T: ['######', '..##..', '..##..', '..##..', '..##..', '..##..'],
+};
+
+function strayFrame(ch: string, bob: number, tilt: number): { a: PixelImage; e: PixelImage } {
+  const W = 22;
+  const H = 30;
+  const img = new PixelImage(W, H);
+  const glow = new PixelImage(W, H);
+  const red = ramp('#C63D2A', 5);
+  const blue = ramp('#2B4C9C', 4);
+  const top = 4 - bob;
+  // Its shadow on the floor.
+  img.ellipse(11, H - 2, 5 - bob * 0.5, 1.2, hex('#2A2420', 120));
+  const g = CAPITALS[ch] ?? CAPITALS.A!;
+  g.forEach((row, j) =>
+    [...row].forEach((c, i) => {
+      if (c !== '#') return;
+      const x0 = 5 + i * 2 + Math.round((j - 3) * tilt * 0.5);
+      const y0 = top + j * 2;
+      for (let yy = 0; yy < 2; yy++)
+        for (let xx = 0; xx < 2; xx++) img.set(x0 + xx, y0 + yy, tone(red, 3.2 - j * 0.35 - xx * 0.4 + yy * -0.3, x0 + xx, y0 + yy));
+    }),
+  );
+  // A flourish of blue looping off the letter, the way a rubricator finishes it.
+  for (let k = 0; k < 9; k++) {
+    const a = k * 0.7;
+    const x = Math.round(17 + Math.cos(a) * (2 + k * 0.25));
+    const y = Math.round(top + 13 + Math.sin(a) * (2 + k * 0.2));
+    img.set(x, y, blue[2 + (k % 2)]!);
+  }
+  // A fleck of gold where the light catches it.
+  img.set(7, top + 1, hex('#F4D070'));
+  glow.set(7, top + 1, hex('#8A7030'));
+  img.outline(null);
+  return { a: img, e: glow };
+}
+
+export function strayLetterArt(ch = 'A'): EnemyArt {
+  return sheetOf([strayFrame(ch, 0, 0), strayFrame(ch, 1, 0), strayFrame(ch, 2, 0), strayFrame(ch, 1, 0), strayFrame(ch, 1, 1)], { idle: [0, 1, 2, 3], lunge: [4] }, [11, 29]);
+}
+
+// The Heap: ten years of scrapings swept into one place. Curls of vellum, rinds of pumice,
+// the broken strokes of every letter scraped in Saint Ebb's, and here and there a whole one
+// glowing faintly, trying to find the others.
+
+function heapFrame(bob: number, reach: number, seed: number): { a: PixelImage; e: PixelImage } {
+  const W = 100;
+  const H = 66;
+  const img = new PixelImage(W, H);
+  const glow = new PixelImage(W, H);
+  const vellum = ramp('#D8CCAE', 6, 0.6);
+  const grit = ramp('#8A8478', 4);
+  const noise = new Noise2D(seed);
+  const cx = W / 2 - 4;
+  const peak = 14 + bob;
+  // The mound: wide at the foot, lumpy, lit from the upper left.
+  for (let y = peak; y < H; y++)
+    for (let x = 0; x < W; x++) {
+      const k = (y - peak) / (H - peak);
+      const half = 10 + k * 36 + (noise.value(x / 7, y / 5) - 0.5) * 9;
+      const nx = (x + 0.5 - cx) / half;
+      if (Math.abs(nx) > 1) continue;
+      const ny = 1 - k * 2;
+      let t = 1 + sphere(Math.max(-1, Math.min(1, nx)), Math.max(-1, Math.min(1, ny * 0.8))) * 4.2;
+      // Shavings: little curls, lighter on top, shadowed beneath.
+      const curl = hash2(x >> 1, y, seed);
+      if (curl > 0.82) t += 0.9;
+      else if (curl < 0.1) t -= 1;
+      img.set(x, y, hash2(x, y >> 1, seed + 1) > 0.93 ? tone(grit, t * 0.7, x, y) : tone(vellum, t, x, y));
+    }
+  // Broken strokes of old ink, brown and red, in every direction.
+  for (let i = 0; i < 46; i++) {
+    const x = Math.round(cx - 34 + hash2(i, 3, seed) * 68);
+    const y = Math.round(peak + 8 + hash2(i, 4, seed) * (H - peak - 12));
+    if (!img.alpha(x, y)) continue;
+    const c = i % 5 === 0 ? hex('#A83A28') : hex('#5A3A26');
+    const dx = hash2(i, 5, seed) > 0.5 ? 1 : 0;
+    img.set(x, y, c);
+    img.set(x + dx, y + 1 - dx, c);
+    if (i % 3 === 0) img.set(x + 2 * dx, y + 2 - 2 * dx, c);
+  }
+  // A few whole letters, faintly alight, scattered: what word they make is not known yet.
+  const loose = 'RETNIOSUDMA';
+  for (let i = 0; i < 6; i++) {
+    const ch = loose[(i * 7 + seed) % loose.length]!;
+    const x = Math.round(cx - 30 + hash2(i, 6, seed) * 52);
+    const y = Math.round(peak + 12 + hash2(i, 7, seed) * 26);
+    const g = CAPITALS[ch]!;
+    if ((bob + i) % 4 === 3) continue;
+    g.forEach((row, j) =>
+      [...row].forEach((c, k) => {
+        if (c !== '#' || !img.alpha(x + k, y + j)) return;
+        img.set(x + k, y + j, hex('#F0E2B8'));
+        glow.set(x + k, y + j, hex('#7A6A40'));
+      }),
+    );
+  }
+  // Reaching: an arm of shavings thrown out towards the party.
+  if (reach > 0)
+    for (let i = 0; i < 26; i++) {
+      const t = i / 26;
+      const x = Math.round(cx + 18 + t * 30);
+      const y = Math.round(peak + 22 - Math.sin(t * Math.PI) * 14);
+      const r = 4 - t * 3;
+      img.ellipse(x, y, r, r * 0.8, (px, py, nx, ny) => tone(vellum, 1.4 + sphere(nx, ny) * 3.2, px, py));
+    }
+  img.outline(null);
+  return { a: img, e: glow };
+}
+
+export function heapArt(seed = 33): EnemyArt {
+  return sheetOf([heapFrame(0, 0, seed), heapFrame(1, 0, seed), heapFrame(2, 0, seed), heapFrame(1, 0, seed), heapFrame(0, 1, seed)], { idle: [0, 1, 2, 3], lunge: [4] }, [46, 65]);
+}
+
+/** Each stray letter that rises is the next letter of the word. */
+let strays = 0;
+
 export function enemyArt(kind: string): EnemyArt | null {
   switch (kind) {
     case 'emberGryllus':
       return emberGryllusArt();
+    case 'inkhornHound':
+      return inkhornHoundArt();
+    case 'strayLetter':
+      return strayLetterArt('ADSUM'[strays++ % 5]);
+    case 'heap':
+      return heapArt();
     case 'corpseCandle':
       return corpseCandleArt();
     case 'gryllus':

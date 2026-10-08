@@ -103,7 +103,16 @@ const BY_MAP: Record<string, Rule[]> = {
   ],
   vine: [[() => true, { en: 'Wystan is on the vine.', fr: 'Wystan est sur la vigne.' }]],
   inkwell: [[() => true, { en: 'The Ink-Well, at the bottom of the Margin, where every scraped name drains.', fr: 'Le Puits d’encre, au fond de la Marge, où s’écoule chaque nom gratté.' }]],
-  dawnScriptorium: [[() => true, { en: 'MERCY has tolled once. The lectern is bare: he has taken the Book into the church. His lodging is off the cloister.', fr: 'MERCY a sonné une fois. Le lutrin est vide : il a porté le Livre dans l’église. Son logis donne sur le cloître.' }]],
+  dawnScriptorium: [
+    [(g) => g.lostNames.includes('osric') && !flag(g, 'returned.osric'), { en: 'Cuthwin is humming the Amen, flat. Brother Osric’s name was on the cloister wall.', fr: 'Cuthwin fredonne l’Amen, trop bas. Le nom de frère Osric était sur le mur du cloître.' }],
+    [() => true, { en: 'MERCY has tolled once. The lectern is bare: he has taken the Book into the church. His lodging is off the cloister.', fr: 'MERCY a sonné une fois. Le lutrin est vide : il a porté le Livre dans l’église. Son logis donne sur le cloître.' }],
+  ],
+  undercroft: [
+    [(g) => !won(g, 's4'), { en: 'A Brother sweeps the vault with three hounds at his feet. He is scraped clean: write him back, a letter at a time.', fr: 'Un Frère balaie la crypte, trois chiens à ses pieds. Il est gratté net : le réécrire, une lettre à la fois.' }],
+    [(g) => !won(g, 's5'), { en: 'Two knights written over something older keep the inner bays.', fr: 'Deux chevaliers écrits par-dessus quelque chose de plus ancien gardent les baies du fond.' }],
+    [(g) => !won(g, 'b6'), { en: 'At the far end, the Heap is trying to say a word. Let it finish, and read it.', fr: 'Au fond, le Tas essaie de dire un mot. Le laisser finir, et le lire.' }],
+    [() => true, { en: 'They have all answered. Back up to the scriptorium, and on to the church.', fr: 'Ils ont tous répondu. Remonter au scriptorium, et en route pour l’église.' }],
+  ],
   lodging: [
     [(g) => !flag(g, 'hoursSeen'), { en: 'The Abbot’s lodging. His Book of Hours is open on the desk.', fr: 'Le logis de l’abbé. Son livre d’heures est ouvert sur le pupitre.' }],
     [() => true, { en: 'To the church, through the cloister.', fr: 'À l’église, par le cloître.' }],

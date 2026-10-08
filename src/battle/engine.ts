@@ -59,7 +59,8 @@ export type Refusal =
   | 'empty'
   | 'full'
   | 'front-only'
-  | 'enemies-only';
+  | 'enemies-only'
+  | 'not-yet';
 
 /** Abilities a Rubric (or Vermilion) can double. */
 const DOUBLES: ReadonlySet<AbilityId> = new Set(['penknife', 'shove', 'shrive', 'immure', 'squint', 'benison', 'lance', 'tally', 'vigil', 'read']);
@@ -94,6 +95,7 @@ interface Snapshot {
   falterNext: string[];
   satchel: Satchel;
   copied: [string, { ability: AbilityId; by: string; amount: number }][];
+  lastActor: string | null;
   eventsLen: number;
 }
 
@@ -151,6 +153,11 @@ export class Battle {
   private copied = new Map<string, { ability: AbilityId; by: string; amount: number }>();
   /** The ability being carried out, while it is. */
   private acting: { ability: AbilityId; by: string } | null = null;
+  /** The last ally to act this party phase, and last phase's (the inkhorn hounds hunt by scent). */
+  private lastActor: string | null = null;
+  private scent: string | null = null;
+  /** Each enemy's HP as the round began (a palimpsest knight writes itself back to it). */
+  private roundHp = new Map<string, number>();
   private nextIntentId = 1;
   /** What is left in the satchel, and what it held when the fight began. */
   satchel: Satchel = {};
@@ -282,6 +289,10 @@ export class Battle {
     this.emit({ type: 'round', round: this.round });
     this.steps = 0;
     this.vigil = null;
+    this.scent = this.lastActor;
+    this.lastActor = null;
+    this.roundHp.clear();
+    for (const e of this.standingEnemies()) this.roundHp.set(e.id, e.hp);
     const carried = this.intents.filter((i) => i.waiting && !i.cancelled && i.actor !== 'env' && !this.unit(i.actor)?.fallen);
     this.intents = [];
     for (const e of this.standingEnemies()) {
@@ -377,7 +388,9 @@ export class Battle {
     const k = this.copied.get(e.id);
     const by = k ? this.unit(k.by) : undefined;
     const copied = k && by && !by.fallen ? { ...k, byName: by.name } : undefined;
-    return def.behave({ round, phase: e.phase, hp: e.hp, maxHp: e.maxHp, place: e.place, allies, party, fallen, letters: this.letters, phases: this.phases, copied, rng });
+    const sniffed = this.scent ? this.unit(this.scent) : undefined;
+    const scent = sniffed && !sniffed.fallen ? { id: sniffed.id, name: sniffed.name } : undefined;
+    return def.behave({ round, phase: e.phase, hp: e.hp, maxHp: e.maxHp, place: e.place, named: e.status.named, allies, party, fallen, letters: this.letters, phases: this.phases, copied, scent, rng });
   }
 
   private makeIntent(actor: string, s: IntentSpec): Intent {
@@ -449,6 +462,7 @@ export class Battle {
       falterNext: [...this.falterNext],
       satchel: { ...this.satchel },
       copied: [...this.copied].map(([k, v]) => [k, { ...v }]),
+      lastActor: this.lastActor,
       eventsLen: this.events.length,
     });
   }
@@ -481,6 +495,7 @@ export class Battle {
     this.falterNext = new Set(s.falterNext);
     this.satchel = s.satchel;
     this.copied = new Map(s.copied);
+    this.lastActor = s.lastActor;
     this.events.length = s.eventsLen;
     this.result = 'ongoing';
     return true;
@@ -550,6 +565,11 @@ export class Battle {
         if (t.status.immured) return 'immured-target';
         if (t.status.guarded) return 'guarded';
         if (def.reachEnemy && this.rank(t) >= def.reachEnemy + (ability === 'lance' && this.wears('whit', 'coronel') ? 1 : 0)) return 'reach';
+        // The Heap can be Read at any strength, but only once its word is whole.
+        if (ability === 'read' && ENEMIES[t.kind]?.loosens) {
+          if (this.letters < (this.def.word?.text.length ?? 0)) return 'not-yet';
+          break;
+        }
         if (ability === 'read' && ENEMIES[t.kind]?.undying) return 'too-strong';
         if (ability === 'read' && t.hp > this.readThreshold(u)) return 'too-strong';
         break;
@@ -624,6 +644,7 @@ export class Battle {
     }
     if (ABILITIES[ability].oncePerBattle) this.usedOnce.add(ability);
     u.acted = true;
+    this.lastActor = u.id;
     this.emit({ type: 'act', unit: u.id, ability, target: target.unit ?? target.intent });
     let dbl = false;
     if (DOUBLES.has(ability) && this.isDoubled(u)) {
@@ -645,12 +666,20 @@ export class Battle {
         this.hurt(t!, knife * x + bonus, u.id);
         break;
       }
-      case 'gloss':
+      case 'gloss': {
         this.copied.set(t!.id, { ability, by: u.id, amount: 0 });
         t!.status.glossed = true;
         t!.status.revealed = true;
         this.emit({ type: 'status', unit: t!.id, status: 'glossed', on: true });
+        // A scraped Brother: a letter of his name, given back in the margin.
+        const named = ENEMIES[t!.kind]?.named;
+        if (named) {
+          t!.status.named++;
+          this.emit({ type: 'status', unit: t!.id, status: 'named', on: true });
+          if (t!.status.named >= named) this.leave(t!);
+        }
         break;
+      }
       case 'strike': {
         const it = this.intents.find((i) => i.id === target.intent)!;
         it.cancelled = true;
@@ -795,6 +824,7 @@ export class Battle {
     const t = target.unit ? this.unit(target.unit) : undefined;
     this.satchel = { ...this.satchel, [item]: (this.satchel[item] ?? 0) - 1 };
     u.acted = true;
+    this.lastActor = u.id;
     this.emit({ type: 'item', unit: u.id, item, target: target.unit });
     switch (item) {
       case 'poultice':
@@ -906,6 +936,8 @@ export class Battle {
       return;
     }
     this.emit({ type: 'intent', intent: it.id, actor: it.actor });
+    // The Heap takes its letter as it reaches, whether or not the blow finds anyone.
+    if (it.effects.some((e) => e.kind === 'letter')) this.addLetter();
     if (it.effects.some((e) => e.kind === 'scrapeLetters')) {
       this.phases.delete('gathering');
       if (this.letters > 0) {
@@ -986,6 +1018,17 @@ export class Battle {
   private applyEffects(it: Intent, actor: Unit | null, t: Unit): void {
     for (const e of it.effects) {
       switch (e.kind) {
+        case 'unname':
+          if (t.status.named > 0) {
+            t.status.named = 0;
+            this.emit({ type: 'status', unit: t.id, status: 'named', on: false });
+          }
+          break;
+        case 'rewrite': {
+          const was = this.roundHp.get(t.id) ?? t.hp;
+          if (t.hp < was) this.heal(t, was - t.hp);
+          break;
+        }
         case 'stripWard':
           if (t.status.ward > 0) {
             t.status.ward = 0;
@@ -1015,6 +1058,11 @@ export class Battle {
           if (!t.fallen) t.status.kneeling = true;
           break;
         case 'forget':
+          // The slip from the Heap: whoever wears it answers to their name.
+          if (t.side === 'party' && this.wears(t.kind as CharId, 'adsumSlip')) {
+            this.emit({ type: 'status', unit: t.id, status: 'named', on: true });
+            break;
+          }
           if (!t.fallen) {
             t.status.forgotten = Math.max(t.status.forgotten, e.rounds);
             this.emit({ type: 'status', unit: t.id, status: 'forgotten', on: true });
@@ -1060,6 +1108,8 @@ export class Battle {
       this.emit({ type: 'pass', unit: u.id });
       return;
     }
+    // A blow at the Heap knocks a letter of its word loose.
+    if (byParty && u.side === 'enemy' && ENEMIES[u.kind]?.loosens) this.loosen();
     let a = amount;
     if (u.status.glossed) {
       a += this.wears('isot', 'silverpoint') ? 4 : 3;
@@ -1171,6 +1221,8 @@ export class Battle {
       const t = this.allyAt(burst.place);
       if (t && !t.fallen) this.hurt(t, burst.damage, 'burst');
     }
+    // A stray letter cut down falls back into the Heap, and the word is a letter nearer.
+    if (u.side === 'enemy' && !read && ENEMIES[u.kind]?.returns && this.standingEnemies().some((o) => ENEMIES[o.kind]?.loosens)) this.addLetter();
     // The mourning brooch: whoever wears it steels themself when another ally falls.
     if (u.side === 'party')
       for (const o of this.party)
@@ -1192,6 +1244,43 @@ export class Battle {
           this.emit({ type: 'fall', unit: o.id });
         }
     this.checkEnd();
+  }
+
+  /** It remembers its name and goes, and whatever it leads goes with it (a scraped Brother and his hounds). */
+  private leave(u: Unit): void {
+    const followers = ENEMIES[u.kind]?.leads ? this.enemies.filter((o) => o !== u && !o.fallen && ENEMIES[o.kind]?.bound) : [];
+    for (const o of [u, ...followers]) {
+      o.fallen = true;
+      o.left = true;
+      o.status.tally = null;
+      o.status.ward = 0;
+      this.emit({ type: 'leave', unit: o.id });
+    }
+    this.checkEnd();
+  }
+
+  /** A letter of the Heap's word. When the word is whole, it can be Read. */
+  private addLetter(): void {
+    const w = this.def.word;
+    if (!w || this.letters >= w.text.length) return;
+    this.letters++;
+    this.emit({ type: 'letter', count: this.letters, lost: false });
+    if (this.letters === w.text.length && !this.phases.has('wordWhole')) {
+      this.phases.add('wordWhole');
+      this.emit({ type: 'phase', id: 'wordWhole', title: w.whole.title, line: w.whole.line });
+    }
+  }
+
+  /** A letter of the Heap's word knocked loose. The first time, it is said what was lost. */
+  private loosen(): void {
+    const w = this.def.word;
+    if (!w || this.letters <= 0) return;
+    this.letters--;
+    this.emit({ type: 'letter', count: this.letters, lost: true });
+    if (!this.phases.has('loosened')) {
+      this.phases.add('loosened');
+      this.emit({ type: 'phase', id: 'loosened', title: w.loose.title, line: w.loose.line });
+    }
   }
 
   /** A new enemy rises into the empty place nearest `near` (there are four places). */

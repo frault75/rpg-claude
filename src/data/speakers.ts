@@ -40,4 +40,7 @@ export const SPEAKERS: Readonly<Record<string, Speaker>> = {
   // He doesn't know his own name until it is read to him.
   pedlar: { name: { en: 'The pedlar', fr: 'Le colporteur' }, portrait: 'gervase', voice: 270 },
   gervase: { name: { en: 'Gervase', fr: 'Gervais' }, portrait: 'gervase', voice: 270 },
+  // The Brother who sweeps the Undercroft, until his name is given back.
+  sweeper: { name: { en: 'The sweeper', fr: 'Le balayeur' }, portrait: 'scrapedBrother', voice: 210 },
+  godric: { name: { en: 'Brother Godric', fr: 'Frère Godric' }, portrait: 'scrapedBrother', voice: 210 },
 };

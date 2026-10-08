@@ -27,7 +27,7 @@ describe('the items', () => {
       where[id] = found ? 'found' : carried ? 'carried' : cached.includes(id) ? 'cache' : sold.includes(id) ? 'sold' : 'nowhere';
     }
     expect(Object.values(where).filter((w) => w === 'nowhere'), JSON.stringify(where)).toEqual([]);
-    expect(Object.keys(where)).toHaveLength(19);
+    expect(Object.keys(where)).toHaveLength(20);
     // What is sold has a price; what is found or given has none.
     for (const id of Object.keys(ITEMS)) expect(!!ITEMS[id]!.price, id).toBe(where[id] === 'sold');
   });
