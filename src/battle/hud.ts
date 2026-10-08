@@ -19,11 +19,8 @@ export interface BanderoleLook {
   order: number;
   /** What it does, in a few words: "Looses an arrow". */
   text: string;
-  /** Whom it is aimed at, in plain words: "→ Isot (Rear)" (empty for itself). */
-  aim: string;
-  /** What it deals, as the difficulty has it (0 for none), and the word after it: "damage". */
+  /** What it deals, as the difficulty has it (0 for none). Whom it strikes is shown over their heads. */
   damage: number;
-  damageWord: string;
   /** A small line under the text: what else it does, "in 1", "waits". */
   note: string;
   hidden: boolean;
@@ -45,18 +42,46 @@ export function banderoleWidth(b: BanderoleLook): number {
   const big = prefs.largeText;
   c.font = `italic 600 ${big ? 18 : 16}px ${SERIF}`;
   const deed = c.measureText(b.hidden ? '? ? ?' : b.text).width;
-  let second = 0;
-  const add = (s: string, font: string) => {
-    c.font = font;
-    second += c.measureText(s).width;
-  };
-  if (!b.hidden && b.aim) add(b.aim, `700 ${big ? 13 : 12}px ${SERIF}`);
-  if (!b.hidden && b.damage > 0) {
-    add(`  ·  ${b.damage}`, `800 ${big ? 17 : 16}px ${SERIF}`);
-    add(` ${b.damageWord}`, `600 ${big ? 13 : 12}px ${SERIF}`);
-  }
-  if (b.note) add(`  ·  ${b.note}`, `italic 600 ${big ? 13 : 12}px ${SERIF}`);
-  return Math.round(Math.max(150, Math.min(BANDEROLE_W, 54 + Math.max(deed, second) + 26)));
+  c.font = `italic 600 ${big ? 13 : 12}px ${SERIF}`;
+  const note = b.note ? c.measureText(b.note).width : 0;
+  return Math.round(Math.max(120, Math.min(BANDEROLE_W, 54 + Math.max(deed, note) + blowSlot(c, b) + 26)));
+}
+
+const BLADE_W = 15;
+const blowFont = () => `800 ${prefs.largeText ? 22 : 20}px ${SERIF}`;
+
+/** Room kept at the scroll's right end for what the blow deals: a little blade and the number. */
+function blowSlot(c: CanvasRenderingContext2D, b: BanderoleLook): number {
+  if (b.hidden || b.damage <= 0) return 0;
+  c.font = blowFont();
+  return 14 + BLADE_W + 3 + c.measureText(String(b.damage)).width;
+}
+
+/** A small sword drawn in brown ink, its point to the upper right, centred on (x, y). */
+function drawBlade(c: CanvasRenderingContext2D, x: number, y: number): void {
+  c.save();
+  c.translate(x, y);
+  c.rotate(Math.PI / 4);
+  c.translate(0, 0.5);
+  c.fillStyle = '#3A2410';
+  c.beginPath();
+  c.moveTo(0, -11);
+  c.lineTo(2.3, -8);
+  c.lineTo(2.3, 3);
+  c.lineTo(-2.3, 3);
+  c.lineTo(-2.3, -8);
+  c.closePath();
+  c.fill();
+  // The light along one edge of the blade.
+  c.fillStyle = '#A8885C';
+  c.fillRect(-1.3, -7.5, 1, 9.5);
+  c.fillStyle = '#3A2410';
+  c.fillRect(-5.6, 3, 11.2, 2.4);
+  c.fillRect(-1.2, 5.4, 2.4, 3.6);
+  c.beginPath();
+  c.arc(0, 10.2, 2, 0, Math.PI * 2);
+  c.fill();
+  c.restore();
 }
 
 /** A parchment scroll with rolled ends, its text in red ink, its order in a roundel. */
@@ -123,11 +148,13 @@ export function drawBanderole(c: CanvasRenderingContext2D, w: number, h: number,
   c.textAlign = 'center';
   c.textBaseline = 'middle';
   c.fillText(String(b.order), rx, ry + 1);
-  // The deed in red, on one line; under it, in brown capitals, whom it is aimed at, what it
-  // deals in red, and what else it does. A Mummer's verse may take two lines.
+  // The deed in red (a Mummer's verse may take two lines), and under it, in small brown
+  // italic, what else it does. What the blow deals sits at the scroll's right end, a blade and
+  // a number, in the same place on every scroll; whom it strikes is marked over their heads.
   c.textAlign = 'left';
   const tx = 54;
-  const tw = w - tx - 20;
+  const slot = blowSlot(c, b);
+  const tw = w - tx - 20 - slot;
   const size = prefs.largeText ? 18 : 16;
   const text = b.hidden ? '? ? ?' : b.text;
   let fs = size;
@@ -135,55 +162,29 @@ export function drawBanderole(c: CanvasRenderingContext2D, w: number, h: number,
   while (fs > 13 && c.measureText(text).width > tw) c.font = `italic 600 ${--fs}px ${SERIF}`;
   const lines = c.measureText(text).width > tw ? wrap(c, text, tw).slice(0, 2) : [text];
   const lh = fs + 2;
-  /** `glued`: no dot before it (the word after a number: "4 damage"). */
-  type Part = { s: string; font: string; color: string; glued?: boolean };
-  const sep: Part = { s: '  ·  ', font: `600 12px ${SERIF}`, color: '#8A6A44' };
-  const head: Part[] = [];
-  if (!b.hidden && b.aim) head.push({ s: b.aim, font: `700 ${prefs.largeText ? 13 : 12}px ${SERIF}`, color: '#6A4A26' });
-  if (!b.hidden && b.damage > 0) head.push({ s: `${b.damage}\u00A0`, font: `800 ${prefs.largeText ? 17 : 16}px ${SERIF}`, color: RED_INK }, { s: b.damageWord, font: `600 ${prefs.largeText ? 13 : 12}px ${SERIF}`, color: '#6A4A26', glued: true });
-  const width = (ps: Part[]) =>
-    ps.reduce((sum, p) => {
-      c.font = p.font;
-      return sum + c.measureText(p.s).width;
-    }, 0);
-  let noteSize = prefs.largeText ? 13 : 12;
-  const noteOf = (): Part => ({ s: b.note, font: `italic 600 ${noteSize}px ${SERIF}`, color: '#5A3C1C' });
-  // The aim, the blow and the note on one line if they fit; else the note goes under them.
-  // A dot between the aim, the blow and the rest; the number and its word stay together.
-  const spaced = (ps: Part[]) => {
-    const out: Part[] = [];
-    ps.forEach((p, i) => {
-      if (i && !p.glued) out.push(sep);
-      out.push(p);
-    });
-    return out;
-  };
-  let rows: Part[][] = [];
-  if (b.note) {
-    let one = spaced([...head, noteOf()]);
-    while (noteSize > 10 && width(one) > tw) {
-      noteSize--;
-      one = spaced([...head, noteOf()]);
-    }
-    rows = width(one) <= tw ? [one] : head.length ? [spaced(head), [noteOf()]] : [[noteOf()]];
-  } else if (head.length) rows = [spaced(head)];
-  const rowH = 15;
-  const total = lines.length * lh + rows.length * rowH;
-  const ty = ry - total / 2 + lh / 2;
+  let ns = prefs.largeText ? 13 : 12;
+  c.font = `italic 600 ${ns}px ${SERIF}`;
+  while (b.note && ns > 10 && c.measureText(b.note).width > tw) c.font = `italic 600 ${--ns}px ${SERIF}`;
+  const noteH = b.note ? ns + 3 : 0;
+  const ty = ry - (lines.length * lh + noteH) / 2 + lh / 2;
   c.textBaseline = 'middle';
   c.font = `italic 600 ${fs}px ${SERIF}`;
   c.fillStyle = b.env ? '#1E3466' : RED_INK;
   lines.forEach((l, i) => c.fillText(l, tx, ty + i * lh));
-  rows.forEach((row, r) => {
-    let x = tx;
-    const y = ty + lines.length * lh - lh / 2 + rowH / 2 + r * rowH;
-    for (const p of row) {
-      c.font = p.font;
-      c.fillStyle = p.color;
-      c.fillText(p.s, x, y + 1);
-      x += c.measureText(p.s).width;
-    }
-  });
+  if (b.note) {
+    c.font = `italic 600 ${ns}px ${SERIF}`;
+    c.fillStyle = '#5A3C1C';
+    c.fillText(b.note, tx, ty + lines.length * lh - lh / 2 + noteH / 2 + 1);
+  }
+  if (slot) {
+    c.font = blowFont();
+    const n = String(b.damage);
+    const nx = w - 20 - c.measureText(n).width;
+    c.fillStyle = b.env ? '#1E3466' : RED_INK;
+    c.fillText(n, nx, ry + 1);
+    drawBlade(c, nx - 3 - BLADE_W / 2, ry);
+  }
+  const textW = tw + slot;
   // Struck through.
   if (b.struck > 0) {
     c.strokeStyle = '#D8202A';
@@ -191,7 +192,7 @@ export function drawBanderole(c: CanvasRenderingContext2D, w: number, h: number,
     c.lineCap = 'round';
     c.beginPath();
     c.moveTo(tx - 4, ry + 3);
-    c.lineTo(tx - 4 + (tw + 8) * Math.min(1, b.struck), ry - 4);
+    c.lineTo(tx - 4 + (textW + 8) * Math.min(1, b.struck), ry - 4);
     c.stroke();
   }
   c.restore();
