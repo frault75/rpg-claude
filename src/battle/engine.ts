@@ -666,7 +666,7 @@ export class Battle {
         this.emit({ type: 'phase', title: { en: m.letter, fr: m.letter }, line: { en: m.en, fr: m.fr } });
         if (this.letters === 3 && !this.phases.has('cleanPage')) {
           this.phases.add('cleanPage');
-          this.emit({ type: 'phase', title: { en: 'The Clean Page', fr: 'La Page propre' }, line: { en: 'Aumery steps into the Book. Now MERCY tolls on the page itself.', fr: 'Aumery entre dans le Livre. À présent MERCY sonne sur la page même.' } });
+          this.emit({ type: 'phase', id: 'cleanPage', title: { en: 'The Clean Page', fr: 'La Page propre' }, line: { en: 'Aumery steps into the Book. Now MERCY tolls on the page itself.', fr: 'Aumery entre dans le Livre. À présent MERCY sonne sur la page même.' } });
         }
         if (this.letters === 5) {
           this.result = 'victory';
@@ -934,7 +934,7 @@ export class Battle {
     const ph = u.side === 'enemy' ? ENEMIES[u.kind]?.phaseAt : undefined;
     if (ph && u.hp <= ph.hp && !this.phases.has(ph.id)) {
       this.phases.add(ph.id);
-      this.emit({ type: 'phase', title: ph.title, line: ph.line });
+      this.emit({ type: 'phase', title: ph.title, line: ph.line, id: ph.id });
     }
 
     if (a > 0 && u.status.tally !== null && source !== 'reckoning') {

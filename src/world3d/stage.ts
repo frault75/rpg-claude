@@ -165,6 +165,12 @@ export class Stage {
     return b;
   }
 
+  /** A torch: a full flame whose light can be turned up and down (the flame hidden). */
+  addTorch(x: number, y: number, h: number, radius = 80): { flame: Billboard; light: GameLight } {
+    const flame = this.addFlame(x, y, h, { light: radius, embers: false });
+    return { flame, light: this.lights[this.lights.length - 1]! };
+  }
+
   /** A candle flame at (x, y), height h: small, steady, a warm pool of light. */
   addCandle(x: number, y: number, h: number, light = 0.5, radius = 46): { flame: Billboard; light: GameLight } {
     if (!candleTex) {

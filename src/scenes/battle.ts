@@ -67,6 +67,7 @@ import type { CharId } from '../story/state';
 import { drawManicule, INK, SERIF, type UiLayer as UiLayerT, type UiPanel, UiLayer } from '../ui/ui';
 import { Actor } from '../world3d/actor';
 import { Billboard, pixelTexture } from '../world3d/billboard';
+import { PhaseStaging } from './battlePhases';
 import { Emitter } from '../world3d/particles';
 import { Stage } from '../world3d/stage';
 
@@ -89,6 +90,8 @@ class Figure {
   ox = 0;
   shake = 0;
   flash = 0;
+  /** A steady glow under the hit flash (the gilding of the Clean Page). */
+  gild = 0;
   alpha = 1;
   alphaTarget = 1;
   private shownAlpha = 1;
@@ -152,7 +155,7 @@ class Figure {
       s.h = 0;
       s.sync();
     }
-    s.flash = this.flash;
+    s.flash = Math.max(this.flash, this.gild);
     if (Math.abs(this.alpha - this.shownAlpha) > 0.02 || (this.alpha > 0.99 && this.shownAlpha < 1)) {
       this.shownAlpha = this.alpha > 0.99 ? 1 : this.alpha;
       s.opacity = this.shownAlpha;
@@ -229,6 +232,7 @@ export class BattleScene implements Scene {
   readonly name = 'battle';
   private readonly stage: Stage;
   private readonly set: BattleSet;
+  private readonly phaseStaging: PhaseStaging;
   private battle!: Battle;
   private readonly figures = new Map<string, Figure>();
   private readonly ui: UiLayerT;
@@ -288,6 +292,7 @@ export class BattleScene implements Scene {
     if (!def) throw new Error(`unknown encounter ${encounter}`);
     this.stage = new Stage(r);
     this.set = dressBattle(def.stage, r, this.stage);
+    this.phaseStaging = new PhaseStaging(r, this.stage, this.set, encounter);
     const g = session.game;
     const order = [...g.formation, ...def.party].filter((c, i, a) => a.indexOf(c) === i);
     this.partyIds = order.filter((c) => def.party.includes(c)).slice(0, 3);
@@ -346,6 +351,7 @@ export class BattleScene implements Scene {
   // ---- setting up a fight ----
 
   private begin(first: boolean): void {
+    this.phaseStaging.reset();
     for (const f of this.figures.values()) f.dispose();
     this.figures.clear();
     for (const b of this.banderoles.values()) this.ui.remove(b.panel);
@@ -844,6 +850,11 @@ export class BattleScene implements Scene {
           start: () => {
             this.showBanner(tr(e.title), tr(e.line), false);
             reckoningSound(a);
+            if (e.id === 'cleanPage') {
+              this.r.screen.flash = 0.9;
+              pageTurn(a);
+            }
+            this.phaseStaging.trigger(e.id, (kind) => this.battle.enemies.find((u) => u.kind === kind)?.id);
           },
           end: () => {
             this.banner.visible = false;
@@ -1808,6 +1819,8 @@ export class BattleScene implements Scene {
   update(dt: number): void {
     this.time += dt;
     this.refreshZoom();
+    // Flashes (a Reckoning, a letter of FINIS, the Clean Page) fade out.
+    this.r.screen.flash = Math.max(0, this.r.screen.flash - dt * 2.2);
     if (!this.input.isHeld('confirm')) this.hold = false;
     // Play the queue.
     let budget = dt * this.speed;
@@ -1929,6 +1942,7 @@ export class BattleScene implements Scene {
     }
     this.drawBanderoles();
     this.placeHand();
+    this.phaseStaging.update(dt, (id) => this.figures.get(id));
     this.stage.update(dt, this.time);
   }
 
@@ -1977,6 +1991,7 @@ export class BattleScene implements Scene {
     this.music.stop();
     for (const f of this.figures.values()) f.dispose();
     for (const b of this.bursts) b.e.dispose();
+    this.phaseStaging.dispose();
     this.ui.dispose();
     this.stage.dispose();
     this.r.view.shakeX = 0;

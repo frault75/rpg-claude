@@ -297,6 +297,23 @@ describe('Boss I: the Great Snail', () => {
     expect(b.result).toBe('victory');
   });
 
+  it('at 12 HP the shell cracks: High Water, and the tide breaks every second round over the Front and the Middle', () => {
+    const b = fight('b1', party, { abilities: CHAPTER_ONE_ABILITIES });
+    const snail = b.unit('e0')!;
+    snail.hp = 14;
+    b.act('whit', 'lance', { unit: 'e0' });
+    expect(b.phases.has('highWater')).toBe(true);
+    expect(b.events.some((e) => e.type === 'phase' && e.id === 'highWater')).toBe(true);
+    const tides: { round: number; places: unknown }[] = [];
+    for (let r = 0; r < 4; r++) {
+      b.endTurn();
+      const env = b.intents.find((i) => i.actor === 'env');
+      if (env) tides.push({ round: b.round, places: env.target });
+    }
+    expect(tides.map((t) => t.round)).toEqual([2, 4]);
+    expect(tides[0]!.places).toEqual({ places: [0, 1] });
+  });
+
   it('Striking Through the withdrawal keeps it out of its shell and from licking its wounds', () => {
     const b = fight('b1', party, { abilities: CHAPTER_ONE_ABILITIES });
     const snail = b.unit('e0')!;

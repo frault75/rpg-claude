@@ -355,6 +355,12 @@ export const ENEMIES: Record<string, EnemyDef> = {
     name: { en: 'The Great Snail', fr: 'Le Grand Escargot' },
     hp: 24,
     size: 2,
+    phaseAt: {
+      hp: 12,
+      id: 'highWater',
+      title: { en: 'High Water', fr: 'Marée haute' },
+      line: { en: 'The shell cracks on a spiral of writing. Now the tide breaks every second round, over the Front and the Middle.', fr: 'La coquille se fend sur une spirale d’écriture. Désormais la marée brise un tour sur deux, sur l’Avant et le Milieu.' },
+    },
     behave: (c) => {
       const k = c.phase % 3;
       if (k === 0)
@@ -422,8 +428,11 @@ export const ENCOUNTERS: Record<string, EncounterDef> = {
     party: ['whit', 'hild', 'isot'],
     enemies: ['greatSnail'],
     stage: 'causeway',
-    env: (round) =>
-      round % 3 === 0 ? { label: { en: 'The tide: a wave breaks over the Front · 2', fr: 'La marée : une vague brise sur l’Avant · 2' }, target: { place: 0 }, damage: 2, reach: 'any' } : null,
+    env: (round, phases) => {
+      if (phases.has('highWater'))
+        return round % 2 === 0 ? { label: { en: 'High water: a wave breaks over the Front and the Middle · 2', fr: 'Marée haute : une vague brise sur l’Avant et le Milieu · 2' }, target: { places: [0, 1] }, damage: 2, reach: 'any' } : null;
+      return round % 3 === 0 ? { label: { en: 'The tide: a wave breaks over the Front · 2', fr: 'La marée : une vague brise sur l’Avant · 2' }, target: { place: 0 }, damage: 2, reach: 'any' } : null;
+    },
   },
 };
 
