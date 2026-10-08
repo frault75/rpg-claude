@@ -218,8 +218,6 @@ export class SeaGateScene implements Scene {
     this.card.show(t('chapter.2'), t('chapter.2.name'));
     await d.wait(4.2);
     session.game.chapter = 2;
-    session.saves.save('auto', session.game);
-    await this.dialogue.narrate({ en: 'Chapter II is still being written. Thank you for reading this far.', fr: 'Le chapitre II est encore en cours d’écriture. Merci d’avoir lu jusqu’ici.' });
     this.dialogue.close();
     this.hooks.end?.();
   }

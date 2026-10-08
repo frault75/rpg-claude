@@ -1497,8 +1497,9 @@ Each milestone is playable and arrives as its own PR, with build and tests green
 | **Done** | Title, prologue and Sea Gate | The title screen, C1, and the Sea Gate opening with the knight in the shallows |
 | **Done** | Battle engine | §5.2–§5.7 and §13.4, with unit tests |
 | **Done** | Battle screen | The stage in the diorama, banderoles, command windows, refusals, animations from the event log, the estampie; B1 rises out of the sea on the Sea Gate's causeway |
-| **Next** | Chapter I | Maps and scripts for the scriptorium, penitent's cell and cloister; F1 and F2 on their own stages; the journal; autosave at every checkpoint; the debug jump menu; the other music themes |
-| **Then** | Chapters II–V | All maps, scripts, fights, bosses, puzzles and Lost Names, every location's music, palette and light |
+| **Done** | Chapter I | Maps and scripts for the scriptorium, penitent's cell and cloister; F1 and F2 on their own stages; autosave at every checkpoint; the debug jump menu |
+| **Done** | Chapter II | Lychford: the lane (Emend, F3, the pilgrims), the village by day and by night (the rhyme, Dunstan, Amabel's choice), the churchyard (F4, Hild's grave, Immure), the bell-tower puzzle (C5), the Mummers' Play (B2, Vigil), the raid (C6), the frozen mere's ford and the hook; winter ambience and carol; the ice terrain |
+| **Next** | Chapters III–V | All maps, scripts, fights, bosses, puzzles and Lost Names, every location's music, palette and light; the journal |
 | **Then** | Ending | Ending and epilogue, interludes, a tuning and audio-mix pass |
 
 ---
@@ -1530,5 +1531,4 @@ The story beats, the five bosses, raking light and the fray effect are the core 
 1. **Title.** Is *Palimpsest* fine, or would you like a plainer name?
 2. **Darkness.** The story touches on mercy-killing. Isot scrapes her suffering teacher at his request, and Amabel asks the same of her. It is handled with restraint, with no gore and with consequences. Is that tone OK?
 3. **Final battle.** Boss V is an objective fight (protect the scribe for five letters) rather than a race to empty an HP bar. Do you agree?
-4. **Raking light on touch.** The touch controls have A, B and Menu, but no way to hold the candle. A fourth button once raking light is taught, or a long press?
-5. **Where each item lies.** The eight items need their story beats. The Clapper of the Passing Bell can't come from Lychford's own bell, which is rung again in the final battle.
+4. **Where each item lies.** The eight items need their story beats. The Clapper of the Passing Bell can't come from Lychford's own bell, which is rung again in the final battle.

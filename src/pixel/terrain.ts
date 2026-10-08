@@ -24,6 +24,7 @@ export type Terrain =
   | 'cliff'
   | 'stairs'
   | 'water'
+  | 'ice'
   | 'void';
 
 export const TERRAIN_CHARS: Readonly<Record<string, Terrain>> = {
@@ -39,10 +40,11 @@ export const TERRAIN_CHARS: Readonly<Record<string, Terrain>> = {
   '|': 'cliff',
   '=': 'stairs',
   '~': 'water',
+  i: 'ice',
   ' ': 'void',
 };
 
-export const KINDS: readonly Terrain[] = ['void', 'grass', 'meadow', 'dirt', 'sand', 'cobble', 'flag', 'wood', 'snow', 'rock', 'cliff', 'stairs', 'water'];
+export const KINDS: readonly Terrain[] = ['void', 'grass', 'meadow', 'dirt', 'sand', 'cobble', 'flag', 'wood', 'snow', 'rock', 'cliff', 'stairs', 'water', 'ice'];
 const KIND_ID = new Map(KINDS.map((k, i) => [k, i]));
 
 /** How far an edge wanders, in pixels (0 = crisp, for masonry and cliffs). */
@@ -60,12 +62,14 @@ const SOFT: Record<Terrain, number> = {
   cliff: 0,
   stairs: 0,
   water: 3.5,
+  ice: 4,
 };
 
 /** Which terrain sits on top where two meet (higher casts a lip onto lower). */
 const RANK: Record<Terrain, number> = {
   void: 0,
   water: 0,
+  ice: 1,
   sand: 1,
   dirt: 1,
   cobble: 2,
@@ -87,6 +91,8 @@ export interface GroundPalette {
   wood: string;
   snow: string;
   rock: string;
+  /** Black ice, as on a frozen mere. */
+  ice: string;
   flowers: readonly string[];
 }
 
@@ -98,6 +104,7 @@ export const GROUND_DEFAULT: GroundPalette = {
   wood: '#8A5E38',
   snow: '#E6ECF4',
   rock: '#77726C',
+  ice: '#62788E',
   flowers: ['#F4F0E8', '#F2D24A', '#E58AA8', '#8AA8E8', '#C79AE0'],
 };
 
@@ -181,6 +188,7 @@ export function paintGround(layout: readonly string[], seed = 1, pal: GroundPale
     wood: ramp(pal.wood, 5),
     snow: ramp(pal.snow, 5, 0.5),
     rock: ramp(pal.rock, 6),
+    ice: ramp(pal.ice, 5, 0.7),
     moss: ramp('#5E7A3A', 4),
   };
   const pick = (r: readonly RGBA[], t: number, x: number, y: number): RGBA => {
@@ -214,6 +222,15 @@ export function paintGround(layout: readonly string[], seed = 1, pal: GroundPale
         case 'snow': {
           const t = 3 + (lo - 0.5) * 2 - (noise.value(x / 9, y / 5) > 0.7 ? 1 : 0);
           c = hi > 0.995 ? hex('#FFFFFF') : pick(R.snow, t, x, y);
+          break;
+        }
+        case 'ice': {
+          // Black ice: smooth and dark, with long wind streaks and pale hairline cracks.
+          const crack = Math.abs(noise.value(x / 40 + 7, y / 40) - 0.5) < 0.011 || (lo > 0.58 && Math.abs(noise.value(x / 12 + 40, y / 12) - 0.5) < 0.012);
+          const streak = Math.sin(x * 0.05 - y * 0.38 + noise.value(x / 34, y / 34) * 5) > 0.965;
+          let t = 1.5 + (lo - 0.5) * 1.2 + (streak ? 0.9 : 0);
+          if (crack) t = 3.4;
+          c = hi > 0.998 ? hex('#F4F8FF') : pick(R.ice, t, x, y);
           break;
         }
         case 'dirt': {

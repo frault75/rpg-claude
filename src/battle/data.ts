@@ -30,6 +30,7 @@ export const PARTY_STATS: Record<CharId, { name: LocalText; hp: number }> = {
 /** What an enemy means to do; the engine adds ids and order. */
 export interface IntentSpec {
   label: LocalText;
+  rule?: LocalText;
   target: Target;
   damage?: number;
   reach?: 'close' | 'far' | 'any';
@@ -45,7 +46,9 @@ export interface BehaviourCtx {
   hp: number;
   maxHp: number;
   /** Standing allies of the enemy (other than itself), with their HP. */
-  allies: { id: string; name: LocalText; hp: number; maxHp: number }[];
+  allies: { id: string; kind: string; name: LocalText; hp: number; maxHp: number }[];
+  /** Fallen allies, nearest first. */
+  fallen: { id: string; kind: string; name: LocalText }[];
   rng: () => number;
 }
 
@@ -115,6 +118,68 @@ export const ENEMIES: Record<string, EnemyDef> = {
         ? [{ label: { en: 'Gathers itself to club the Front · 9', fr: 'Se ramasse pour assommer l’Avant · 9' }, target: { place: 0 }, damage: 9, reach: 'close', countdown: 1 }]
         : [{ label: { en: 'Roars: the party’s Ward is stripped', fr: 'Rugit : la Garde du groupe tombe' }, target: { all: true }, effects: [{ kind: 'stripWard' }], reach: 'any' }],
   },
+  george: {
+    name: { en: 'Saint George', fr: 'Saint Georges' },
+    hp: 12,
+    behave: (c) => {
+      const doctor = c.allies.find((a) => a.kind === 'doctor');
+      if (c.phase % 2 === 1 && doctor)
+        return [
+          {
+            label: { en: '“Stand back! The Doctor’s under my care.”', fr: '« Arrière ! Le Docteur est sous ma garde. »' },
+            rule: { en: 'Guards the Doctor: he can’t be targeted', fr: 'Garde le Docteur : impossible à cibler' },
+            target: { unit: doctor.id },
+            effects: [{ kind: 'guard' }],
+            reach: 'any',
+          },
+        ];
+      return [
+        {
+          label: { en: '“Here comes I, Saint George; I’ll smite the foremost if I can!”', fr: '« Me voici, saint Georges ; je frappe le premier qui vient ! »' },
+          rule: { en: 'Front · 4', fr: 'Avant · 4' },
+          target: { place: 0 },
+          damage: 4,
+          reach: 'close',
+        },
+      ];
+    },
+  },
+  slasher: {
+    name: { en: 'Bold Slasher', fr: 'Le Hardi Tranchant' },
+    hp: 10,
+    behave: (c) =>
+      c.phase % 2 === 0
+        ? [{ label: { en: '“I’m Bold Slasher, sharp of blade!”', fr: '« Je suis le Hardi Tranchant, lame affûtée ! »' }, rule: { en: 'Slashes the Middle · 3', fr: 'Taille le Milieu · 3' }, target: { place: 1 }, damage: 3, reach: 'close' }]
+        : [{ label: { en: '“Then catch my sword, and catch it well!”', fr: '« Alors attrape mon épée, et attrape-la bien ! »' }, rule: { en: 'Hurls his blade at the Rear · 3', fr: 'Lance sa lame sur l’Arrière · 3' }, target: { place: 2 }, damage: 3, reach: 'far' }],
+  },
+  doctor: {
+    name: { en: 'Doctor Ball', fr: 'Docteur Ball' },
+    hp: 8,
+    behave: (c) => {
+      const down = c.fallen[0];
+      if (down)
+        return [
+          {
+            label: { en: '“A little bottle by my side: the fellow’s up who should have died!”', fr: '« Une fiole à mon côté : debout, celui qui devait trépasser ! »' },
+            rule: { en: `Raises ${down.name.en} at full HP`, fr: `Relève ${down.name.fr}, tous PV` },
+            target: { unit: down.id },
+            effects: [{ kind: 'raise' }],
+            reach: 'any',
+          },
+        ];
+      const patient = c.allies.find((a) => a.kind === 'george') ?? c.allies[0];
+      if (!patient) return [{ label: { en: '“Physician, heal thyself!”', fr: '« Médecin, guéris-toi toi-même ! »' }, rule: { en: 'Heals himself · 4', fr: 'Se soigne · 4' }, target: { self: true }, effects: [{ kind: 'heal', amount: 4 }], reach: 'any' }];
+      return [
+        {
+          label: { en: '“A dose of this, and up you get!”', fr: '« Une goutte de ceci, et te voilà debout ! »' },
+          rule: { en: `Doses ${patient.name.en}: heals 4`, fr: `Soigne ${patient.name.fr} : 4` },
+          target: { unit: patient.id },
+          effects: [{ kind: 'heal', amount: 4 }],
+          reach: 'any',
+        },
+      ];
+    },
+  },
   greatSnail: {
     name: { en: 'The Great Snail', fr: 'Le Grand Escargot' },
     hp: 24,
@@ -147,6 +212,9 @@ export interface EncounterDef {
 export const ENCOUNTERS: Record<string, EncounterDef> = {
   f1: { id: 'f1', name: { en: 'Grylli in the margin', fr: 'Grylles dans la marge' }, party: ['isot'], enemies: ['gryllus', 'gryllus'], stage: 'scriptorium' },
   f2: { id: 'f2', name: { en: 'The Pumice Brothers', fr: 'Les Frères de la Ponce' }, party: ['hild', 'isot'], enemies: ['brother', 'brother'], stage: 'cloister' },
+  f3: { id: 'f3', name: { en: 'Hares on the lane', fr: 'Lièvres sur le chemin' }, party: ['whit', 'hild', 'isot'], enemies: ['hare', 'hare', 'hare'], stage: 'lane' },
+  f4: { id: 'f4', name: { en: 'Babewyns on the lych-gate', fr: 'Babouins sur le porche' }, party: ['whit', 'hild', 'isot'], enemies: ['babewyn', 'babewyn'], stage: 'lychgate' },
+  b2: { id: 'b2', name: { en: 'The Mummers’ Play', fr: 'La pièce des Mimes' }, party: ['whit', 'hild', 'isot'], enemies: ['george', 'slasher', 'doctor'], stage: 'green' },
   b1: {
     id: 'b1',
     name: { en: 'The Great Snail of the Causeway', fr: 'Le Grand Escargot de la chaussée' },

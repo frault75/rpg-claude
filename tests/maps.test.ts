@@ -37,3 +37,32 @@ describe('the maps', () => {
     expect(ENCOUNTERS.f2!.stage).toBe('cloister');
   });
 });
+
+describe('chapter II puzzles', () => {
+  it('the rhyme gives the ringing order: Weeper, Morning, Singer, the Tenor last', async () => {
+    const { RINGING_ORDER } = await import('../src/maps/lychford/belltower');
+    expect([...RINGING_ORDER]).toEqual(['weeper', 'morning', 'singer', 'tenor']);
+  });
+
+  it('the ice holds on the ford and groans off it', async () => {
+    const { MERE, watchIce } = await import('../src/maps/lychford/mere');
+    const ctx = (x: number, y: number, crossed = false) => ({ player: { x, y }, flag: (f: string) => f === 'crossed' && crossed }) as never;
+    // Every stone of the ford is safe ground, and stands on the map's walkable ice.
+    for (const u of MERE.underwriting ?? []) {
+      expect(watchIce(ctx(u.x, u.y)), u.id).toBe(false);
+      expect(MERE.walkable).toContain(MERE.ground[Math.floor(u.y / TILE)]![Math.floor(u.x / TILE)]);
+    }
+    // Out in the middle, away from the stones, the ice gives.
+    expect(watchIce(ctx(6 * TILE, 11 * TILE))).toBe(true);
+    expect(watchIce(ctx(24 * TILE, 2 * TILE))).toBe(true);
+    // The shores are always safe, and once across nothing groans.
+    expect(watchIce(ctx(2 * TILE, 11 * TILE))).toBe(false);
+    expect(watchIce(ctx(6 * TILE, 11 * TILE, true))).toBe(false);
+  });
+
+  it('the fights of chapter II have their stages', () => {
+    expect(ENCOUNTERS.f3!.stage).toBe('lane');
+    expect(ENCOUNTERS.f4!.stage).toBe('lychgate');
+    expect(ENCOUNTERS.b2!.stage).toBe('green');
+  });
+});

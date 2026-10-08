@@ -284,6 +284,7 @@ registerStrings('en', {
   'refuse.too-strong': 'Too strong to Read: it needs {n} HP or fewer.',
   'refuse.not-single': 'Only a single blow can be turned.',
   'refuse.fallen': 'Has fallen.',
+  'refuse.guarded': 'Guarded this round: cannot be targeted.',
   'status.ward': 'Ward {n}',
   'status.glossed': 'Glossed',
   'status.tally': 'Tally {n}',
@@ -293,6 +294,7 @@ registerStrings('en', {
   'status.rubricated': 'Rubric',
   'status.doomed': 'Doomed',
   'status.readOnly': 'Must be Read',
+  'status.guarded': 'Guarded',
 });
 registerStrings('fr', {
   'battle.party': 'Le groupe',
@@ -347,6 +349,7 @@ registerStrings('fr', {
   'refuse.too-strong': 'Trop fort pour être Lu : il faut {n} PV ou moins.',
   'refuse.not-single': 'Seul un coup unique peut être détourné.',
   'refuse.fallen': 'Est tombé.',
+  'refuse.guarded': 'Protégé ce tour-ci : impossible à cibler.',
   'status.ward': 'Garde {n}',
   'status.glossed': 'Glosé',
   'status.tally': 'Décompte {n}',
@@ -356,6 +359,7 @@ registerStrings('fr', {
   'status.rubricated': 'Rubrique',
   'status.doomed': 'Condamné',
   'status.readOnly': 'Doit être Lu',
+  'status.guarded': 'Protégé',
 });
 
 registerStrings('en', {

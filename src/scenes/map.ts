@@ -7,6 +7,8 @@
 
 import type { AudioEngine } from '../audio/engine';
 import { footstep, uiTick } from '../audio/sfx';
+import { ABILITIES } from '../battle/data';
+import { SPEAKERS } from '../data/speakers';
 import type { DebugInfo } from '../debug/overlay';
 import type { GameLight, WorldRenderer } from '../engine/diorama/renderer';
 import type { Action, Input } from '../engine/input';
@@ -144,6 +146,7 @@ export class MapScene implements Scene {
       a.x = n.x;
       a.y = n.y;
       a.dir = n.dir;
+      if (n.fray) a.sprite.fray = n.fray;
       this.npcs.set(n.id, a);
     }
     for (const u of def.underwriting ?? []) {
@@ -348,6 +351,15 @@ export class MapScene implements Scene {
         this.hooks.goto(map, spawn);
       },
       save: () => session.saves.save('auto', g()),
+      learn: async (who, ability) => {
+        const list = (g().abilities[who] ??= []);
+        if (list.includes(ability)) return;
+        list.push(ability);
+        const def = ABILITIES[ability];
+        uiTick(this.audio, true);
+        this.cardUi.show(tr(def.name), `${tr(SPEAKERS[who]?.name ?? { en: who, fr: who })} · ${tr(def.text)}`);
+        await this.director.wait(2.6);
+      },
       page: (def) => this.openPage(def),
     };
     return ctx;
@@ -527,6 +539,11 @@ export class MapScene implements Scene {
       this.marker.sync();
     }
 
+    // The map's own watch (thin ice, and the like).
+    if (free && this.def.watch) {
+      const run = this.def.watch(this.ctx);
+      if (run) void this.script(() => run(this.ctx));
+    }
     // Zones and exits.
     if (free) {
       for (const z of this.def.zones ?? []) {

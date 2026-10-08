@@ -2,7 +2,7 @@
 import { CHARACTERS, characterSheet, drawCharacter, FRAMES } from '../src/pixel/characters';
 import type { PixelImage } from '../src/pixel/pixel';
 import { drawPortrait, type Mood } from '../src/pixel/portraits';
-import { greatSnailArt, gryllusArt } from '../src/pixel/enemies';
+import { babewynArt, greatSnailArt, gryllusArt, hareArt } from '../src/pixel/enemies';
 import { armarium, bench, candle, candleStand, coffer, lectern, psalter, stool, writingDesk } from '../src/pixel/furniture';
 
 const params = new URLSearchParams(location.search);
@@ -57,6 +57,8 @@ if (what === 'enemies') {
   for (const [label, art] of [
     ['gryllus', gryllusArt()],
     ['great snail', greatSnailArt()],
+    ['hare', hareArt()],
+    ['babewyn', babewynArt()],
   ] as const) {
     imgs.push({ img: art.a, label });
   }

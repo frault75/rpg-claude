@@ -46,6 +46,8 @@ export interface Statuses {
   kneeling: boolean;
   /** Takes double damage this round (the Caladrius looks away). */
   doomed: boolean;
+  /** Can't be targeted by the party this round (Saint George stands guard). */
+  guarded: boolean;
 }
 
 export function freshStatuses(): Statuses {
@@ -64,6 +66,7 @@ export function freshStatuses(): Statuses {
     readOnly: false,
     kneeling: false,
     doomed: false,
+    guarded: false,
   };
 }
 
@@ -103,6 +106,8 @@ export interface Intent {
   order: number;
   /** Banderole text, written in red. */
   label: LocalText;
+  /** The rule under a couplet (the Mummers speak in verse). */
+  rule?: LocalText;
   target: Target;
   damage: number;
   reach: 'close' | 'far' | 'any';
@@ -127,6 +132,7 @@ export type IntentEffect =
   | { kind: 'toBack' }
   | { kind: 'doom' }
   | { kind: 'raise' }
+  | { kind: 'guard' }
   | { kind: 'spawn'; enemy: string };
 
 export type AbilityId =
@@ -184,5 +190,6 @@ export type BattleEvent =
   | { type: 'spawn'; unit: string }
   | { type: 'ink'; amount: number }
   | { type: 'round'; round: number }
+  | { type: 'phase'; title: LocalText; line: LocalText }
   | { type: 'victory' }
   | { type: 'defeat' };

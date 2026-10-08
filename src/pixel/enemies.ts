@@ -346,6 +346,136 @@ export function greatSnailArt(seed = 11): EnemyArt {
   );
 }
 
+// ---------------------------------------------------------------------------------------
+// The marginal hare: up on its hind legs with a longbow, as in the margins where the
+// hares hunt the hunters.
+
+function hareFrame(draw: number, crouch: number, seed: number): { a: PixelImage; e: PixelImage } {
+  const W = 34;
+  const H = 40;
+  const img = new PixelImage(W, H);
+  const glow = new PixelImage(W, H);
+  const fur = ramp('#B08A62', 6);
+  const belly = ramp('#E8D8B8', 4);
+  const wood = ramp('#7A4E2E', 4);
+  const noise = new Noise2D(seed);
+  const cy = 24 + crouch;
+  // Hind legs and big feet.
+  img.ellipse(13, H - 6, 6, 5, (x, y, nx, ny) => tone(fur, 1.4 + sphere(nx, ny) * 3.4, x, y));
+  img.ellipse(15, H - 2, 6, 1.6, fur[1]!);
+  // Body, upright, the pale belly to the front.
+  img.ellipse(14, cy, 7, 9, (x, y, nx, ny) => tone(fur, 1.2 + sphere(nx, ny) * 4.2 + (noise.value(x / 2, y / 2) - 0.5) * 0.6, x, y));
+  img.ellipse(17, cy + 1, 3.6, 7, (x, y, nx, ny) => tone(belly, 1 + sphere(nx, ny) * 2.6, x, y));
+  // Head, ears laid back a little, a bright eye.
+  const hy = cy - 11;
+  img.ellipse(17, hy, 5.4, 4.6, (x, y, nx, ny) => tone(fur, 1.4 + sphere(nx, ny) * 4, x, y));
+  for (const [x0, lean] of [
+    [13, -3],
+    [16, -1],
+  ] as const) {
+    for (let k = 0; k < 11; k++) {
+      const x = Math.round(x0 + (lean * k) / 10);
+      const y = hy - 3 - k;
+      img.set(x, y, fur[3]!);
+      img.set(x + 1, y, k > 2 && k < 9 ? hex('#D89A8A') : fur[2]!);
+      img.set(x + 2, y, fur[1]!);
+    }
+  }
+  img.set(20, hy - 1, hex('#1A1210'));
+  img.set(20, hy - 2, hex('#F4E2A8'));
+  glow.set(20, hy - 2, hex('#6A5A30'));
+  img.set(22, hy + 1, hex('#5A3A30'));
+  // The longbow, drawn back by `draw`.
+  const bx = 24;
+  for (let y = cy - 12; y <= cy + 8; y++) {
+    const k = (y - (cy - 2)) / 10;
+    img.set(Math.round(bx + (1 - k * k) * 3), y, wood[2]!);
+  }
+  const pull = Math.round(draw * 5);
+  img.line(bx, cy - 12, bx - pull, cy - 2, hex('#E8E0D0'));
+  img.line(bx - pull, cy - 2, bx, cy + 8, hex('#E8E0D0'));
+  if (draw > 0) img.line(bx - pull, cy - 2, bx + 6, cy - 2, wood[3]!);
+  // Paws on the bow and the string.
+  img.ellipse(bx + 1, cy - 2, 1.6, 1.4, fur[4]!);
+  img.ellipse(bx - pull, cy - 2, 1.6, 1.4, fur[3]!);
+  img.outline(null);
+  return { a: img, e: glow };
+}
+
+export function hareArt(seed = 7): EnemyArt {
+  const frames = [
+    hareFrame(0, 0, seed),
+    hareFrame(0, 1, seed),
+    hareFrame(0, 1, seed),
+    hareFrame(0, 0, seed),
+    hareFrame(1, 0, seed),
+  ];
+  return sheetOf(frames, { idle: [0, 1, 2, 3], lunge: [4] }, [14, 39]);
+}
+
+// ---------------------------------------------------------------------------------------
+// The babewyn: a grotesque of the margins with a face at each end, both of them hungry.
+
+function babewynFrame(bob: number, bite: boolean, seed: number): { a: PixelImage; e: PixelImage } {
+  const W = 46;
+  const H = 40;
+  const img = new PixelImage(W, H);
+  const glow = new PixelImage(W, H);
+  const hide = ramp('#7A8A4A', 6);
+  const scale = ramp('#C9A84A', 4);
+  const skin = ramp('#D89A84', 5);
+  const noise = new Noise2D(seed);
+  const by = 24 + bob;
+  // Four clawed bird legs.
+  for (const lx of [12, 17, 27, 32]) {
+    img.line(lx, by + 6, lx - 1, H - 2, scale[1]!);
+    img.line(lx - 1, H - 2, lx - 3, H - 1, scale[2]!);
+    img.line(lx - 1, H - 2, lx + 1, H - 1, scale[2]!);
+  }
+  // The body, round, scaled along the back.
+  img.ellipse(22, by, 14, 8, (x, y, nx, ny) => {
+    let t = 1 + sphere(nx, ny) * 4.4 + (noise.value(x / 3, y / 3) - 0.5) * 0.8;
+    if (ny < -0.3 && (x + y) % 4 === 0) t += 0.8;
+    return tone(hide, t, x, y);
+  });
+  // The front head: a man's face, bearded, with a bishop's ears.
+  const fx = 36 + (bite ? 3 : 0);
+  const fy = by - 8;
+  img.ellipse(fx, fy, 6, 6.4, (x, y, nx, ny) => tone(skin, 1 + sphere(nx, ny) * 3.6, x, y));
+  img.set(fx + 2, fy - 1, hex('#1A1210'));
+  img.set(fx + 2, fy - 2, hex('#F4E2A8'));
+  glow.set(fx + 2, fy - 2, hex('#6A5A30'));
+  img.ellipse(fx + 1, fy + 4, 4, 2.2, (x, y) => tone(ramp('#6A4630', 3), 1.4, x, y));
+  if (bite) {
+    img.hline(fx + 1, fx + 5, fy + 2, hex('#3A1014'));
+    img.hline(fx + 1, fx + 5, fy + 3, hex('#F4EEE0'));
+  } else img.hline(fx + 1, fx + 5, fy + 2, hex('#3A1014'));
+  img.set(fx - 4, fy - 6, skin[3]!);
+  img.set(fx - 5, fy - 7, skin[2]!);
+  // The tail curls up into a second, smaller face that spits.
+  for (let k = 0; k < 10; k++) {
+    const x = Math.round(9 - k * 0.6);
+    const y = Math.round(by - 2 - k * 1.3);
+    img.set(x, y, hide[2]!);
+    img.set(x + 1, y, hide[3]!);
+  }
+  const tx = 4;
+  const ty = by - 16;
+  img.ellipse(tx, ty, 3.6, 3.8, (x, y, nx, ny) => tone(skin, 1 + sphere(nx, ny) * 3, x, y));
+  img.set(tx - 1, ty - 1, hex('#1A1210'));
+  img.hline(tx - 2, tx + 1, ty + 1, hex('#3A1014'));
+  img.outline(null);
+  return { a: img, e: glow };
+}
+
+export function babewynArt(seed = 9): EnemyArt {
+  return sheetOf(
+    [babewynFrame(0, false, seed), babewynFrame(1, false, seed), babewynFrame(1, false, seed), babewynFrame(0, false, seed), babewynFrame(0, true, seed)],
+    { idle: [0, 1, 2, 3], lunge: [4] },
+    [22, 39],
+  );
+}
+
 /** The art for an enemy kind, or null for those drawn as people (the Brothers). */
 export function enemyArt(kind: string): EnemyArt | null {
   switch (kind) {
@@ -353,6 +483,10 @@ export function enemyArt(kind: string): EnemyArt | null {
       return gryllusArt();
     case 'greatSnail':
       return greatSnailArt();
+    case 'hare':
+      return hareArt();
+    case 'babewyn':
+      return babewynArt();
     default:
       return null;
   }
