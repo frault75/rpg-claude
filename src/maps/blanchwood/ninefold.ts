@@ -16,7 +16,7 @@ import { ashlar, newArt } from '../../pixel/buildings';
 import { hex } from '../../pixel/pixel';
 import { blanch, ghostFacade, ghostStreet, pathStone, SEPIA } from '../../world3d/blanchwood';
 import { tiles } from '../../world3d/stage';
-import type { MapContext, MapDef, Underwriting } from '../types';
+import { type MapContext, type MapDef, type Underwriting, underArt } from '../types';
 import { blanchedTree, setDepth, WOOD_GROUND, WOOD_SKY, woodLight } from './common';
 
 const W = 40;
@@ -112,7 +112,7 @@ const WORDS: Underwriting[] = [
     h: 14,
     art: textImage(['THEY CAME WITH', 'THE PUMICE AT DAWN'], GHOST),
     revealed: async (c) => {
-      await c.say('hild', { en: 'The Pumice Order. It was founded to undo forgeries in the Book. It ended the war by scouring the rebel city. Ebba’s Pumice, from end to end.', fr: 'L’ordre de la Ponce. Il fut fondé pour défaire les faux dans le Livre. Il a fini la guerre en récurant la ville rebelle. La Ponce d’Ebba, d’un bout à l’autre.' }, 'grave');
+      await c.say('hild', { en: 'The Pumice Order. They were made to scrape forgeries out of the Book. Then a city rebelled, and they decided it was a forgery. Ebba’s Pumice, end to end.', fr: 'L’ordre de la Ponce. On l’a fondé pour gratter les faux dans le Livre. Puis une ville s’est révoltée, et ils ont décidé que c’était un faux. La Ponce d’Ebba, d’un bout à l’autre.' }, 'grave');
     },
   },
   {
@@ -179,7 +179,7 @@ export const NINEFOLD: MapDef = {
     // The city shows a little even without the candle: the faintest pentimento of its fronts.
     for (const u of CITY) {
       if (u.flat) continue;
-      const b = st.addImage(u.art, u.x, u.y, { shadow: false, solid: false });
+      const b = st.addImage(underArt(u), u.x, u.y, { shadow: false, solid: false });
       b.opacity = 0.24;
     }
     // The hermit's ruin: two broken walls, half blanched.

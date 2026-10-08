@@ -105,7 +105,7 @@ export const OSSUARY: MapDef = {
         c.shake(1, 1.4);
         await c.narrate({ en: 'Darkness, and the click of bones. Four dancers in the rags of their stations step out of the walls: a Pope, a King, a Ploughman, and a Child. They bow to an empty fifth place in the ring.', fr: 'L’obscurité, et le cliquetis des os. Quatre danseurs dans les haillons de leur état sortent des murs : un Pape, un Roi, un Laboureur, et un Enfant. Ils s’inclinent devant une cinquième place, vide, dans la ronde.' });
         await c.say('hild', { en: 'A danse macabre. They dance because the one who should lead them never came.', fr: 'Une danse macabre. Ils dansent parce que celui qui devait les mener n’est jamais venu.' }, 'grave');
-        await c.say('isot', { en: 'Their steps are hidden. Whoever leads, I can’t tell. Gloss them, or Squint.', fr: 'Leurs pas sont cachés. Je ne vois pas qui mène. Il faut les gloser, ou l’hagioscope.' });
+        await c.say('isot', { en: 'Their steps are hidden. I can’t tell who leads. I’ll have to read them one by one, unless Hild looks.', fr: 'Leurs pas sont cachés. Je ne vois pas qui mène. Il faudra les lire un par un, à moins que Hild ne regarde.' });
         c.battle('b3');
       },
     },
@@ -156,7 +156,7 @@ async function finis(c: MapContext): Promise<void> {
   await c.say('isot', { en: 'The end.', fr: 'La fin.' }, 'sad');
   await c.say('whit', { en: '…Oh.', fr: '…Oh.' });
   await c.wait(1);
-  await c.say('hild', { en: 'I knew you on the causeway. You stood at my bedside ten years ago, in the Grey Sweat, and you were kind about it.', fr: 'Je t’ai reconnu sur la chaussée. Tu te tenais à mon chevet il y a dix ans, pendant la Suée grise, et tu étais doux.' }, 'grave');
+  await c.say('hild', { en: 'I knew you on the causeway. You stood at my bedside ten years ago, in the Grey Sweat, and you were kind about it.', fr: 'Je t’ai reconnu sur la chaussée. Tu te tenais à mon chevet il y a dix ans, pendant la Suette grise, et tu étais doux.' }, 'grave');
   await c.say('hild', { en: 'Aumery scraped FINIS that night, to keep me. No one has died since, because Death forgot his name.', fr: 'Aumery a gratté FINIS cette nuit-là, pour me garder. Personne n’est mort depuis, parce que la Mort a oublié son nom.' }, 'sad');
   await c.say('hild', { en: 'You’ve been standing in the sea for ten years, waiting for a word.', fr: 'Tu es resté dans la mer dix ans, à attendre un mot.' }, 'sad');
   await c.say('isot', { en: 'You knew. From the causeway. You let him wonder.', fr: 'Tu savais. Depuis la chaussée. Tu l’as laissé se poser des questions.' }, 'stern');
@@ -167,7 +167,7 @@ async function finis(c: MapContext): Promise<void> {
   if (pick === 0) {
     c.set('hildForgiven');
     await c.say('isot', { en: 'You were afraid of the end. Everyone is. I forgive you.', fr: 'Tu avais peur de la fin. Tout le monde a peur. Je te pardonne.' }, 'warm');
-    await c.say('hild', { en: 'Then you’re kinder than my brother, and he was the kindest boy I ever knew.', fr: 'Alors tu es plus gentille que mon frère, et c’était le garçon le plus gentil que j’aie connu.' }, 'sad');
+    await c.say('hild', { en: 'Then you’re better than my brother, and he was the best boy I ever knew.', fr: 'Alors tu vaux mieux que mon frère, et c’était le meilleur garçon que j’aie connu.' }, 'sad');
   } else {
     c.set('hildUnforgiven');
     await c.say('isot', { en: 'Not yet. You let him walk beside us for four days not knowing what he is.', fr: 'Pas encore. Tu l’as laissé marcher avec nous quatre jours sans savoir ce qu’il est.' }, 'stern');

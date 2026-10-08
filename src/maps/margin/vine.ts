@@ -115,7 +115,7 @@ async function wystansVine(c: MapContext): Promise<void> {
     await c.say('hild', session.game.flags.denied ? { en: 'You lied to an abbot with a straight face. I was impressed.', fr: 'Tu as menti à un abbé sans ciller. J’étais impressionnée.' } : { en: 'You didn’t even lie. That’s how I knew.', fr: 'Tu n’as même pas menti. C’est comme ça que j’ai su.' }, 'wry');
   }
   await c.narrate({ en: 'Isot kneels and lays her penknife on his tiny desk. Wystan covers her hand with his paw.', fr: 'Isot s’agenouille et pose son canif sur le pupitre minuscule. Wystan couvre sa main de sa patte.' });
-  await c.say('wystan', { en: 'You did a kind thing badly. That’s most kindness.', fr: 'Tu as fait une chose gentille, mal. C’est le cas de presque toutes les gentillesses.' });
+  await c.say('wystan', { en: 'You did a kind thing badly. That’s most kindness.', fr: 'Tu as été bonne, et maladroite. La bonté l’est presque toujours.' });
   await c.say('isot', { en: 'I’ll write you back. I have ink. I’ll write you back and you’ll be—', fr: 'Je te réécrirai. J’ai de l’encre. Je te réécrirai et tu seras—' }, 'sad');
   await c.say('wystan', { en: 'Old, Isot. In pain. Frayed. No. Write him back.', fr: 'Vieux, Isot. Souffrant. Effiloché. Non. Réécris-le, lui.' });
   c.face(w, 'right');
@@ -128,7 +128,7 @@ async function wystansVine(c: MapContext): Promise<void> {
   await c.find('vermilionPot');
   await c.say('wystan', { en: 'Every name that is scraped drains down to the Ink-Well at the bottom of the Margin. The first word ever scraped still lies there, at the very bottom.', fr: 'Chaque nom gratté s’écoule jusqu’au Puits d’encre, tout au fond de la Marge. Le premier mot jamais gratté y repose encore, tout au fond.' });
   await c.say('whit', { en: 'Then I’ll go and get my name.', fr: 'Alors j’irai chercher mon nom.' });
-  await c.narrate({ en: 'It is the first thing he has chosen.', fr: 'C’est la première chose qu’il ait choisie.' });
+  await c.narrate({ en: 'Nobody has asked him to.', fr: 'Personne ne le lui a demandé.' });
   await theFallOfNames(c);
 }
 
@@ -142,7 +142,7 @@ async function theFallOfNames(c: MapContext): Promise<void> {
   }
   c.shake(6, 2.4);
   c.flash(0.5);
-  await c.narrate({ en: 'A toll from above, out of tune with everything: the Abbot’s great bell, being tried. Over the edge of the page of Hollin pours a waterfall of letters.', fr: 'Un glas venu d’en haut, faux avec tout le reste : la grande cloche de l’abbé, qu’on essaie. Par-dessus le bord de la page de Hollin se déverse une cascade de lettres.' });
+  await c.narrate({ en: 'A toll from above, out of tune with everything: the Abbot’s great bell, being tried. Over the edge of the page of Hollin pours a waterfall of letters.', fr: 'Un coup de cloche venu d’en haut, faux avec tout le reste : la grande cloche de l’abbé, qu’on essaie. Par-dessus le bord de la page de Hollin se déverse une cascade de lettres.' });
   // The letters fall.
   const letters = 'HAMLETOFWYEMARSHANDALLWHOLIVEDTHERE';
   const fallen = [...letters].map((ch, i) => {
@@ -166,6 +166,6 @@ async function theFallOfNames(c: MapContext): Promise<void> {
   await c.say('abbotUnreason', { en: 'Read us after, knight. All of us.', fr: 'Lisez-nous après, chevalier. Tous.' });
   await c.say('whit', { en: '…I promise.', fr: '…Je le promets.' });
   c.set('whitPromised');
-  await c.narrate({ en: 'His first promise. Down they go, towards the bottom of the Margin, where the ink is.', fr: 'Sa première promesse. Ils descendent, vers le fond de la Marge, là où est l’encre.' });
+  await c.narrate({ en: 'Down they go, towards the bottom of the Margin, where the ink is.', fr: 'Ils descendent vers le fond de la Marge, là où est l’encre.' });
   c.goto('inkwell', 'top');
 }

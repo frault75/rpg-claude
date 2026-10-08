@@ -17,8 +17,13 @@ export const BANDEROLE_H = 66;
 
 export interface BanderoleLook {
   order: number;
+  /** What it does, in a few words: "Looses an arrow". */
   text: string;
-  /** A small line under the text: "in 1", "waits". */
+  /** Whom it is aimed at: a place, a name, everyone (empty for itself). */
+  aim: string;
+  /** What it deals, as the difficulty has it (0 for none). */
+  damage: number;
+  /** A small line under the text: what else it does, "in 1", "waits". */
   note: string;
   hidden: boolean;
   /** 0..1: the red line crossing it out. */
@@ -28,6 +33,26 @@ export interface BanderoleLook {
   /** Already performed this enemy phase. */
   spent: boolean;
   env: boolean;
+}
+
+let measurer: CanvasRenderingContext2D | null = null;
+
+/** How wide a banderole has to be for what it says: no narrower than a short scroll, no wider than the full one. */
+export function banderoleWidth(b: BanderoleLook): number {
+  measurer ??= document.createElement('canvas').getContext('2d');
+  const c = measurer!;
+  const big = prefs.largeText;
+  c.font = `italic 600 ${big ? 18 : 16}px ${SERIF}`;
+  const deed = c.measureText(b.hidden ? '? ? ?' : b.text).width;
+  let second = 0;
+  const add = (s: string, font: string) => {
+    c.font = font;
+    second += c.measureText(s).width;
+  };
+  if (!b.hidden && b.aim) add(b.aim.toUpperCase(), `700 ${big ? 13 : 12}px ${SERIF}`);
+  if (!b.hidden && b.damage > 0) add(` ${b.damage}`, `800 ${big ? 17 : 16}px ${SERIF}`);
+  if (b.note) add(`  ·  ${b.note}`, `italic 600 ${big ? 13 : 12}px ${SERIF}`);
+  return Math.round(Math.max(150, Math.min(BANDEROLE_W, 54 + Math.max(deed, second) + 26)));
 }
 
 /** A parchment scroll with rolled ends, its text in red ink, its order in a roundel. */
@@ -94,33 +119,66 @@ export function drawBanderole(c: CanvasRenderingContext2D, w: number, h: number,
   c.textAlign = 'center';
   c.textBaseline = 'middle';
   c.fillText(String(b.order), rx, ry + 1);
-  // The text in red, two lines at most.
+  // The deed in red, on one line; under it, in brown capitals, whom it is aimed at, what it
+  // deals in red, and what else it does. A Mummer's verse may take two lines.
   c.textAlign = 'left';
-  const size = prefs.largeText ? 18 : 16;
-  c.font = `italic 600 ${size}px ${SERIF}`;
   const tx = 54;
-  const tw = w - tx - 22;
+  const tw = w - tx - 20;
+  const size = prefs.largeText ? 18 : 16;
   const text = b.hidden ? '? ? ?' : b.text;
-  let lines = wrap(c, text, tw);
-  let lh = size + 2;
-  if (b.note && lines.length > 1) {
-    // Two lines and a note: everything a size smaller, so it stays on the band.
-    c.font = `italic 600 ${size - 3}px ${SERIF}`;
-    lines = wrap(c, text, tw).slice(0, 2);
-    lh = size - 2;
-  } else if (lines.length > 2) {
-    c.font = `italic 600 ${size - 2}px ${SERIF}`;
-    lines = wrap(c, text, tw).slice(0, 3);
-    lh = 14;
-  }
-  const ty = ry - ((lines.length - 1) * lh) / 2 - (b.note ? (lines.length > 1 ? 7 : 6) : 0);
+  let fs = size;
+  c.font = `italic 600 ${fs}px ${SERIF}`;
+  while (fs > 13 && c.measureText(text).width > tw) c.font = `italic 600 ${--fs}px ${SERIF}`;
+  const lines = c.measureText(text).width > tw ? wrap(c, text, tw).slice(0, 2) : [text];
+  const lh = fs + 2;
+  type Part = { s: string; font: string; color: string };
+  const sep: Part = { s: '  ·  ', font: `600 12px ${SERIF}`, color: '#8A6A44' };
+  const head: Part[] = [];
+  if (!b.hidden && b.aim) head.push({ s: b.aim.toUpperCase(), font: `700 ${prefs.largeText ? 13 : 12}px ${SERIF}`, color: '#6A4A26' });
+  if (!b.hidden && b.damage > 0) head.push({ s: String(b.damage), font: `800 ${prefs.largeText ? 17 : 16}px ${SERIF}`, color: RED_INK });
+  const width = (ps: Part[]) =>
+    ps.reduce((sum, p) => {
+      c.font = p.font;
+      return sum + c.measureText(p.s).width;
+    }, 0);
+  let noteSize = prefs.largeText ? 13 : 12;
+  const noteOf = (): Part => ({ s: b.note, font: `italic 600 ${noteSize}px ${SERIF}`, color: '#5A3C1C' });
+  // The aim, the blow and the note on one line if they fit; else the note goes under them.
+  // The aim and its blow sit together ("REAR 4"); a dot sets off the rest.
+  const spaced = (ps: Part[]) => {
+    const out: Part[] = [];
+    ps.forEach((p, i) => {
+      if (i) out.push(ps[i - 1] === head[0] && p === head[1] ? { ...sep, s: ' ' } : sep);
+      out.push(p);
+    });
+    return out;
+  };
+  let rows: Part[][] = [];
+  if (b.note) {
+    let one = spaced([...head, noteOf()]);
+    while (noteSize > 10 && width(one) > tw) {
+      noteSize--;
+      one = spaced([...head, noteOf()]);
+    }
+    rows = width(one) <= tw ? [one] : head.length ? [spaced(head), [noteOf()]] : [[noteOf()]];
+  } else if (head.length) rows = [spaced(head)];
+  const rowH = 15;
+  const total = lines.length * lh + rows.length * rowH;
+  const ty = ry - total / 2 + lh / 2;
+  c.textBaseline = 'middle';
+  c.font = `italic 600 ${fs}px ${SERIF}`;
   c.fillStyle = b.env ? '#1E3466' : RED_INK;
   lines.forEach((l, i) => c.fillText(l, tx, ty + i * lh));
-  if (b.note) {
-    c.font = `600 ${lines.length > 1 ? 12 : 13}px ${SERIF}`;
-    c.fillStyle = '#5A3C1C';
-    c.fillText(b.note, tx, ty + lines.length * lh + (lines.length > 1 ? 0 : 1));
-  }
+  rows.forEach((row, r) => {
+    let x = tx;
+    const y = ty + lines.length * lh - lh / 2 + rowH / 2 + r * rowH;
+    for (const p of row) {
+      c.font = p.font;
+      c.fillStyle = p.color;
+      c.fillText(p.s, x, y + 1);
+      x += c.measureText(p.s).width;
+    }
+  });
   // Struck through.
   if (b.struck > 0) {
     c.strokeStyle = '#D8202A';

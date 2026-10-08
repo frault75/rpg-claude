@@ -15,7 +15,7 @@ import { relief } from '../../world3d/relief';
 import { tiles } from '../../world3d/stage';
 import { bareTree, cottage3D, snowHedge } from '../../world3d/lychford';
 import { WinterAmbience } from '../../audio/winter';
-import { ghostWords } from '../../pixel/underwriting';
+import { ghostText } from '../../pixel/underwriting';
 import type { MapContext, MapDef, NpcDef, Rect } from '../types';
 import { SNOW_GROUND, snowfall, WINTER_NIGHT_SKY, WINTER_SKY, winterDay, winterNight } from './winter';
 
@@ -176,7 +176,7 @@ export const VILLAGE: MapDef = {
       run: async (c) => {
         await c.say('child', { en: 'We’re playing Mercy. You run, and I catch you, and you’re not out. Nobody’s ever out!', fr: 'On joue à Miséricorde. Tu cours, je t’attrape, et t’es pas éliminée. Personne n’est jamais éliminé !' });
         await c.say('child2', { en: 'You have to say the rhyme when you’re caught. Listen:', fr: 'Il faut dire la comptine quand on est attrapé. Écoute :' });
-        await c.say('child2', { en: '“Weeper weeps and Morning calls, Singer sings in empty halls; wake the Tenor last of all, and someone’s name will heed the call.”', fr: '« Pleureuse pleure et Matin appelle, Chanteuse chante en la nef vide ; réveille le Ténor en dernier, et un nom répondra à l’appel. »' });
+        await c.say('child2', { en: '“Weeper weeps and Morning calls, Singer sings in empty halls; wake the Tenor last of all, and someone’s name will heed the call.”', fr: '« Larme pleure, Matin appelle, Chantre chante en la chapelle ; le Ténor, garde-le pour la fin, et un nom répondra soudain. »' });
         c.set('rhyme');
         await c.say('isot', { en: 'That’s not a skipping rhyme. That’s a ringing order.', fr: 'Ce n’est pas une comptine pour sauter. C’est un ordre de sonnerie.' }, 'wry');
       },
@@ -203,14 +203,14 @@ export const VILLAGE: MapDef = {
       when: dayOnly,
       run: async (c) => {
         if (c.flag('underbook')) {
-          await c.say('dunstan', { en: 'Keep that leaf dry. Some of the names on it have nowhere else to be.', fr: 'Garde cette feuille au sec. Certains noms dessus n’ont nulle part ailleurs où être.' });
+          await c.say('dunstan', { en: 'Keep that leaf dry. Some of the names on it have nowhere else to be.', fr: 'Garde cette feuille au sec. Certains de ces noms n’existent plus nulle part ailleurs.' });
           return;
         }
         await c.say('dunstan', { en: 'Dunstan, sexton. Ten years and not a grave to dig. A sexton with no graves is a man with no sentences.', fr: 'Dunstan, fossoyeur. Dix ans sans une tombe à creuser. Un fossoyeur sans tombes est un homme sans phrases.' });
         await c.say('dunstan', { en: 'I’ve started polishing the verbs.', fr: 'Je me suis mis à polir les verbes.' });
         await c.say('isot', { en: 'Your spade shines like a mirror.', fr: 'Votre bêche brille comme un miroir.' }, 'wry');
         await c.say('dunstan', { en: 'You carry a penknife on a cord. Only one kind of scribe does that.', fr: 'Tu portes un canif au bout d’un cordon. Il n’y a qu’une sorte de scribe qui fait ça.' });
-        await c.narrate({ en: 'He presses a leaf of vellum into her hand: a page of a Glossator Underbook, names copied small and close, before anyone could scrape them.', fr: 'Il lui glisse une feuille de vélin dans la main : une page d’Underbook de Glossateur, des noms copiés serrés, avant qu’on ne puisse les gratter.' });
+        await c.narrate({ en: 'He presses a leaf of vellum into her hand: a page of a Glossator Underbook, names copied small and close, before anyone could scrape them.', fr: 'Il lui glisse une feuille de vélin dans la main : une page d’un Sous-Livre de Glossateur, des noms copiés serrés, avant qu’on ne puisse les gratter.' });
         await c.say('dunstan', { en: 'The bell in our tower hasn’t rung for ten years. The passing bell. Go and look at it, if you’ve a mind to.', fr: 'La cloche de notre tour n’a pas sonné depuis dix ans. Le glas. Va la voir, si le cœur t’en dit.' });
         c.set('underbook');
       },
@@ -235,7 +235,7 @@ export const VILLAGE: MapDef = {
     },
   ],
   // A Glossator's cache on the thatcher's own house.
-  underwriting: [{ id: 'name-edda', x: tiles(9.6) + 28, y: tiles(1.8) + 35, h: 30, art: ghostWords(['EDDA THATCHER', 'AFRAID OF LADDERS'], true), lostName: 'edda' }],
+  underwriting: [{ id: 'name-edda', x: tiles(9.6) + 28, y: tiles(1.8) + 35, h: 30, art: ghostText([{ en: 'EDDA THATCHER', fr: 'EDDA COUVREUSE' }, { en: 'AFRAID OF LADDERS', fr: 'PEUR DES ECHELLES' }], true), lostName: 'edda' }],
   exits: [
     { rect: [0, tiles(8.5), tiles(0.6), tiles(3)], to: 'lane', spawn: 'village', when: (c) => !c.flag('bellRung') },
     { rect: [tiles(W - 0.6), tiles(5.5), tiles(0.6), tiles(3)], to: 'churchyard', spawn: 'village', when: (c) => !c.flag('bellRung') },
@@ -250,7 +250,7 @@ export const VILLAGE: MapDef = {
 /** Goodwife Amabel asks to be scraped (DESIGN.md §3.11). */
 async function amabel(c: MapContext): Promise<void> {
   await c.say('amabel', { en: 'You’re the scribe from Saint Ebb’s. I can tell by your fingers.', fr: 'Tu es la scribe de Saint-Ebb. Ça se voit à tes doigts.' });
-  await c.say('amabel', { en: 'I should have gone in the Grey Sweat, love. I’ve been fading since. Look: you can see the door through my hand.', fr: 'J’aurais dû partir avec la Suée grise, ma belle. Je pâlis depuis. Regarde : on voit la porte à travers ma main.' });
+  await c.say('amabel', { en: 'I should have gone in the Grey Sweat, love. I’ve been fading since. Look: you can see the door through my hand.', fr: 'J’aurais dû partir avec la Suette grise, ma belle. Je pâlis depuis. Regarde : on voit la porte à travers ma main.' });
   await c.say('amabel', { en: 'I’d like to be finished. I’m not asking to be forgotten. Just finished. Would you scrape me?', fr: 'J’aimerais être finie. Je ne demande pas à être oubliée. Juste finie. Tu voudrais bien me gratter ?' });
   await c.say('hob', { en: 'Amabel. Don’t.', fr: 'Amabel. Ne fais pas ça.' });
   const pick = await c.choose([
@@ -284,7 +284,7 @@ async function theVillageListens(c: MapContext): Promise<void> {
   c.set('nightBegun');
   c.letterbox(true);
   await c.wait(1.2);
-  await c.narrate({ en: 'Every door in Lychford is open. The whole village has come out into the snow to listen, the way you listen for a name on the tip of your tongue.', fr: 'Toutes les portes de Lychford sont ouvertes. Le village entier est sorti dans la neige pour écouter, comme on écoute un nom sur le bout de la langue.' });
+  await c.narrate({ en: 'Every door in Lychford is open. The whole village has come out into the snow to listen, the way you listen for a name on the tip of your tongue.', fr: 'Toutes les portes de Lychford sont ouvertes. Le village entier est sorti dans la neige pour écouter, comme on cherche un nom qu’on a sur le bout de la langue.' });
   const w = c.party.find((a) => a.id === 'whit') ?? c.player;
   c.shake(2, 0.6);
   w.emote('silence', 2.4);
@@ -326,9 +326,9 @@ async function theRaid(c: MapContext): Promise<void> {
   await c.narrate({ en: 'Then torches, a river of them across the snow from the causeway road. Prior Gaudry’s Brothers, come for the bell.', fr: 'Puis des torches, une rivière de torches sur la neige depuis la route de la chaussée. Les Frères du prieur Gaudry, venus pour la cloche.' });
   c.release();
   await c.say('gaudry', { en: 'The bell of Lychford, in the name of the Abbot! It is wanted at Saint Ebb’s!', fr: 'La cloche de Lychford, au nom de l’abbé ! On la réclame à Saint-Ebb !' });
-  await c.say('dunstan', { en: 'Then he can fish for it. Hob, the rope! To the mere with her!', fr: 'Alors qu’il la pêche. Hob, la corde ! À la mare avec elle !' });
-  await c.narrate({ en: 'Hob cuts the bell rope. Six men run the passing bell down to the frozen mere on a hurdle and send it through the ice. Behind them, the Brothers set the tower alight.', fr: 'Hob tranche la corde de la cloche. Six hommes descendent le glas jusqu’à la mare gelée sur une claie et l’envoient sous la glace. Derrière eux, les Frères mettent le feu à la tour.' });
-  await c.say('hild', { en: 'Go. I’ll wall the lane behind us. Isot, the mere, now!', fr: 'Allez. Je mure le chemin derrière nous. Isot, la mare, vite !' }, 'stern');
+  await c.say('dunstan', { en: 'Then he can fish for it. Hob, the rope! To the mere with her!', fr: 'Alors qu’il la pêche. Hob, la corde ! À l’étang avec elle !' });
+  await c.narrate({ en: 'Hob cuts the bell rope. Six men run the passing bell down to the frozen mere on a hurdle and send it through the ice. Behind them, the Brothers set the tower alight.', fr: 'Hob tranche la corde de la cloche. Six hommes descendent la cloche des trépassés jusqu’à l’étang gelé sur une claie et l’envoient sous la glace. Derrière eux, les Frères mettent le feu à la tour.' });
+  await c.say('hild', { en: 'Go. I’ll wall the lane behind us. Isot, the mere, now!', fr: 'Allez. Je mure le chemin derrière nous. Isot, l’étang, vite !' }, 'stern');
   c.set('raidDone');
   c.goto('mere', 'shore');
 }

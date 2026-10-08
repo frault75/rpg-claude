@@ -71,7 +71,7 @@ let safe: [number, number] = FORD[0]!;
 
 export const MERE: MapDef = {
   id: 'mere',
-  card: { title: { en: 'Lychford', fr: 'Lychford' }, line: { en: 'The Frozen Mere', fr: 'La mare gelée' } },
+  card: { title: { en: 'Lychford', fr: 'Lychford' }, line: { en: 'The Frozen Mere', fr: 'L’étang gelé' } },
   walkable: 'ni',
   ground: GROUND,
   heights: HEIGHTS,
@@ -168,9 +168,9 @@ async function theFarShore(c: MapContext): Promise<void> {
   await c.narrate({ en: 'Arrows go over the ice. The torches stop at the water’s edge, and then go back.', fr: 'Des flèches passent au-dessus de la glace. Les torches s’arrêtent au bord, puis s’en retournent.' });
   await c.say('eadgyth', { en: 'Eadgyth, of Holmcaster. My father has been dying on his throne for ten years, and I can’t be crowned while he lives.', fr: 'Eadgyth, de Holmcaster. Mon père se meurt sur son trône depuis dix ans, et je ne peux pas être couronnée tant qu’il vit.' });
   await c.say('eadgyth', { en: 'The Abbot has thirty-nine bells. Whatever he’s building, he’s one short.', fr: 'L’abbé a trente-neuf cloches. Quoi qu’il construise, il lui en manque une.' });
-  await c.say('hild', { en: 'There’s a chapel in the Blanchwood where they used to pray to the Reader. If your knight wants his name, he might find it there.', fr: 'Il y a une chapelle dans la Blanchewood où l’on priait le Lecteur. Si ton chevalier veut son nom, il le trouvera peut-être là.' }, 'grave');
+  await c.say('hild', { en: 'There’s a chapel in the Blanchwood where they used to pray to the Reader. If your knight wants his name, he might find it there.', fr: 'Il y a une chapelle dans le Bois-Blanc où l’on priait le Lecteur. Si ton chevalier veut son nom, il le trouvera peut-être là.' }, 'grave');
   await c.say('isot', { en: 'Why are you helping him?', fr: 'Pourquoi tu l’aides ?' });
-  await c.say('hild', { en: 'Because he’s lost. I know lost.', fr: 'Parce qu’il est perdu. Je connais ça.' }, 'sad');
+  await c.say('hild', { en: 'Why did you give him a name?', fr: 'Et toi, pourquoi lui as-tu donné un nom ?' }, 'sad');
   c.close();
   session.game.chapter = 3;
   c.interlude(2);

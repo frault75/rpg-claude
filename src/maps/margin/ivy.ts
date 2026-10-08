@@ -61,7 +61,7 @@ async function throughArch(c: MapContext, j: number, word: string): Promise<void
     for (const a of c.party) a.x = jx + 8;
     if (j === MOTTO.length - 1) {
       c.letterbox(true);
-      await c.say('isot', { en: 'What is written is held. They carved it over the scriptorium door. I used to read it every morning without looking.', fr: 'Ce qui est écrit est tenu. C’est gravé au-dessus de la porte du scriptorium. Je le lisais chaque matin sans le regarder.' }, 'wry');
+      await c.say('isot', { en: 'What is written is held. They carved it over the scriptorium door. I used to read it every morning without looking.', fr: 'Ce qui est écrit est retenu. C’est gravé au-dessus de la porte du scriptorium. Je le lisais chaque matin sans le regarder.' }, 'wry');
       c.letterbox(false);
     }
     return;
@@ -87,7 +87,7 @@ export const IVY: MapDef = {
       hidden: true,
       pennies: 8,
       satchel: { poultice: 2 },
-      note: { en: '“What is written is held. What is held can be let go. Both are a kind of mercy, and only one of them is his.”', fr: '« Ce qui est écrit est tenu. Ce qui est tenu peut être lâché. Les deux sont une sorte de miséricorde, et une seule est la sienne. »' },
+      note: { en: '“What is written is held. What is held can be let go. Both are a kind of mercy, and only one of them is his.”', fr: '« Ce qui est écrit est retenu. Ce qui est retenu peut être relâché. Les deux sont une sorte de miséricorde, et une seule est la sienne. »' },
     },
   ],
   card: { title: { en: 'The Margin', fr: 'La Marge' }, line: { en: 'The Ivy Road', fr: 'Le chemin du Lierre' } },

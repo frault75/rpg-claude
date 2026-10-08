@@ -44,8 +44,8 @@ const NAMES = [
 
 const LINES_TEXT: LocalText[] = [
   { en: 'Before the first name, the last word.', fr: 'Avant le premier nom, le dernier mot.' },
-  { en: 'In Hollin every soul is written, and the writing is kept at Saint Ebb’s, where the sea comes twice a day.', fr: 'À Hollin, chaque âme est écrite, et l’écrit est gardé à Saint-Ebb, où la mer monte deux fois par jour.' },
-  { en: 'Ten winters ago the Grey Sweat came, and on the worst night of it, it stopped. No one in Hollin has died since. We call it the Mercy.', fr: 'Il y a dix hivers vint la Suette grise, et la pire nuit, elle cessa. Personne à Hollin n’est mort depuis. Nous appelons cela la Miséricorde.' },
+  { en: 'In Hollin every soul is written, and the writing is kept at Saint Ebb’s, where the sea comes twice a day.', fr: 'En Hollin, chaque âme est écrite, et l’écrit est gardé à Saint-Ebb, où la mer monte deux fois par jour.' },
+  { en: 'Ten winters ago the Grey Sweat came, and on the worst night of it, it stopped. No one in Hollin has died since. We call it the Mercy.', fr: 'Il y a dix hivers vint la Suette grise, et la pire nuit, elle cessa. Personne en Hollin n’est mort depuis. Nous appelons cela la Miséricorde.' },
   { en: 'I was nine. I gave thanks for it every morning of my life.', fr: 'J’avais neuf ans. J’en ai rendu grâce chaque matin de ma vie.' },
   { en: 'This is the true account of how the Mercy ended, set down in my hand over the old one.', fr: 'Voici le vrai récit de la fin de la Miséricorde, écrit de ma main par-dessus l’ancien.' },
 ];

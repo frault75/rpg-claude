@@ -181,7 +181,7 @@ export const CHURCHYARD: MapDef = {
       art: textImage(['HILD OF', "SAINT EBB'S,", 'WHO NURSED US', 'THROUGH THE', 'GREY SWEAT'], hex('#E8C88A', 230)),
       revealed: async (c) => {
         c.set('hildStoneRead');
-        await c.say('isot', { en: '“Hild of Saint Ebb’s, who nursed us through the Grey Sweat.” It’s your grave.', fr: '« Hild de Saint-Ebb, qui nous a soignés pendant la Suée grise. » C’est ta tombe.' }, 'alarmed');
+        await c.say('isot', { en: '“Hild of Saint Ebb’s, who nursed us through the Grey Sweat.” It’s your grave.', fr: '« Hild de Saint-Ebb, qui nous a soignés pendant la Suette grise. » C’est ta tombe.' }, 'alarmed');
         await c.say('hild', { en: 'They were very kind. They dug it the night I took the fever. Then the Mercy came, and nobody needed it.', fr: 'Ils ont été très gentils. Ils l’ont creusée la nuit où j’ai pris la fièvre. Puis la Miséricorde est venue, et personne n’en a eu besoin.' }, 'wry');
       },
     },
@@ -206,7 +206,7 @@ async function babewyns(c: MapContext): Promise<void> {
   await c.pan(GATE[0], GATE[1] - 20, 0.8);
   c.emote(c.player, 'alarm');
   await c.narrate({ en: 'On the roof of the lych-gate, among the roses, two babewyns: grotesques with a face at each end, and both of them hungry.', fr: 'Sur le toit du porche, parmi les roses, deux babouins : des grotesques avec une face à chaque bout, et toutes deux affamées.' });
-  await c.say('hild', { en: 'Each of them bites twice. Wall one in, and its bites wait a round.', fr: 'Chacun mord deux fois. Emmures-en un, et ses morsures attendront un tour.' }, 'stern');
+  await c.say('hild', { en: 'Each of them bites twice. Wall one in, and it can wait for its supper.', fr: 'Chacun mord deux fois. Emmures-en un, et il attendra son souper.' }, 'stern');
   for (const b of perched) b.dispose();
   c.battle('f4');
 }

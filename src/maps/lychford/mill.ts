@@ -106,7 +106,7 @@ export const MILL_MAP: MapDef = {
       run: async (c) => {
         c.letterbox(true);
         await c.narrate({ en: 'Over the ice, lights. Not lanterns: people, pale as tallow, each with a cold blue flame where the head should be.', fr: 'Sur la glace, des lumières. Pas des lanternes : des gens, pâles comme du suif, chacun avec une flamme bleue et froide à la place de la tête.' });
-        await c.say('hild', { en: 'Corpse-candles. In my mother’s day you’d see one walk the road to a house the night before a death. These are the ones who should have gone.', fr: 'Des chandelles des morts. Du temps de ma mère, on en voyait une remonter la route jusqu’à une maison la veille d’un décès. Celles-ci sont celles qui auraient dû partir.' }, 'grave');
+        await c.say('hild', { en: 'Corpse-candles. In my mother’s day you’d see one walk the road to a house the night before a death. These are the ones who should have gone.', fr: 'Des chandelles des morts. Du temps de ma mère, on en voyait une remonter la route jusqu’à une maison la veille d’un décès. Celles-là, ce sont les morts qui auraient dû partir.' }, 'grave');
         await c.say('whit', { en: 'They are waiting for someone.', fr: 'Elles attendent quelqu’un.' });
         await c.say('isot', { en: 'They’re coming this way. They want warmth; they’ll take it from us if they can.', fr: 'Elles viennent par ici. Elles veulent de la chaleur ; elles nous la prendront si elles peuvent.' }, 'alarmed');
         c.letterbox(false);
@@ -131,7 +131,7 @@ export const MILL_MAP: MapDef = {
       run: async (c) => {
         await c.say('isot', { en: 'The wheel’s still going round under the ice. Ten years of grinding nothing.', fr: 'La roue tourne encore sous la glace. Dix ans à moudre du vide.' });
         await c.say('whit', { en: 'It does not know how to stop.', fr: 'Elle ne sait pas s’arrêter.' });
-        await c.say('hild', { en: 'Nobody in Lychford does.', fr: 'Personne à Lychford ne le sait.' }, 'grave');
+        await c.say('hild', { en: 'Then it’s the only thing in Lychford still working.', fr: 'Alors c’est bien la seule chose qui travaille encore à Lychford.' }, 'grave');
       },
     },
   ],
@@ -165,7 +165,7 @@ async function ralf(c: MapContext): Promise<void> {
     await c.say('ralf', { en: 'Mind the ladder! Don’t touch it. I can’t abide the thing. Never could.', fr: 'Attention à l’échelle ! N’y touchez pas. Je ne supporte pas ce machin. Jamais pu.' });
     await c.say('isot', { en: 'Then how do you get down?', fr: 'Alors comment vous redescendez ?' });
     await c.say('ralf', { en: 'I don’t, much. I go up at first light, and it’s dark before I can make myself come down. My hands know thatching. I don’t know who taught them.', fr: 'Pas souvent. Je monte au point du jour, et il fait nuit avant que j’arrive à me décider à redescendre. Mes mains savent couvrir un toit. Je ne sais pas qui le leur a appris.' });
-    await c.say('hild', { en: 'Somebody did.', fr: 'Quelqu’un l’a fait.' }, 'grave');
+    await c.say('hild', { en: 'Somebody did.', fr: 'Quelqu’un, pourtant.' }, 'grave');
   } else if (!g.lostNames.includes('edda')) {
     await c.say('ralf', { en: 'Still here. The roof’s nearly sound. It’s always nearly sound.', fr: 'Toujours là. Le toit est presque étanche. Il est toujours presque étanche.' });
   }
@@ -175,11 +175,11 @@ async function ralf(c: MapContext): Promise<void> {
     { en: 'Not now.', fr: 'Pas maintenant.' },
   ]);
   if (pick !== 0) return;
-  await c.say('isot', { en: 'Ralf. In the village, on the thatcher’s house, under the plaster, there’s a name. “Edda Thatcher, who mended every roof in Lychford and was afraid of ladders.”', fr: 'Ralf. Au village, sur la maison du couvreur, sous l’enduit, il y a un nom. « Edda Couvreuse, qui répara tous les toits de Lychford et avait peur des échelles. »' }, 'sad');
+  await c.say('isot', { en: 'Ralf. In the village, on the thatcher’s house, under the plaster, there’s a name. “Edda Thatcher, who mended every roof in Lychford and was afraid of ladders.”', fr: 'Ralf. Au village, sur la maison de la couvreuse, sous l’enduit, il y a un nom. « Edda Couvreuse, qui répara tous les toits de Lychford et avait peur des échelles. »' }, 'sad');
   await c.narrate({ en: 'He stops, a fistful of reed in each hand.', fr: 'Il s’arrête, une poignée de roseau dans chaque main.' });
   await c.say('ralf', { en: 'Edda.', fr: 'Edda.' });
   await c.say('ralf', { en: 'She went up first. Always first, white as milk, cursing the ladder the whole way up. I held it. Thirty years I held it, and I was never afraid of anything.', fr: 'Elle montait la première. Toujours la première, blanche comme du lait, à maudire l’échelle tout du long. Moi je la tenais. Trente ans je l’ai tenue, et je n’ai jamais eu peur de rien.' });
-  await c.say('ralf', { en: 'It isn’t my fear. It’s hers. I’ve been keeping it for her.', fr: 'Ce n’est pas ma peur. C’est la sienne. Je la gardais pour elle.' });
+  await c.say('ralf', { en: 'All these years I’ve been afraid of it for her.', fr: 'Toutes ces années, j’en ai eu peur à sa place.' });
   c.flash(0.3);
   if (ralfOnRoof) ralfOnRoof.visible = false;
   await c.narrate({ en: 'He comes down the ladder without looking at it, sits on the bottom rung, and weeps the way a roof lets go after a thaw: all at once, and then quiet.', fr: 'Il descend l’échelle sans la regarder, s’assoit sur le dernier barreau, et pleure comme un toit qui cède au dégel : d’un coup, et puis plus rien.' });

@@ -103,7 +103,7 @@ export const LANES: MapDef = {
       await c.say('isot', { en: 'They’ve gone back into the border. One of them copied my name onto its sleeve on the way. Backwards.', fr: 'Ils sont retournés dans la bordure. L’un d’eux a recopié mon nom sur sa manche en partant. À l’envers.' }, 'wry');
     } else if (from === 'fair' && !c.flag('lanesSeen')) {
       c.set('lanesSeen');
-      await c.say('hild', { en: 'Every fair has a back. This is where it keeps what it isn’t showing.', fr: 'Toute foire a un envers. C’est là qu’elle garde ce qu’elle ne montre pas.' });
+      await c.say('hild', { en: 'Every fair has a back. Mind your purse.', fr: 'Toute foire a son envers. Tiens bien ta bourse.' });
     }
   },
 };
@@ -123,12 +123,12 @@ async function bees(c: MapContext): Promise<void> {
     { en: 'Leave them be.', fr: 'Les laisser tranquilles.' },
   ]);
   if (pick !== 0) return;
-  await c.narrate({ en: 'Isot kneels by the bench, close to the little door, the way you lean to a keyhole.', fr: 'Isot s’agenouille près du banc, tout près de la petite porte, comme on se penche vers une serrure.' });
+  await c.narrate({ en: 'Isot kneels by the bench and puts her mouth to the little door.', fr: 'Isot s’agenouille près du banc, la bouche contre la petite porte.' });
   await c.say('isot', { en: 'Bees. Old Cutha, who kept you and told you everything, is gone. He was scraped, and nobody came to tell you. I’m telling you now.', fr: 'Abeilles. Le vieux Cutha, qui vous gardait et vous racontait tout, est parti. On l’a gratté, et personne n’est venu vous le dire. Je vous le dis maintenant.' }, 'sad');
   await c.wait(0.8);
   await c.narrate({ en: 'The hum changes. Then the bees come out into the gold, not angry, slowly, the way people come out of a church.', fr: 'Le bourdonnement change. Puis les abeilles sortent dans l’or, sans colère, lentement, comme les gens sortent d’une église.' });
-  await c.say('whit', { en: 'They knew. They were only waiting to be told.', fr: 'Elles savaient. Elles attendaient seulement qu’on le leur dise.' });
-  await c.say('hild', { en: 'That’s all any of us want.', fr: 'C’est tout ce que nous voulons, tous.' }, 'sad');
+  await c.say('whit', { en: 'Bees. I did not know one could tell them things.', fr: 'Des abeilles. Je ne savais pas qu’on pouvait leur dire des choses.' });
+  await c.say('hild', { en: 'They’ll want telling about me next.', fr: 'La prochaine fois, il faudra leur parler de moi.' }, 'wry');
   await c.narrate({ en: 'On the bench, where nothing was, there is a comb of honey, still warm.', fr: 'Sur le banc, là où il n’y avait rien, il y a un rayon de miel, encore tiède.' });
   await returnName(c, 'cutha');
 }

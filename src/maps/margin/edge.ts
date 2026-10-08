@@ -88,7 +88,7 @@ async function offThePage(c: MapContext): Promise<void> {
   await c.pan(tiles(31), tiles(7), 3, 30);
   await c.narrate({ en: 'Below the last ruled line lies the Margin: acanthus taller than towers, ivy in scrolls, bars of burnished gold, and drolleries everywhere, all of it bright as the first morning of a book.', fr: 'Sous la dernière ligne réglée s’étend la Marge : des acanthes plus hautes que des tours, du lierre en volutes, des barres d’or bruni, et des drôleries partout, tout cela éclatant comme le premier matin d’un livre.' });
   await c.say('whit', { en: 'It’s very large.', fr: 'C’est très grand.' });
-  await c.say('hild', { en: 'So is what we’ve forgotten.', fr: 'Comme ce que nous avons oublié.' }, 'grave');
+  await c.say('hild', { en: 'Larger than my cell.', fr: 'Plus grand que ma cellule.' }, 'grave');
   await c.narrate({ en: 'Isot steps off first. Hild takes Whit’s hand.', fr: 'Isot descend la première. Hild prend la main de Whit.' });
   c.flash(0.8);
   c.player.x = tiles(EDGE + 3);

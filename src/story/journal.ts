@@ -42,11 +42,11 @@ const BY_MAP: Record<string, Rule[]> = {
   mill: [
     [(g) => !won(g, 's1'), { en: 'The Fen Mill. Lights move over the frozen pond, and someone is working on the roof in the dark.', fr: 'Le moulin du marais. Des lumières bougent sur la mare gelée, et quelqu’un travaille sur le toit dans le noir.' }],
     [(g) => !flag(g, 'returned.edda') && !g.lostNames.includes('edda'), { en: 'Ralf’s hands know thatching, and he doesn’t know who taught them. Somebody in Lychford must remember.', fr: 'Les mains de Ralf savent couvrir un toit, et il ne sait pas qui le leur a appris. Quelqu’un à Lychford doit s’en souvenir.' }],
-    [(g) => !flag(g, 'returned.edda'), { en: 'Edda’s name was on the thatcher’s house. Ralf should hear it.', fr: 'Le nom d’Edda était sur la maison du couvreur. Ralf devrait l’entendre.' }],
+    [(g) => !flag(g, 'returned.edda'), { en: 'Edda’s name was on the thatcher’s house. Ralf should hear it.', fr: 'Le nom d’Edda était sur la maison de la couvreuse. Ralf devrait l’entendre.' }],
     [() => true, { en: 'Ralf is down from the roof. Back to the lane, and on to Lychford.', fr: 'Ralf est descendu du toit. Retour au chemin, et en route pour Lychford.' }],
   ],
   village: [
-    [(g) => flag(g, 'raidDone'), { en: 'Gaudry’s torches are coming across the snow for the bell. Make for the mere.', fr: 'Les torches de Gaudry traversent la neige pour la cloche. Gagner la mare gelée.' }],
+    [(g) => flag(g, 'raidDone'), { en: 'Gaudry’s torches are coming across the snow for the bell. Make for the mere.', fr: 'Les torches de Gaudry traversent la neige pour la cloche. Gagner l’étang gelé.' }],
     [(g) => won(g, 'b2'), { en: 'The play has ended. Something is wrong on the road from the Abbey.', fr: 'La pièce est finie. Quelque chose ne va pas sur la route de l’Abbaye.' }],
     [(g) => flag(g, 'bellRung'), { en: 'The mummers are on the green, and the play still has no ending.', fr: 'Les mimes sont sur la place, et la pièce n’a toujours pas de fin.' }],
     [() => true, { en: 'The passing bell in the tower has not rung in ten years, and Whit keeps looking up at it. The way is through the churchyard.', fr: 'Le glas de la tour n’a pas sonné depuis dix ans, et Whit ne cesse de lever les yeux vers lui. On y passe par le cimetière.' }],
@@ -60,10 +60,10 @@ const BY_MAP: Record<string, Rule[]> = {
     [(g) => !flag(g, 'bellRung'), { en: 'Ring the passing bell. The children’s skipping rhyme gives the order of the ropes.', fr: 'Sonner le glas. La comptine des enfants donne l’ordre des cordes.' }],
     [() => true, { en: 'The bell has spoken. Down to the village.', fr: 'La cloche a parlé. Redescendre au village.' }],
   ],
-  mere: [[() => true, { en: 'Across the frozen mere. The old ford is still under the ice; the candle shows where it holds.', fr: 'Traverser la mare gelée. Le vieux gué est encore sous la glace ; la bougie montre où elle tient.' }]],
+  mere: [[() => true, { en: 'Across the frozen mere. The old ford is still under the ice; the candle shows where it holds.', fr: 'Traverser l’étang gelé. Le vieux gué est encore sous la glace ; la bougie montre où elle tient.' }]],
   wood: [
     [(g) => won(g, 'f5') && !flag(g, 'hollowSeen'), { en: 'The wood loses its colour as we go, but a thread of smoke rises south of the path, where nobody should be. The chapel is past Ninefold.', fr: 'Le bois perd ses couleurs à mesure qu’on avance, mais un fil de fumée monte au sud du chemin, là où il ne devrait y avoir personne. La chapelle est au-delà de Ninefold.' }],
-    [() => true, { en: 'The Blanchwood loses its colour as we go. The chapel where they prayed to the Reader is past Ninefold.', fr: 'La Blanchewood perd ses couleurs à mesure qu’on avance. La chapelle où l’on priait le Lecteur est au-delà de Ninefold.' }],
+    [() => true, { en: 'The Blanchwood loses its colour as we go. The chapel where they prayed to the Reader is past Ninefold.', fr: 'Le Bois-Blanc perd ses couleurs à mesure qu’on avance. La chapelle où l’on priait le Lecteur est au-delà de Ninefold.' }],
   ],
   hollow: [
     [(g) => !won(g, 's2'), { en: 'The Charcoal Hollow. The kilns are still burning, and near them the wood keeps its colour.', fr: 'La combe aux charbonniers. Les meules brûlent encore, et près d’elles le bois garde ses couleurs.' }],
@@ -105,7 +105,7 @@ const BY_MAP: Record<string, Rule[]> = {
   inkwell: [[() => true, { en: 'The Ink-Well, at the bottom of the Margin, where every scraped name drains.', fr: 'Le Puits d’encre, au fond de la Marge, où s’écoule chaque nom gratté.' }]],
   dawnScriptorium: [
     [(g) => g.lostNames.includes('osric') && !flag(g, 'returned.osric'), { en: 'Cuthwin is humming the Amen, flat. Brother Osric’s name was on the cloister wall.', fr: 'Cuthwin fredonne l’Amen, trop bas. Le nom de frère Osric était sur le mur du cloître.' }],
-    [() => true, { en: 'MERCY has tolled once. The lectern is bare: he has taken the Book into the church. His lodging is off the cloister.', fr: 'MERCY a sonné une fois. Le lutrin est vide : il a porté le Livre dans l’église. Son logis donne sur le cloître.' }],
+    [() => true, { en: 'MERCY has tolled once. The lectern is bare: he has taken the Book into the church. His lodging is off the cloister.', fr: 'MISÉRICORDE a sonné une fois. Le lutrin est vide : il a porté le Livre dans l’église. Son logis donne sur le cloître.' }],
   ],
   undercroft: [
     [(g) => !won(g, 's4'), { en: 'A Brother sweeps the vault with three hounds at his feet. He is scraped clean: write him back, a letter at a time.', fr: 'Un Frère balaie la crypte, trois chiens à ses pieds. Il est gratté net : le réécrire, une lettre à la fois.' }],
@@ -123,7 +123,7 @@ const BY_MAP: Record<string, Rule[]> = {
   ],
   nave: [
     [(g) => flag(g, 'ended'), { en: 'Finis.', fr: 'Finis.' }],
-    [(g) => !won(g, 'b5'), { en: 'Up the nave to the high altar, ahead of the tolls.', fr: 'Remonter la nef jusqu’au maître-autel, avant les glas.' }],
+    [(g) => !won(g, 'b5'), { en: 'Up the nave to the high altar, ahead of the tolls.', fr: 'Remonter la nef jusqu’au maître-autel, plus vite que la cloche.' }],
     [() => true, { en: 'Read them. All of them.', fr: 'Les lire. Tous.' }],
   ],
 };

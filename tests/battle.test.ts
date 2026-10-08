@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { CHAPTER_ONE_ABILITIES, type EncounterDef } from '../src/battle/data';
+import { aimOf } from '../src/battle/aim';
 import { Battle, type BattleSetup } from '../src/battle/engine';
 import type { AbilityId } from '../src/battle/types';
 import type { CharId } from '../src/story/state';
@@ -26,7 +27,7 @@ describe('the Omen', () => {
       ['e0', 1, 2],
       ['e1', 2, 2],
     ]);
-    expect(b.intents[0]!.label.fr).toContain('Avant');
+    expect(aimOf(b, b.intents[0]!)!.fr).toBe('Avant');
   });
 
   it('is the same puzzle every time', () => {
@@ -163,7 +164,7 @@ describe('the enemy phase', () => {
     b.endTurn();
     expect(b.unit('hild')!.hp).toBe(22 - 2);
     expect(b.intents).toHaveLength(1);
-    expect(b.intents[0]!.label.en).toContain('Butts');
+    expect(b.intents[0]!.label.en).toBe('Headbutts');
     b.endTurn();
     expect(b.unit('hild')!.hp).toBe(22 - 2 - 2);
   });
@@ -206,9 +207,9 @@ describe('the enemy phase', () => {
   it('Squint shows next round’s intents', () => {
     const b = fight('f2', ['hild', 'isot']);
     b.act('hild', 'squint');
-    expect(b.preview!.map((i) => i.label.en)).toEqual(['Rasps at the Rear: Smudge', 'Rasps at the Rear: Smudge']);
+    expect(b.preview!.map((i) => i.label.en)).toEqual(['Rasps at the page', 'Rasps at the page']);
     b.endTurn();
-    expect(b.intents.map((i) => i.label.en)).toEqual(['Rasps at the Rear: Smudge', 'Rasps at the Rear: Smudge']);
+    expect(b.intents.map((i) => i.label.en)).toEqual(['Rasps at the page', 'Rasps at the page']);
   });
 
   it('Smudge makes Isot’s next Ink ability cost 1 more', () => {
@@ -344,7 +345,7 @@ describe('equipment', () => {
     const b = fight('f1', ['isot'], { difficulty: 'story' });
     expect(b.unit('isot')!.maxHp).toBe(18);
     expect(b.intents[0]!.damage).toBe(1);
-    expect(b.intents[0]!.label.en).toBe('Butts the Front · 1');
+    expect(b.intents[0]!.label.en).toBe('Headbutts');
     b.act('isot', 'strike', { intent: b.intents[0]!.id });
     b.endTurn();
     expect(b.ink).toBe(2);
@@ -367,9 +368,12 @@ describe('Boss II: the Mummers’ Play', () => {
     b.act('isot', 'penknife', { unit: id });
   };
 
-  it('speaks in couplets with the rule underneath', () => {
+  it('speaks in couplets; whom each blow is aimed at goes underneath', () => {
     const b = fight('b2', party);
-    expect(b.intents.map((i) => i.rule?.en)).toEqual(['Front · 4', 'Slashes the Middle · 3', 'Doses Saint George: heals 4']);
+    expect(b.intents.every((i) => i.label.en.startsWith('“'))).toBe(true);
+    expect(b.intents.map((i) => aimOf(b, i)?.en)).toEqual(['Front', 'Middle', 'Saint George']);
+    expect(b.intents.map((i) => i.damage)).toEqual([4, 3, 0]);
+    expect(b.intents[2]!.rule?.en).toBe('Heals 4');
   });
 
   it('Saint George guards the Doctor every other round', () => {
@@ -391,7 +395,7 @@ describe('Boss II: the Mummers’ Play', () => {
     kill(b, slasher.id);
     expect(slasher.fallen).toBe(true);
     b.endTurn();
-    expect(b.intents.some((i) => i.rule?.en.startsWith('Raises Bold Slasher'))).toBe(true);
+    expect(b.intents.some((i) => i.rule?.en === 'Raises them at full HP' && aimOf(b, i)?.en === 'Bold Slasher')).toBe(true);
     b.endTurn();
     expect(slasher.fallen).toBe(false);
     expect(slasher.hp).toBe(10);
@@ -918,7 +922,7 @@ describe('the ape-scribes (S3)', () => {
     expect(b.unit('e0')!.hp).toBe(12 - 4);
     b.endTurn();
     const copy = b.intents.find((i) => i.actor === 'e0')!;
-    expect(copy.label.en).toBe('Copies the Lance back at Whit · 4');
+    expect(copy.label.en).toBe('Copies the Lance back');
     expect(copy.target).toEqual({ unit: 'whit' });
     expect(copy.damage).toBe(4);
     const hp = b.unit('whit')!.hp;

@@ -25,8 +25,9 @@ describe('the sweepers (S4)', () => {
     b.act('isot', 'penknife', { unit: 'e0' });
     b.act('whit', 'vigil');
     b.endTurn();
-    const hunt = b.intents.find((i) => i.label.en.startsWith('Runs'))!;
-    expect(hunt.label.en).toBe('Runs Whit down by the scent · 3');
+    const hunt = b.intents.find((i) => i.label.en.startsWith('Hunts'))!;
+    expect(hunt.label.en).toBe('Hunts by the scent');
+    expect(hunt.damage).toBe(3);
     expect(hunt.target).toEqual({ unit: 'whit' });
   });
 
@@ -36,7 +37,7 @@ describe('the sweepers (S4)', () => {
     b.act('whit', 'vigil');
     b.undo();
     b.endTurn();
-    expect(b.intents.find((i) => i.label.en.startsWith('Runs'))!.target).toEqual({ unit: 'isot' });
+    expect(b.intents.find((i) => i.label.en.startsWith('Hunts'))!.target).toEqual({ unit: 'isot' });
   });
 
   it('three Glosses give the scraped Brother his name: he leaves, and his hounds with him', () => {

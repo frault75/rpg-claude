@@ -150,7 +150,7 @@ export const UNDERCROFT: MapDef = {
       when: (c) => !c.cleared('s4'),
       run: async (c) => {
         c.letterbox(true);
-        await c.narrate({ en: 'A Brother is sweeping. His robe has faded to the colour of vellum, and he sweeps the shavings from one side of the vault to the other and back, the way the tide does. Three hounds lie at his feet. They are made of inkhorns.', fr: 'Un Frère balaie. Sa robe a pâli jusqu’à la couleur du vélin, et il pousse les raclures d’un côté de la crypte à l’autre, puis les ramène, comme fait la marée. Trois chiens sont couchés à ses pieds. Ils sont faits de cornes à encre.' });
+        await c.narrate({ en: 'A Brother is sweeping. His robe has faded to the colour of vellum. He sweeps the shavings to one end of the vault, then back to the other. Three hounds lie at his feet. They are made of inkhorns.', fr: 'Un Frère balaie. Sa robe a pâli jusqu’à la couleur du vélin. Il pousse les raclures à un bout de la crypte, puis les ramène à l’autre. Trois chiens sont couchés à ses pieds. Ils sont faits de cornes à encre.' });
         if (c.flag('knowGodric')) await c.say('isot', { en: 'Brother Godric?', fr: 'Frère Godric ?' });
         await c.say('sweeper', { en: 'Mind the floor. I’ve just done it. I’ve always just done it.', fr: 'Attention au sol. Je viens de le faire. Je viens toujours de le faire.' });
         await c.say('whit', { en: 'The dogs have our scent. They’ll go for whoever moves last.', fr: 'Les chiens ont notre odeur. Ils iront sur celui qui bouge en dernier.' });
@@ -167,7 +167,7 @@ export const UNDERCROFT: MapDef = {
         c.letterbox(true);
         await c.narrate({ en: 'Two knights stand in the inner bays, mail and surcoat the colour of old skin. Through them, faintly, like writing through a page held to the light, lines of an older text.', fr: 'Deux chevaliers se tiennent dans les baies du fond, haubert et cotte couleur de vieille peau. À travers eux, faiblement, comme une écriture à travers une page tenue à la lumière, les lignes d’un texte plus ancien.' });
         await c.say('isot', { en: 'Palimpsests. Someone wrote knights over something else. Whatever we scrape off them, they’ll write back.', fr: 'Des palimpsestes. Quelqu’un a écrit des chevaliers par-dessus autre chose. Tout ce qu’on leur grattera, ils le réécriront.' }, 'alarmed');
-        await c.say('whit', { en: 'Then we finish each one in the round it rewrites itself. Or we strike the rewriting out.', fr: 'Alors on achève chacun dans le tour où il se récrit. Ou on biffe la réécriture.' });
+        await c.say('whit', { en: 'Then we finish each one while it’s still writing itself back. Or we cross the new writing out.', fr: 'Alors on achève chacun pendant qu’il se réécrit. Ou on raye ce qu’il réécrit.' });
         c.letterbox(false);
         c.battle('s5');
       },
@@ -231,7 +231,7 @@ export const UNDERCROFT: MapDef = {
   async enter(c, from) {
     if (from === 'stair' && !c.flag('undercroftSeen')) {
       c.set('undercroftSeen');
-      await c.narrate({ en: 'Down here MERCY is only a hum in the stone. The vault is older than the scriptorium above it, round-headed, low, and drifted from end to end with shavings, like a beach.', fr: 'Ici, MERCY n’est plus qu’un bourdonnement dans la pierre. La crypte est plus vieille que le scriptorium au-dessus, en plein cintre, basse, et couverte d’un bout à l’autre de raclures, comme une plage.' });
+      await c.narrate({ en: 'Down here MERCY is only a hum in the stone. The vault is older than the scriptorium above it, round-headed, low, and drifted from end to end with shavings, like a beach.', fr: 'Ici, MISÉRICORDE n’est plus qu’un bourdonnement dans la pierre. La crypte est plus vieille que le scriptorium au-dessus, en plein cintre, basse, et couverte d’un bout à l’autre de raclures, comme une plage.' });
       await c.say('isot', { en: 'This is everything we scraped. Ten years of it.', fr: 'C’est tout ce qu’on a gratté. Dix ans de raclures.' }, 'alarmed');
       await c.say('hild', { en: 'More than ten. Look at the bottom of the drifts. They were scraping here before Aumery was born.', fr: 'Plus de dix. Regarde le fond des tas. On grattait ici avant la naissance d’Aumery.' }, 'grave');
     }
@@ -248,13 +248,13 @@ async function afterSweepers(c: MapContext): Promise<void> {
   for (const b of sweepers) b.visible = false;
   if (!c.flag('left.scrapedBrother')) {
     await c.narrate({ en: 'The Brother comes apart into shavings and is part of the drift. His broom stands a moment on its own, then falls. The hounds were only ink.', fr: 'Le Frère se défait en raclures et rejoint le tas. Son balai tient debout tout seul un instant, puis tombe. Les chiens n’étaient que de l’encre.' });
-    await c.say('hild', { en: 'He’d forgotten how to be anything else. That isn’t his fault.', fr: 'Il avait oublié comment être autre chose. Ce n’est pas sa faute.' }, 'sad');
+    await c.say('hild', { en: 'He kept on at the one thing he had left. I know the habit.', fr: 'Il s’est accroché à la seule chose qui lui restait. Je connais ça.' }, 'sad');
     return;
   }
   const g = c.npc('godric');
   c.face(c.player, 'left');
   await c.say('godric', { en: 'Godric. I’m Godric. I kept the pumice here for forty years. I scraped the skins for the scriptorium and swept down every letter they took off.', fr: 'Godric. Je suis Godric. J’ai gardé la ponce ici pendant quarante ans. Je grattais les peaux pour le scriptorium, et je balayais chaque lettre qu’ils enlevaient.' });
-  await c.say('godric', { en: 'Then one morning they took me off, and I went on sweeping. You don’t stop a thing because you’ve stopped being someone.', fr: 'Puis un matin, c’est moi qu’ils ont enlevé, et j’ai continué à balayer. On n’arrête pas une chose parce qu’on a cessé d’être quelqu’un.' });
+  await c.say('godric', { en: 'Then one morning they took me off, and I went on sweeping. Nobody told the broom.', fr: 'Puis un matin, c’est moi qu’ils ont enlevé, et j’ai continué à balayer. Personne n’avait prévenu le balai.' });
   await c.say('godric', { en: 'At the far end there’s the Heap. It’s been trying to say something since before my time. I never stopped sweeping long enough to listen. Perhaps you will.', fr: 'Au fond, il y a le Tas. Il essaie de dire quelque chose depuis avant moi. Je n’ai jamais arrêté de balayer assez longtemps pour écouter. Vous, peut-être.' });
   await c.say('isot', { en: 'Where will you go?', fr: 'Où irez-vous ?' });
   await c.say('godric', { en: 'Up. I’ve never seen the scriptorium by daylight. I only ever saw what it threw away.', fr: 'En haut. Je n’ai jamais vu le scriptorium au grand jour. Je n’ai jamais vu que ce qu’il jetait.' });
@@ -283,7 +283,7 @@ async function approachHeap(c: MapContext): Promise<void> {
 async function afterHeap(c: MapContext): Promise<void> {
   if (heap) heap.visible = false;
   c.letterbox(true);
-  await c.narrate({ en: 'ADSUM. The word hangs in the vault after Whit has read it, the way a bell hangs after it is struck.', fr: 'ADSUM. Le mot reste suspendu dans la crypte après que Whit l’a lu, comme une cloche reste suspendue après qu’on l’a frappée.' });
+  await c.narrate({ en: 'ADSUM. Whit reads it aloud, and the vault holds on to the word a long while before it lets it go.', fr: 'ADSUM. Whit le lit à voix haute, et la crypte garde longtemps le mot avant de le laisser partir.' });
   await c.say('hild', { en: 'At the roll each morning, when the prior read your name, you answered “adsum.” Here. I’m here.', fr: 'À l’appel, chaque matin, quand le prieur lisait ton nom, tu répondais « adsum ». Présent. Je suis là.' }, 'sad');
   await c.say('isot', { en: 'They were all answering. All this time, down here, answering a roll nobody read.', fr: 'Ils répondaient tous. Tout ce temps, ici en bas, ils répondaient à un appel que personne ne lisait.' }, 'sad');
   await c.say('hild', { en: 'Then read it.', fr: 'Alors lis-le.' }, 'warm');

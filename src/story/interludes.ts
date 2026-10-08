@@ -38,14 +38,14 @@ export const INTERLUDES: Record<number, Interlude> = {
     next: { map: 'lane', spawn: 'start' },
   },
   2: {
-    title: { en: 'Interlude II. Of the Blanchwood.', fr: 'Interlude II. De la Blanchewood.' },
+    title: { en: 'Interlude II. Of the Blanchwood.', fr: 'Interlude II. Du Bois-Blanc.' },
     scene: 'bell',
     drollery: 'hare',
     prose: [
       { en: 'In Lychford the roses on the lych-gate had bloomed for ten winters, and the sexton had polished his spade until it shone like a mirror.', fr: 'À Lychford, les roses du porche avaient fleuri dix hivers, et le fossoyeur avait poli sa bêche jusqu’à ce qu’elle brille comme un miroir.' },
-      { en: 'When the passing bell spoke, the whole village came out into the snow to listen, the way you listen for a name on the tip of your tongue.', fr: 'Quand le glas a parlé, le village entier est sorti dans la neige pour écouter, comme on écoute un nom sur le bout de la langue.' },
+      { en: 'When the passing bell spoke, the whole village came out into the snow, and nobody said a word until it stopped.', fr: 'Quand le glas a parlé, le village entier est sorti dans la neige, et personne n’a dit un mot avant qu’il se taise.' },
     ],
-    chapter: { n: 3, title: { en: 'Chapter III', fr: 'Chapitre III' }, name: { en: 'The Blanchwood', fr: 'La Blanchewood' } },
+    chapter: { n: 3, title: { en: 'Chapter III', fr: 'Chapitre III' }, name: { en: 'The Blanchwood', fr: 'Le Bois-Blanc' } },
     next: { map: 'wood', spawn: 'start' },
   },
   3: {
@@ -64,7 +64,7 @@ export const INTERLUDES: Record<number, Interlude> = {
     scene: 'inkhorn',
     drollery: 'caladrius',
     prose: [
-      { en: 'The forgotten did not want to come home. They wanted to be finished.', fr: 'Les oubliés ne voulaient pas rentrer. Ils voulaient être finis.' },
+      { en: 'In the Margin, a whole city forgotten for a hundred and fifty years asked us for one thing: an ending.', fr: 'Dans la Marge, toute une ville oubliée depuis cent cinquante ans nous a demandé une seule chose : une fin.' },
       { en: 'I had scraped a man out of the world and called it kindness; now I carried his ending in my inkhorn, and the Abbey was waking up.', fr: 'J’avais gratté un homme hors du monde en appelant cela de la bonté ; à présent je portais sa fin dans ma corne d’encre, et l’Abbaye s’éveillait.' },
     ],
     chapter: { n: 5, title: { en: 'Chapter V', fr: 'Chapitre V' }, name: { en: 'The Writing', fr: 'L’Écriture' } },
@@ -79,9 +79,9 @@ INTERLUDES[5] = {
   finale: true,
   prose: [
     { en: 'Here ends the Book of the Mercy.', fr: 'Ici finit le Livre de la Miséricorde.' },
-    { en: 'I keep the Book of Names now. I write every name in a plain hand, and I leave room at the end of each line.', fr: 'Je tiens le Livre des Noms, à présent. J’écris chaque nom d’une main simple, et je laisse de la place au bout de chaque ligne.' },
+    { en: 'I keep the Book of Names now. I write every name in a plain hand, and I leave room at the end of each line.', fr: 'Je tiens le Livre des Noms, à présent. J’écris chaque nom d’une écriture sans ornement, et je laisse de la place au bout de chaque ligne.' },
     { en: 'My brothers ask why I have drawn three small figures in the margin of this last page: a scribe, an anchoress, and a knight with a white shield. I tell them the margin is where we keep what matters and does not fit.', fr: 'Mes frères demandent pourquoi j’ai dessiné trois petites figures dans la marge de cette dernière page : une scribe, une recluse, et un chevalier au bouclier blanc. Je leur dis que la marge est l’endroit où l’on garde ce qui compte et ne tient pas ailleurs.' },
-    { en: 'Some evenings, when the tide is out, a white figure walks the causeway with a long road of beds before him. He waves. I wave back. He is in no hurry for mine, and I have asked him to read it slowly.', fr: 'Certains soirs, à marée basse, une silhouette blanche marche sur la chaussée, avec devant lui une longue route de lits. Il fait signe. Je réponds. Il n’est pas pressé pour le mien, et je lui ai demandé de le lire lentement.' },
+    { en: 'Some evenings, when the tide is out, a man in white walks the causeway, from bedside to bedside. He waves. I wave back. He is in no hurry for mine, and I have asked him to read it slowly.', fr: 'Certains soirs, à marée basse, un homme en blanc passe sur la chaussée, de chevet en chevet. Il me fait signe. Je lui réponds. Le mien, il ne se presse pas d’y venir, et je lui ai demandé de le lire lentement.' },
   ],
   chapter: { n: 6, title: { en: 'Palimpsest', fr: 'Palimpsest' }, name: { en: 'Thank you for reading it to the end.', fr: 'Merci de l’avoir lu jusqu’au bout.' } },
   next: { map: 'title', spawn: 'start' },

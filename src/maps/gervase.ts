@@ -51,7 +51,7 @@ async function meet(c: MapContext, stall: Stall): Promise<void> {
     await c.say(
       who,
       named()
-        ? { en: 'Gervase, at your service. Say it again, would you? I like the sound.', fr: 'Gervais, pour vous servir. Redites-le, voulez-vous ? J’aime bien comment ça sonne.' }
+        ? { en: 'Gervase, at your service. Say it again, would you? I like the sound.', fr: 'Gervais, pour vous servir. Redites-le, voulez-vous ? J’aime bien l’entendre.' }
         : { en: 'Back again? The road is long and the satchel is short.', fr: 'Encore vous ? La route est longue et la besace est courte.' },
     );
   c.close();
@@ -64,11 +64,11 @@ async function onTheLane(c: MapContext): Promise<void> {
   await c.say('isot', { en: 'Who are you?', fr: 'Qui êtes-vous ?' });
   await c.say('pedlar', { en: 'A pedlar. Ribbons, mostly, and whatever the road gives me to carry. I’d tell you my name, but I’ve walked it clean off.', fr: 'Un colporteur. Des rubans, surtout, et ce que la route me donne à porter. Je vous dirais bien mon nom, mais je l’ai usé à force de marcher.' });
   if (c.party.length > 1) await c.say('whit', { en: 'So have I.', fr: 'Moi aussi.' });
-  await c.say('pedlar', { en: 'Then we’ll be nameless together. Will you buy? Pennies are only metal until they’re spent.', fr: 'Alors soyons sans nom ensemble. Vous m’achetez quelque chose ? Les deniers ne sont que du métal tant qu’on ne les dépense pas.' });
+  await c.say('pedlar', { en: 'Then we’ll be nameless together. Will you buy? Pennies are only metal until they’re spent.', fr: 'Alors nous voilà deux sans nom. Vous m’achetez quelque chose ? Les deniers ne sont que du métal tant qu’on ne les dépense pas.' });
 }
 
 async function atTheWoodsEdge(c: MapContext): Promise<void> {
-  await c.narrate({ en: 'The pedlar again, at the edge of the white wood. The colour has gone out of his ribbons, and a little out of him.', fr: 'Le colporteur encore, à la lisière du bois blanc. La couleur a quitté ses rubans, et un peu lui-même.' });
+  await c.narrate({ en: 'The pedlar again, at the edge of the white wood. The colour has gone out of his ribbons, and a little out of him.', fr: 'Le colporteur encore, à la lisière du bois blanc. La couleur a quitté ses rubans, et elle l’a un peu quitté, lui aussi.' });
   await c.say('pedlar', { en: 'I came the other way round. I always do. Every road twice: once to sell, and once to see how the ribbons were worn.', fr: 'Je suis venu par l’autre côté. Toujours. Chaque route deux fois : une pour vendre, une pour voir comment on porte les rubans.' });
   await c.say('isot', { en: 'You look… paler.', fr: 'Vous avez l’air… plus pâle.' }, 'alarmed');
   await c.say('pedlar', { en: 'The wood does that. It forgets what it’s looking at. Buy something quickly, before it forgets me.', fr: 'Le bois fait ça. Il oublie ce qu’il regarde. Achetez vite, avant qu’il m’oublie.' });
@@ -90,7 +90,7 @@ async function atTheUndercroft(c: MapContext): Promise<void> {
   openLowDoor(c, WALL_Y);
   await c.say(who, { en: 'The Rasure Vault. Everything they scraped up here, they swept down there. Mind the dogs. And there’s something at the bottom that has been trying to say a word for longer than I’ve been walking.', fr: 'La Crypte des raclures. Tout ce qu’ils grattaient ici, ils le balayaient là-dessous. Méfiez-vous des chiens. Et il y a, tout au fond, quelque chose qui essaie de dire un mot depuis plus longtemps que je ne marche.' });
   if (named())
-    await c.say('gervase', { en: 'This is my last stall. After this I’ll only walk the one road, and I won’t need a pack for it. Buy what you like. It’s all a quarter off, and all of it is yours if you’re short.', fr: 'C’est mon dernier étal. Après, je ne marcherai plus que sur une seule route, et je n’aurai pas besoin de ballot. Prenez ce qui vous plaît. Tout est à un quart de moins, et tout est à vous s’il vous manque de quoi.' });
+    await c.say('gervase', { en: 'This is my last stall. After this I’ll only walk the one road, and I won’t need a pack for it. Buy what you like. It’s all a quarter off, and all of it is yours if you’re short.', fr: 'C’est mon dernier étal. Après, je ne marcherai plus que sur une seule route, et je n’aurai pas besoin de ballot. Prenez ce qui vous plaît. Tout est à un quart de remise, et tout est à vous s’il vous manque de quoi.' });
   else await c.say('pedlar', { en: 'Buy something. I don’t think I’ll be setting this pack down again.', fr: 'Achetez quelque chose. Je crois que je ne poserai plus ce ballot.' });
 }
 
@@ -114,12 +114,12 @@ async function atTheFair(c: MapContext): Promise<void> {
   c.set('gervaseNamed');
   c.npc('gervase').sprite.fray = 0.1;
   c.flash(0.4);
-  await c.narrate({ en: 'The colour comes back into his ribbons all at once, rose and woad and weld, the way a field comes back when a cloud goes off it.', fr: 'La couleur revient d’un coup dans ses rubans, rose, guède et gaude, comme un champ revient quand un nuage s’en va.' });
+  await c.narrate({ en: 'The colour comes back into his ribbons all at once, rose and woad and weld, the way a field comes back when a cloud goes off it.', fr: 'La couleur revient d’un coup dans ses rubans, rose, guède et gaude, comme un champ quand l’ombre d’un nuage le quitte.' });
   await c.say('gervase', { en: 'Gervase. My mother sold eggs beside my stall at Ninefold fair. She called me in at dusk by that name.', fr: 'Gervais. Ma mère vendait des œufs à côté de mon étal, à la foire de Ninefold. C’est ce nom-là qu’elle criait au crépuscule.' });
   await c.say('gervase', { en: 'Every road twice. Once to sell, and once to see the ribbons worn: in a girl’s hair, on a bridle, round a baby’s wrist at a christening. I’d forgotten that was why.', fr: 'Chaque route deux fois. Une pour vendre, une pour voir les rubans portés : dans les cheveux d’une fille, à une bride, au poignet d’un bébé qu’on baptise. J’avais oublié que c’était pour ça.' });
   await c.say('gervase', { en: 'Here. The last one. I was keeping it for whoever said my name. I didn’t know I was keeping it.', fr: 'Tenez. Le dernier. Je le gardais pour qui dirait mon nom. Je ne savais pas que je le gardais.' });
   await c.find('gervasesRibbon');
   if (c.party.some((a) => a.id === 'whit')) await c.say('whit', { en: 'When his time comes, I will read it to him again. He will have heard it twice.', fr: 'Quand son heure viendra, je le lui lirai encore. Il l’aura entendu deux fois.' });
-  await c.say('gervase', { en: 'And a quarter off, from now on. Don’t tell the geese.', fr: 'Et un quart de moins, désormais. N’en dites rien aux oies.' });
+  await c.say('gervase', { en: 'And a quarter off, from now on. Don’t tell the geese.', fr: 'Et un quart de remise, désormais. N’en dites rien aux oies.' });
   await returnName(c, 'gervase');
 }

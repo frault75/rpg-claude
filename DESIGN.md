@@ -651,7 +651,7 @@ A battle is fought where it is met, on a stage in the diorama (§8.2), lit by th
 
 - **Enemies** stand in up to four places, numbered from the front (**1st–4th**; the 1st is nearest the party). Large bosses take two.
 - **The party** stands in three places: **Front** (nearest the enemies), **Middle** and **Rear**. The default formation is Whit in the Front, Hild in the Middle and Isot in the Rear. The player sets it in the pause menu's Party page (§10.7). In a fight with fewer allies, they fill the places from the Front.
-- **Intents.** Above each enemy floats a **banderole**, the speech scroll of medieval art. Its intent for the round is written on it in red: what it will do, to which place or person, and how hard. Each banderole is numbered with its order of action. Small pips show which allies it would hit as things stand, and pointing at it draws a dotted red line to them.
+- **Intents.** Above each enemy floats a **banderole**, the speech scroll of medieval art. Its intent for the round is written on it in two lines. The first, in red, is the deed alone, in a few words (*Looses an arrow*, *Bites*, a Mummer's couplet). The second, in brown capitals, says at whom (a place, a name, *everyone*) and how hard, the number in red, then anything else it does (*Strips Ward*, *Smudge*, *in 1*). The aim is worked out from where the blow really falls, so an Emended blow shows its new target. Each scroll is as long as its words need. Each banderole is numbered with its order of action. Small pips show which allies it would hit as things stand, and pointing at it draws a dotted red line to them.
 - **Commands** sit in lapis windows in the menus' style (§8.8): the chosen ally's abilities with their costs, HP as a bar and a number, and Ink as small inkpots.
 - **Defeated marginalia** fray to outlines and scatter back into the Margin (§8.6).
 
@@ -788,7 +788,7 @@ These are baseline numbers, to be tuned in playtests.
 | **Pumice Brother** | I, III, V | 9 | *Scours the Front · 3, strips Ward* (Close), then *Rasps at the Rear: Smudge* (Far; only Isot can be Smudged), repeating. Every third round, if one of his side is hurt: *Holds the line*: the most hurt gains Ward 3. |
 | **Snail** | IV | 6 | *Creeps: Front · 2* (Close; it comes out of its shell as it declares this), then *Withdraws into its shell* (Shelled from the Omen), alternating |
 | **Marginal Hare** | II, IV | 5 | *Looses an arrow at the Rear · 3* (Far) twice, then *Bounds to the back* (moves to the rearmost place), repeating |
-| **Babewyn**, a two-headed hybrid | II, IV | 10 | **Two banderoles every round:** *Bites the Front · 3* (Close) and *Spits at the Middle · 2* (Far) |
+| **Babewyn**, a two-headed hybrid | II, IV | 10 | **Two banderoles every round:** *Bites* the Front · 3 (Close) and *Spits* at the Middle · 2 (Far) |
 | **Wodewose** | III | 16 | *Gathers itself to club the Front · 9 (in 1)* (Close), which strikes the next round, then *Roars: the party's Ward is stripped*, alternating |
 | **Prior Gaudry** | III, V | 18 | *Edict: the Front shall kneel* (the Front ally can't act next round), and *Scours* |
 | **Caladrius**, a bestiary bird | IV | 6 | *Looks away from [ally]: that ally takes double damage this round* (Doomed from the Omen; the bird of the bestiary looks away from those about to die), or *Flutters: Ward 2* |
@@ -1512,6 +1512,11 @@ The game ships in **English and French**. The language is detected from the brow
 | HP | PV | Pumice Brother | Frère de la Ponce |
 | Saint Ebb's | Saint-Ebb | The Mercy | la Miséricorde |
 | The Grey Sweat | la Suette grise | The Scraping | Le Grattage |
+| MERCY (the bell) | MISÉRICORDE | The Blanchwood | le Bois-Blanc |
+| Underbook | Sous-Livre | the mere | l'étang |
+| Weeper, Morning, Singer, Tenor | Larme, Matin, Chantre, Ténor | a toll | un coup (de cloche) |
+
+- **Words in the world follow the language too.** The names under the whitewash and the plaques of the bells are drawn in the player's language when the map is built, so the bell-tower rhyme names what is on the wall. Latin stays Latin (*QUOD LECTUM EST LIGATUR*, *GODRIC RASOR*).
 
 ---
 
@@ -1696,6 +1701,7 @@ Each milestone is playable and arrives as its own PR, with build and tests green
 | **Done** | The Charcoal Hollow | §3.14: the kilns still burning in the Blanchwood, the wodewose mother and her ember-grylli (S2: embers burst when put out, she blows them back to life), the hermit and Maud's name, a hidden cache; Ninefold opens back to the wood |
 | **Done** | The Fair's back lanes | §3.14: the copying stall and its ape-scribes (S3: every blow copied back at whoever struck it, as hard), the skep and Old Cutha told to the bees, a hidden cache |
 | **Done** | The Undercroft | §3.14: the low door Gervase opens at his last stall; the Rasure Vault, its chute, drifts, herses and pumice tubs; the sweepers (S4: hounds that hunt whoever acted last, and Godric given his name in three Glosses), the palimpsest knights (S5: what they lose in a round they write back), and the Heap (B6: every blow knocks a letter of its word loose; it is read once it has said ADSUM), a hidden cache; Osric given back to Cuthwin, who hums the flat Amen |
+| **Done** | Banderoles and a writing pass | Banderoles say the deed in a few words, then whom and how hard on a line of their own, each as long as its words; scenes no longer close on a moral or explain the feeling just shown, nobody reads a rule aloud, the same images are not reused from scene to scene; the French reads as French (no calques, MISÉRICORDE, le Bois-Blanc, l'étang, coups de cloche), and the inscriptions and bell plaques are in the player's language |
 
 ---
 

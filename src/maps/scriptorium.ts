@@ -146,7 +146,7 @@ export const SCRIPTORIUM: MapDef = {
       h: 14,
       run: async (c) => {
         await c.say('isot', { en: 'Psalm ninety, half copied. “We bring our years to an end, as it were a tale that is told.”', fr: 'Psaume quatre-vingt-dix, à moitié copié. « Nos années s’achèvent comme un conte qu’on raconte. »' }, 'tired');
-        await c.say('isot', { en: 'Nobody’s years have ended in ten winters. The psalm doesn’t know that.', fr: 'Les années de personne ne se sont achevées depuis dix hivers. Le psaume ne le sait pas.' }, 'wry');
+        await c.say('isot', { en: 'Nobody’s years have ended in ten winters. The psalm doesn’t know that.', fr: 'Depuis dix hivers, personne n’a vu ses années s’achever. Le psaume ne le sait pas.' }, 'wry');
         await c.find('lampBlack', { en: 'She scrapes the soot from her lamp into a little pot and grinds it with gum, the way Wystan showed her.', fr: 'Elle gratte la suie de sa lampe dans un petit pot et la broie à la gomme, comme Wystan le lui a montré.' });
       },
     },
@@ -306,7 +306,7 @@ async function marginsStir(c: MapContext): Promise<void> {
   c.emote(c.player, 'alarm');
   await c.wait(0.8);
   await c.say('isot', { en: 'Grylli. Out of the margin. That’s not… they don’t do that.', fr: 'Des grylles. Sortis de la marge. Ce n’est pas… ils ne font pas ça.' }, 'alarmed');
-  await c.say('isot', { en: 'Penknife, then. Gloss what they mean to do, and strike it through if I have the ink.', fr: 'Le canif, alors. Gloser ce qu’ils comptent faire, et le biffer si j’ai l’encre.' }, 'stern');
+  await c.say('isot', { en: 'Penknife, then. Read what they mean to do first. Then cross it out, if my ink holds.', fr: 'Le canif, alors. D’abord lire ce qu’ils comptent faire. Ensuite le rayer, si mon encre tient.' }, 'stern');
   for (const b of grylli) b.dispose();
   grylli = [];
   c.battle('f1');
@@ -361,7 +361,7 @@ async function theSentence(c: MapContext): Promise<void> {
     await c.say('aumery', { en: 'Then the Book will forget you without a lie in your mouth. That is better.', fr: 'Alors le Livre t’oubliera sans mensonge dans la bouche. C’est mieux.' });
   } else await c.say('aumery', { en: 'Good. Silence is a kind of prayer.', fr: 'Bien. Le silence est une sorte de prière.' });
   await c.narrate({ en: 'Through the window, by torchlight, brothers are lifting bells off the carts in the yard. Big ones, from a dozen parishes.', fr: 'Par la fenêtre, à la lueur des torches, des frères descendent des cloches des charrettes dans la cour. De grosses cloches, d’une douzaine de paroisses.' });
-  await c.say('aumery', { en: 'Take her to the penitent’s cell. Let her pray, if she remembers how.', fr: 'Menez-la à la cellule des pénitents. Qu’elle prie, si elle s’en souvient.' });
+  await c.say('aumery', { en: 'Take her to the penitent’s cell. Let her pray, if she remembers how.', fr: 'Menez-la à la cellule du pénitent. Qu’elle prie, si elle s’en souvient.' });
   c.set('sentenced');
   await c.wait(0.6);
   c.goto('cell', 'start');

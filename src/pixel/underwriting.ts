@@ -6,6 +6,7 @@
  * when it comes down, and its rubble.
  */
 
+import { lang, type LocalText } from '../i18n/i18n';
 import { hash2 } from '../engine/noise';
 import { textImage } from './font';
 import { bayer, hex, PixelImage, type RGBA, ramp } from './pixel';
@@ -124,4 +125,9 @@ export function rubble(seed = 3): PixelImage {
 /** Words in the underwriting: pale ghost-ink on dark walls, or old sepia on bright ones. */
 export function ghostWords(lines: string[], sepia = false): PixelImage {
   return textImage(lines, sepia ? hex('#6A4A28', 235) : GHOST);
+}
+
+/** Words cut or written in the player's own language, drawn when the map is built. */
+export function ghostText(lines: LocalText[], sepia = false): () => PixelImage {
+  return () => ghostWords(lines.map((l) => l[lang()]), sepia);
 }

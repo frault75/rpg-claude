@@ -197,7 +197,7 @@ async function theDoors(c: MapContext): Promise<void> {
   c.letterbox(true);
   await c.wait(0.8);
   await c.narrate({ en: 'Ermeline opens the church doors for them from the inside, and Hild walls them shut again behind, against the Order.', fr: 'Ermeline leur ouvre de l’intérieur les portes de l’église, et Hild les mure derrière eux, contre l’Ordre.' });
-  await c.say('ermeline', { en: 'Each toll takes a band of the floor. I’ll go ahead and light where it takes next. Don’t stand there.', fr: 'Chaque glas emporte une bande du sol. Je passe devant et j’éclaire celle qu’il prendra ensuite. Ne restez pas dessus.' });
+  await c.say('ermeline', { en: 'Each toll takes a band of the floor. I’ll go ahead and light where it takes next. Don’t stand there.', fr: 'Chaque coup de cloche emporte une bande du sol. Je passe devant et j’éclaire celle qu’il prendra ensuite. Ne restez pas dessus.' });
   await c.say('isot', { en: 'To the altar, then. Before the ninth.', fr: 'À l’autel, alors. Avant le neuvième.' }, 'stern');
   const e = c.npc('ermeline');
   void c.walk(e, [[tiles(27), tiles(5.2)]]);
@@ -213,15 +213,15 @@ async function brotherAndSister(c: MapContext): Promise<void> {
   const a = c.npc('aumery');
   const hild = c.party.find((x) => x.id === 'hild');
   await c.pan(tiles(26), tiles(5.6), 1.2);
-  await c.narrate({ en: 'Aumery stands at the Book on the high altar, Ebba’s Pumice in his hand, MERCY above him. The dawn comes red through the rose window.', fr: 'Aumery se tient devant le Livre sur le maître-autel, la Ponce d’Ebba à la main, MERCY au-dessus de lui. L’aube entre rouge par la rosace.' });
+  await c.narrate({ en: 'Aumery stands at the Book on the high altar, Ebba’s Pumice in his hand, MERCY above him. The dawn comes red through the rose window.', fr: 'Aumery se tient devant le Livre sur le maître-autel, la Ponce d’Ebba à la main, MISÉRICORDE au-dessus de lui. L’aube entre rouge par la rosace.' });
   await c.say('aumery', { en: 'Ten years and no mother has buried a child. Not one. You want to give them back their graves.', fr: 'Dix ans, et pas une mère n’a enterré un enfant. Pas une. Vous voulez leur rendre leurs tombes.' });
-  await c.say('isot', { en: 'You didn’t stop death. You turned it into forgetting. I’ve seen where they go.', fr: 'Vous n’avez pas arrêté la mort. Vous en avez fait de l’oubli. J’ai vu où ils vont.' }, 'stern');
+  await c.say('isot', { en: 'Nobody stopped dying, Father. You scraped the ending off, that’s all. I’ve seen where they go.', fr: 'Personne n’a cessé de mourir, mon père. Vous avez gratté la fin, voilà tout. J’ai vu où ils vont.' }, 'stern');
   await c.say('aumery', { en: 'You know that weight, child. You’ve carried it. Help me carry it.', fr: 'Tu connais ce poids, mon enfant. Tu l’as porté. Aide-moi à le porter.' });
   if (hild) await c.walk(hild, [[a.x - 22, a.y + 2]]);
   await c.say('hild', { en: 'You didn’t save me, Aumery. You kept me. Like a flower pressed in a book.', fr: 'Tu ne m’as pas sauvée, Aumery. Tu m’as gardée. Comme une fleur pressée dans un livre.' }, 'sad');
   await c.say('aumery', { en: 'I couldn’t be the one left.', fr: 'Je ne pouvais pas être celui qui reste.' });
   await c.say('hild', { en: 'So you arranged to be the only one.', fr: 'Alors tu t’es arrangé pour être le seul.' }, 'grave');
-  await c.narrate({ en: 'She stops punishing herself, there in front of him, and gives freely.', fr: 'Elle cesse de se punir, là, devant lui, et donne sans compter.' });
+  await c.narrate({ en: 'Hild puts her hand over her brother’s, the one holding the pumice, and leaves it there.', fr: 'Hild pose la main sur celle de son frère, celle qui tient la ponce, et l’y laisse.' });
   c.letterbox(false);
   await c.learn('hild', 'benison');
   c.letterbox(true);
@@ -248,14 +248,14 @@ async function goldLineByLine(c: MapContext): Promise<void> {
     bell(ctx, c.audio.bus('sfx'), midiToHz(43), ctx.currentTime, 0.6, 12);
     bell(ctx, c.audio.reverbIn, midiToHz(43), ctx.currentTime, 0.5, 12);
   }
-  await c.narrate({ en: 'Across the water, in Lychford, Dunstan and Hob and the children ring the bell they hauled out of the mere. Its toll and the fifth letter are one sound.', fr: 'De l’autre côté de l’eau, à Lychford, Dunstan, Hob et les enfants sonnent la cloche qu’ils ont tirée de la mare. Son glas et la cinquième lettre ne font qu’un seul son.' });
+  await c.narrate({ en: 'Across the water, in Lychford, Dunstan and Hob and the children ring the bell they hauled out of the mere. Its toll and the fifth letter are one sound.', fr: 'De l’autre côté de l’eau, à Lychford, Dunstan, Hob et les enfants sonnent la cloche qu’ils ont tirée de l’étang. Le coup de cloche et la cinquième lettre ne font qu’un seul son.' });
   c.shake(3, 1);
   await c.narrate({ en: 'Aumery lunges to scrape the word again.', fr: 'Aumery se jette en avant pour gratter le mot de nouveau.' });
   await c.walk(whit, [[a.x - 14, a.y]]);
   await c.say('whit', { en: 'No more, Aumery.', fr: 'Assez, Aumery.' });
   c.flash(0.6);
   c.shake(6, 1.6);
-  await c.narrate({ en: 'A gauntlet closes gently on his wrist. A crack runs down MERCY from crown to lip.', fr: 'Un gantelet se referme doucement sur son poignet. Une fissure parcourt MERCY du cerveau à la lèvre.' });
+  await c.narrate({ en: 'A gauntlet closes gently on his wrist. A crack runs down MERCY from crown to lip.', fr: 'Un gantelet se referme doucement sur son poignet. Une fissure parcourt MISÉRICORDE du cerveau à la lèvre.' });
   // Colour returns: every pigment at once, for the first time.
   for (let k = 0; k <= 24; k++) {
     c.r.grade.saturation = 0.95 + k * 0.02;
@@ -263,9 +263,9 @@ async function goldLineByLine(c: MapContext): Promise<void> {
     await c.wait(0.08);
   }
   await c.narrate({ en: 'The blanching lifts. Colour floods back over Hollin from the fens to Holmcaster, and out of the Margin the overflow rises as lines of gold.', fr: 'Le blanchiment se lève. La couleur revient sur tout Hollin, des marais jusqu’à Holmcaster, et de la Marge le trop-plein s’élève en lignes d’or.' });
-  await c.say('whit', { en: 'Ten years of names. They’re all waiting.', fr: 'Dix ans de noms. Ils attendent tous.' });
+  await c.say('whit', { en: 'Ten years of names. I’d best begin.', fr: 'Dix ans de noms. Il est temps que je m’y mette.' });
   await c.say('hild', { en: 'Read mine first. I’ve been at the front of the line a long time.', fr: 'Lis le mien en premier. Ça fait longtemps que je suis en tête de la file.' }, 'warm');
-  await c.say('hild', { en: 'Aumery. Live. Remember me. That’s your penance, and it’s a kind one.', fr: 'Aumery. Vis. Souviens-toi de moi. C’est ta pénitence, et elle est douce.' }, 'grave');
+  await c.say('hild', { en: 'Aumery. Live. Remember me. That’s your penance. It’s a light one.', fr: 'Aumery. Vis. Souviens-toi de moi. C’est ta pénitence. Elle est légère.' }, 'grave');
   await c.say(
     'hild',
     g.flags.hildUnforgiven
@@ -275,7 +275,7 @@ async function goldLineByLine(c: MapContext): Promise<void> {
   );
   await c.say('hild', { en: 'Gently, now.', fr: 'Doucement, maintenant.' }, 'warm');
   await c.narrate({ en: 'She squeezes Isot’s hand, then lets go.', fr: 'Elle serre la main d’Isot, puis la lâche.' });
-  await c.say('whit', { en: 'Hild of Saint Ebb’s, who nursed Lychford through the Grey Sweat.', fr: 'Hild de Saint-Ebb, qui soigna Lychford pendant la Suée grise.' });
+  await c.say('whit', { en: 'Hild of Saint Ebb’s, who nursed Lychford through the Grey Sweat.', fr: 'Hild de Saint-Ebb, qui soigna Lychford pendant la Suette grise.' });
   if (ctx) {
     bell(ctx, c.audio.reverbIn, midiToHz(43), ctx.currentTime, 0.5, 12);
     bell(ctx, c.audio.bus('sfx'), midiToHz(55), ctx.currentTime + 0.3, 0.3, 8);
@@ -290,8 +290,8 @@ async function goldLineByLine(c: MapContext): Promise<void> {
     }
     hild.visible = false;
   }
-  await c.narrate({ en: 'She does not blank out. She turns to gold, line by line, and then she is gone. Being finished looks nothing like being forgotten.', fr: 'Elle ne s’efface pas. Elle se change en or, ligne après ligne, puis elle n’est plus là. Être finie ne ressemble en rien à être oubliée.' });
-  await c.narrate({ en: 'Isot writes Wystan’s name back into the Book in a plain hand. Whit reads it. Far off in the Margin, a small ape-scribe sets down his pen and becomes a line of gold.', fr: 'Isot réécrit le nom de Wystan dans le Livre, d’une main simple. Whit le lit. Loin dans la Marge, un petit singe scribe pose sa plume et devient une ligne d’or.' });
+  await c.narrate({ en: 'She turns to gold, line by line, from the hem up, and then she is gone.', fr: 'Elle se change en or, ligne après ligne, depuis l’ourlet de sa robe, puis elle n’est plus là.' });
+  await c.narrate({ en: 'Isot writes Wystan’s name back into the Book in a plain hand. Whit reads it. Far off in the Margin, a small ape-scribe sets down his pen and becomes a line of gold.', fr: 'Isot réécrit le nom de Wystan dans le Livre, d’une écriture sans ornement. Whit le lit. Loin dans la Marge, un petit singe scribe pose sa plume et devient une ligne d’or.' });
   if (g.flags.amabelScraped)
     await c.narrate({ en: 'A small brown hen in the Margin is written back as Amabel of Lychford, and read, and finished.', fr: 'Une petite poule brune de la Marge est réécrite en Amabel de Lychford, et lue, et finie.' });
   else
@@ -300,20 +300,20 @@ async function goldLineByLine(c: MapContext): Promise<void> {
         ? { en: 'In Lychford, Amabel is read at home with Hob’s hand in hers, and Isot is there, as she promised.', fr: 'À Lychford, Amabel est lue chez elle, la main de Hob dans la sienne, et Isot est là, comme promis.' }
         : { en: 'In Lychford, Amabel is read at home with Hob’s hand in hers.', fr: 'À Lychford, Amabel est lue chez elle, la main de Hob dans la sienne.' },
     );
-  await c.narrate({ en: 'Prior Gaudry hears his son’s name read, and weeps for the first time in ten years. At Holmcaster, King Cenwalh is read in his sleep.', fr: 'Le prieur Gaudry entend lire le nom de son fils, et pleure pour la première fois en dix ans. À Holmcaster, le roi Cenwalh est lu dans son sommeil.' });
+  await c.narrate({ en: 'Prior Gaudry hears his son’s name read, and weeps for the first time in ten years. At Holmcaster, King Cenwalh is read in his sleep.', fr: 'Le prieur Gaudry entend lire le nom de son fils, et pleure pour la première fois depuis dix ans. À Holmcaster, le roi Cenwalh est lu dans son sommeil.' });
   await c.narrate({ en: 'Whit takes off his helm. Isot looks at him for a long moment.', fr: 'Whit ôte son heaume. Isot le regarde un long moment.' });
   await c.say('isot', { en: 'Oh. You’re…', fr: 'Oh. Tu es…' }, 'alarmed');
   await c.say('whit', { en: 'Plain?', fr: 'Ordinaire ?' });
   await c.say('isot', { en: 'Kind.', fr: 'Doux.' }, 'warm');
-  if (g.flags.confessed) await c.say('whit', { en: 'You told them yourself, on the vine. That’s the harder kind of writing.', fr: 'Tu le leur as dit toi-même, sur la vigne. C’est la sorte d’écriture la plus difficile.' });
+  if (g.flags.confessed) await c.say('whit', { en: 'You told them yourself, on the vine. With no knife and no ink.', fr: 'Tu le leur as dit toi-même, sur la vigne. Sans canif, et sans encre.' });
   await c.say('whit', { en: 'Keep the Book, Isot. Write them, so I can read them.', fr: 'Garde le Livre, Isot. Écris-les, pour que je puisse les lire.' });
   await c.say('whit', { en: 'I’ll read yours too, one day. Not soon. And slowly.', fr: 'Je lirai le tien aussi, un jour. Pas bientôt. Et lentement.' });
   await c.walk(whit, [[DOORS[0] + 20, DOORS[1]]]);
   whit.visible = false;
-  await c.narrate({ en: 'He walks out along the causeway at low tide, with a long road of beds before him.', fr: 'Il s’en va par la chaussée à marée basse, avec devant lui une longue route de lits.' });
+  await c.narrate({ en: 'He walks out along the causeway at low tide, with a long road of beds before him.', fr: 'Il s’en va par la chaussée à marée basse ; devant lui, une longue route, de chevet en chevet.' });
   await c.narrate({ en: 'The day after the first funeral in Hollin in ten years, Eadgyth is crowned at Holmcaster.', fr: 'Le lendemain des premières funérailles en Hollin depuis dix ans, Eadgyth est couronnée à Holmcaster.' });
   c.close();
-  await c.narrate({ en: 'Aumery asked to be walled into Hild’s empty anchorhold, and was. Isot, Keeper of the Book, writes Ninefold back into it a street a day, from Ermeline’s litany and the Glossators’ Underbooks.', fr: 'Aumery demanda à être muré dans la réclusoire vide de Hild, et le fut. Isot, Gardienne du Livre, y réécrit Ninefold une rue par jour, d’après la litanie d’Ermeline et les Underbooks des Glossateurs.' });
+  await c.narrate({ en: 'Aumery asked to be walled into Hild’s empty anchorhold, and was. Isot, Keeper of the Book, writes Ninefold back into it a street a day, from Ermeline’s litany and the Glossators’ Underbooks.', fr: 'Aumery demanda à être muré dans la recluserie vide de Hild, et le fut. Isot, Gardienne du Livre, y réécrit Ninefold une rue par jour, d’après la litanie d’Ermeline et les Sous-Livres des Glossateurs.' });
   // The last page of her chronicle, with every Lost Name found in red, and the credits.
   g.flags.finished = true;
   g.chapter = 6;

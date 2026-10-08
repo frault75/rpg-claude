@@ -43,7 +43,7 @@ export const WOOD: MapDef = {
       note: { en: '“The wood forgets. Write on the bark, and it remembers a little longer.”', fr: '« Le bois oublie. Écris sur l’écorce, et il se souvient un peu plus longtemps. »' },
     },
   ],
-  card: { title: { en: 'The Blanchwood', fr: 'La Blanchewood' }, line: { en: 'Where the colour goes first', fr: 'Là où la couleur s’en va d’abord' } },
+  card: { title: { en: 'The Blanchwood', fr: 'Le Bois-Blanc' }, line: { en: 'Where the colour goes first', fr: 'Là où la couleur s’en va d’abord' } },
   walkable: '.dv',
   ground: GROUND,
   heights: HEIGHTS,
@@ -99,7 +99,7 @@ export const WOOD: MapDef = {
         c.emote(w, 'alarm');
         await c.narrate({ en: 'Out of the white between the trees steps a wodewose, a wild man of the woods, its hair gone the colour of the vellum. A gryllus scuttles at its heel.', fr: 'Du blanc entre les arbres sort un homme sauvage des bois, les poils devenus de la couleur du vélin. Un grylle trottine sur ses talons.' });
         await c.say('hild', { en: 'The wood’s own people. It’s frightened, child. It’s forgetting what it is.', fr: 'Le peuple même du bois. Il a peur, petite. Il oublie ce qu’il est.' }, 'grave');
-        await c.say('whit', { en: 'It’s gathering itself, like the tide did. One round to swing, then it falls on the Front.', fr: 'Il se ramasse, comme la marée. Un tour pour prendre son élan, puis il s’abat sur l’Avant.' });
+        await c.say('whit', { en: 'It’s gathering itself, like the tide did. Give it a breath, and it will come down on whoever stands in front.', fr: 'Il se ramasse, comme la marée tout à l’heure. Le temps d’un souffle, et il s’abattra sur celui qui est devant.' });
         c.battle('f5');
       },
     },
@@ -142,15 +142,15 @@ export const WOOD: MapDef = {
       c.letterbox(true);
       await c.wait(1.6);
       await c.say('whit', { en: 'The leaves are the wrong colour. No. They’re no colour.', fr: 'Les feuilles n’ont pas la bonne couleur. Non. Elles n’ont pas de couleur.' });
-      await c.say('hild', { en: 'The Blanchwood. It grew over Ninefold after the Scouring. It’s been forgetting itself ever since.', fr: 'La Blanchewood. Elle a poussé sur Ninefold après le Récurage. Elle s’oublie elle-même depuis.' }, 'grave');
-      await c.say('isot', { en: 'It isn’t winter. It’s being scraped. Slowly, from the inside.', fr: 'Ce n’est pas l’hiver. On la gratte. Lentement, de l’intérieur.' }, 'alarmed');
+      await c.say('hild', { en: 'The Blanchwood. It grew over Ninefold after the Scouring. It’s been forgetting itself ever since.', fr: 'Le Bois-Blanc. Il a poussé sur Ninefold après le Récurage. Depuis, il s’oublie lui-même.' }, 'grave');
+      await c.say('isot', { en: 'Someone’s scraping it. Slowly, from the inside. I know what that looks like.', fr: 'Quelqu’un la gratte. Lentement, de l’intérieur. Je sais à quoi ça ressemble.' }, 'alarmed');
       c.letterbox(false);
     }
     if (from === 'battle:f5' && !c.flag('wodewoseGone')) {
       c.set('wodewoseGone');
       c.letterbox(true);
       await c.narrate({ en: 'The wodewose sits down in the white. Its outline breaks, and then there is only the shape of where it was.', fr: 'L’homme sauvage s’assied dans le blanc. Son contour se rompt, puis il ne reste que la forme de l’endroit où il était.' });
-      await c.say('isot', { en: 'It wasn’t angry. It was afraid of being forgotten.', fr: 'Il n’était pas en colère. Il avait peur d’être oublié.' }, 'sad');
+      await c.say('isot', { en: 'It was afraid of being forgotten.', fr: 'Il avait peur d’être oublié.' }, 'sad');
       await c.say('whit', { en: 'So am I.', fr: 'Moi aussi.' });
       c.letterbox(false);
     }

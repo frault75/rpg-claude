@@ -763,7 +763,7 @@ export class Battle {
         this.emit({ type: 'phase', title: { en: m.letter, fr: m.letter }, line: { en: m.en, fr: m.fr } });
         if (this.letters === 3 && !this.phases.has('cleanPage')) {
           this.phases.add('cleanPage');
-          this.emit({ type: 'phase', id: 'cleanPage', title: { en: 'The Clean Page', fr: 'La Page propre' }, line: { en: 'Aumery steps into the Book. Now MERCY tolls on the page itself.', fr: 'Aumery entre dans le Livre. À présent MERCY sonne sur la page même.' } });
+          this.emit({ type: 'phase', id: 'cleanPage', title: { en: 'The Clean Page', fr: 'La Page propre' }, line: { en: 'Aumery steps into the Book. Now MERCY tolls on the page itself.', fr: 'Aumery entre dans le Livre. À présent MISÉRICORDE sonne sur la page même.' } });
         }
         if (this.letters === 5) {
           this.result = 'victory';

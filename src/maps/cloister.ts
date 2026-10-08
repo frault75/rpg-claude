@@ -13,7 +13,7 @@ import { bush, yewTree } from '../pixel/nature';
 import { hex, ramp } from '../pixel/pixel';
 import { stoneCross } from '../pixel/props';
 import { GROUND_DEFAULT } from '../pixel/terrain';
-import { ghostDoor, ghostWords } from '../pixel/underwriting';
+import { ghostDoor, ghostText } from '../pixel/underwriting';
 import { NIGHT_SKY } from '../world3d/sky';
 import { tiles } from '../world3d/stage';
 import { backWall, dawnInterior, sideWall } from './interior';
@@ -164,7 +164,7 @@ export const CLOISTER: MapDef = {
         c.emote(a, 'alarm');
         await c.pan(tiles(11), tiles(7), 0.8);
         await c.say('brother', { en: 'There! The scribe. And the anchoress, out of her wall!', fr: 'Là ! La scribe. Et la recluse, sortie de son mur !' });
-        await c.say('brother', { en: 'Back to your cell, mother. You took a vow.', fr: 'Retourne dans ta cellule, mère. Tu as fait un vœu.' });
+        await c.say('brother', { en: 'Back to your cell, mother. You took a vow.', fr: 'Retournez dans votre cellule, ma mère. Vous avez fait un vœu.' });
         await c.say('hild', { en: 'I took it back.', fr: 'Je l’ai repris.' }, 'stern');
         await c.say('hild', { en: 'Behind me, child. Watch where their blows are aimed, and step out of the way.', fr: 'Derrière moi, petite. Regarde où visent leurs coups, et écarte-toi.' }, 'grave');
         c.battle('f2');
@@ -201,7 +201,7 @@ export const CLOISTER: MapDef = {
       when: (c) => c.cleared('f2'),
       revealed: (c) => theFlight(c),
     },
-    { id: 'name-osric', x: CHURCH_X - tiles(3.4), y: WALL_Y + 1, h: 34, art: ghostWords(['BROTHER OSRIC', 'WHO SANG FLAT']), lostName: 'osric' },
+    { id: 'name-osric', x: CHURCH_X - tiles(3.4), y: WALL_Y + 1, h: 34, art: ghostText([{ en: 'BROTHER OSRIC', fr: 'FRERE OSRIC' }, { en: 'WHO SANG FLAT', fr: 'QUI CHANTAIT FAUX' }]), lostName: 'osric' },
   ],
   async enter(c, from) {
     if (from === 'church' && !c.cleared('f2')) {

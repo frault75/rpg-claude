@@ -82,7 +82,7 @@ const HEIGHTS = relief(W, H, [
 
 export const FLIGHT: MapDef = {
   id: 'flight',
-  card: { title: { en: 'The Blanchwood', fr: 'La Blanchewood' }, line: { en: 'The Blanching', fr: 'Le Blanchiment' } },
+  card: { title: { en: 'The Blanchwood', fr: 'Le Bois-Blanc' }, line: { en: 'The Blanching', fr: 'Le Blanchiment' } },
   walkable: '.dv',
   ground: GROUND,
   heights: HEIGHTS,
